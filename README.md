@@ -3,6 +3,12 @@ modforms-db
 
 Tool to build a modular forms database.
 
+Requirements
+============
+
+Python
+Elixir http://elixir.ematia.de/ 
+
 Copyright
 ===========
 Copyright (C) 2013 Stephan Ehlen, Fredrik Strömberg
