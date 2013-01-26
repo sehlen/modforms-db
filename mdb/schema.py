@@ -1,27 +1,28 @@
 from elixir import *
 from sqlalchemy.ext.associationproxy import AssociationProxy
-from sage.all import loads, dumps, sage_eval
+import bz2 as comp
 
 prefix='schema.'
 
 metadata.bind = "sqlite:///modularforms.sqlite"
 metadata.bind.echo = True
 
-class ModularSymbols_ambient(Entity):
+class ModularSymbols_ambient_DB(Entity):
     # primary key
     level = Field(Integer, primary_key=True)
     weight = Field(Integer, primary_key=True)
+    # the character is an integer following the Conrey naming scheme
     character = Field(Integer, default=0, primary_key=True)
     
     # data to reconstruct the space
     # TODO: add documentation!
-    basis = Field(Text)
-    manin = Field(Text)
-    rels = Field(Text)
-    mod2term = Field(Text)
+    basis = Field(Binary)
+    manin = Field(Binary)
+    rels = Field(Binary)
+    mod2term = Field(Binary)
 
     # the field of values of the character
-    has_one('base_field', of_kind='{0}ModularSymbols_base_field'.format(prefix))
+    has_one('base_field', of_kind='{0}ModularSymbols_base_field_DB'.format(prefix))
     
     # dimensions for convenience
     dimension_modular_forms = Field(Integer, default=-1)
@@ -29,8 +30,8 @@ class ModularSymbols_ambient(Entity):
     dimension_new_cusp_forms = Field(Integer, default=-1)
 
     # decomposition data
-    newform_orbits = OneToMany('ModularSymbols_newspace_factor')
-    oldspace_factors = OneToMany('ModularSymbols_oldspace_factor', inverse='ambient')
+    newform_orbits = OneToMany('ModularSymbols_newspace_factor_DB')
+    oldspace_factors = OneToMany('ModularSymbols_oldspace_factor_DB', inverse='ambient')
     oldspaces = AssociationProxy('oldspace_factors', 'factor',
                                         creator= lambda (factor,multiplicity):
                                         ModularSymbols_oldspace_factor(factor=factor,multiplicity=multiplicity))
@@ -39,10 +40,10 @@ class ModularSymbols_ambient(Entity):
         return 'Modular smybols ambient space of level {0}, weight {1}, character {2} and dimension {3}'.format(
             self.level, self.weight, self.character, self.dimension_modular_forms)
 
-class ModularSymbols_oldspace_factor(Entity):
+class ModularSymbols_oldspace_factor_DB(Entity):
     multiplicity = Field(Integer)
-    ambient = ManyToOne('{0}ModularSymbols_ambient'.format(prefix))
-    factor = ManyToOne('{0}ModularSymbols_ambient'.format(prefix))
+    ambient = ManyToOne('{0}ModularSymbols_ambient_DB'.format(prefix))
+    factor = ManyToOne('{0}ModularSymbols_ambient_DB'.format(prefix))
     
     def __repr__(self):
         return 'Oldspace factor of level {0}, weight {1}, character {2}, dimension {3} with multiplicity {4}'\
@@ -51,18 +52,54 @@ class ModularSymbols_oldspace_factor(Entity):
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
     
-class ModularSymbols_newspace_factor(Entity):
-    belongs_to('ambient', of_kind='{0}ModularSymbols_ambient'.format(prefix))
+class ModularSymbols_newspace_factor_DB(Entity):
+    belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
     # data to rectonstruct the ModularSymbols space
-    B = Field(Text)
-    Bd = Field(Text)
-    v = Field(Text)
-    nz = Field(Text)
+    _B = Field(Binary, colname = 'B')
+    _Bd = Field(Binary, colname = 'Bd')
+    _v = Field(Binary, colname = 'v')
+    _nz = Field(Binary, colname = 'nz')
+    #
+    @property
+    def B(self):
+        if self._B is not None:
+            return comp.decompress(str(self._B))
+        
+    def set_B(self, B):
+        if B is not None:
+            self._B = comp.compress(str(B))
+
+    @property
+    def Bd(self):
+        if self._Bd is not None:
+            return comp.decompress(str(self._Bd))
+        
+    def set_Bd(self, Bd):
+        if Bd is not None:
+            self._Bd = comp.compress(str(Bd))
+
+    @property
+    def v(self):
+        if self._v is not None:
+            return comp.decompress(str(self._v))
+        
+    def set_v(self, v):
+        if v is not None:
+            self._v = comp.compress(str(v))
+
+    @property
+    def nz(self):
+        if self._nz is not None:
+            return comp.decompress(str(self._nz))
+        
+    def set_nz(self, nz):
+        if nz is not None:
+            self._nz = comp.compress(str(nz))
     #
     dimension = Field(Integer)
     has_cm = Field(Boolean) # has complex multiplication?
-    has_one('coefficient_field', of_kind='{0}CoefficientField'.format(prefix))
-    has_many('coefficients', of_kind='{0}Coefficient'.format(prefix))
+    has_one('coefficient_field', of_kind='{0}CoefficientField_DB'.format(prefix))
+    has_many('coefficients', of_kind='{0}Coefficient_DB'.format(prefix))
 
     def __repr__(self):
         return 'Newspace factor of level {0}, weight {1}, character {2}, dimension {3}'\
@@ -70,14 +107,14 @@ class ModularSymbols_newspace_factor(Entity):
             self.level, self.weight, self.character, self.multiplicity,
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
-class Coefficient(Entity):
-    belongs_to('newform', of_kind='{0}ModularSymbols_newspace_factor'.format(prefix))
+class Coefficient_DB(Entity):
+    belongs_to('newform', of_kind='{0}ModularSymbols_newspace_factor_DB'.format(prefix))
     index = Field(Integer)
-    has_one('value', of_kind='{0}AlgebraicNumber'.format(prefix))
+    has_one('value', of_kind='{0}AlgebraicNumber_DB'.format(prefix))
 
-class NumberField(Entity):
-    has_many('extensions', of_kind='{0}NumberField'.format(prefix))
-    belongs_to('base_field', of_kind='{0}NumberField'.format(prefix))
+class NumberField_DB(Entity):
+    has_many('extensions', of_kind='{0}NumberField_DB'.format(prefix))
+    belongs_to('base_field', of_kind='{0}NumberField_DB'.format(prefix))
     minimal_polynomial = Field(String, primary_key=True) # relative to the base field
     degree = Field(Integer) # relative to the base field
     is_cyclotomic = Field(Boolean)
@@ -85,30 +122,29 @@ class NumberField(Entity):
     def __repr__(self):
         return 'Number field with minimal polynomial {0} over its base field.'.format(self.minimal_polynomial)
 
-class ModularSymbols_base_field(NumberField):
-    belongs_to('ambient', of_kind='{0}ModularSymbols_ambient'.format(prefix))
+class ModularSymbols_base_field_DB(NumberField_DB):
+    belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
 
-class CoefficientField(NumberField):
-    belongs_to('newspace', of_kind='{0}ModularSymbols_newspace_factor'.format(prefix))
+class CoefficientField_DB(NumberField_DB):
+    belongs_to('newspace', of_kind='{0}ModularSymbols_newspace_factor_DB'.format(prefix))
 
-class AlgebraicNumber(Entity):
-    belongs_to('number_field', of_kind='{0}NumberField'.format(prefix))
-    belongs_to('coefficient', of_kind='{0}Coefficient'.format(prefix))
-    _value = Field(Binary, colname='value') # this is the coefficient vector in terms of a power basis
+class AlgebraicNumber_DB(Entity):
+    belongs_to('number_field', of_kind='{0}NumberField_DB'.format(prefix))
+    belongs_to('coefficient', of_kind='{0}Coefficient_DB'.format(prefix))
+
+    # _value is the coefficient vector in terms of a power basis
+    # the 
+    # it is stored with bz2 compression
+    _value = Field(Binary, colname='value')
 
     @property
-    def vector(self):
-        if self._value is not None:
-            v = loads(str(self._value))
-            v = sage_eval(v)
-            return v
-
-    def _set_value_from_sage(self,x):
-        v = x.list()
-        v = dumps(str(v))
-        self._value = v
+    def value(self, v=None):
+        if v is not None:
+            self._value = comp.compress(str(v))
+        else:
+            if self._value is not None:
+                return comp.decompress(str(self._value))
     
     def __repr__(self):                    
-        return str(self.vector)
-
-    
+        return 'Algebraic Number {0}, element of Number Field with defining polynomial {1} over its base field.'.format(
+            self.value, self.number_field.minimal_polynomial)
