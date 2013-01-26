@@ -6,35 +6,46 @@ metadata.bind = "sqlite:///modularforms.sqlite"
 metadata.bind.echo = True
 
 class ModularSymbols_ambient(Entity):
+    # primary key
     level = Field(Integer, primary_key=True)
     weight = Field(Integer, primary_key=True)
     character = Field(Integer, default=0, primary_key=True)
+    
+    # data to reconstruct the space
+    # TODO: add documentation!
+    basis = Field(Text)
+    manin = Field(Text)
+    rels = Field(Text)
+    mod2term = Field(Text)
+
+    # the field of values of the character
+    has_one('base_field', of_kind='{0}ModularSymbols_base_field'.format(prefix))
+    
+    # dimensions for convenience
     dimension_modular_forms = Field(Integer, default=-1)
     dimension_cusp_forms = Field(Integer, default=-1)
     dimension_new_cusp_forms = Field(Integer, default=-1)
-    number_of_new_orbits = Field(Integer, default=-1)
-    oldspaces_associations = ManyToMany('OldspaceAssociation')
-#    newspaces_associations = OneToMany('OldspaceAssociation', inverse='ambient')
-    oldspace_factors = AssociationProxy('oldspaces_associations', 'factor',
-                                        creator= lambda factor: OldspaceAssociation(factor=factor,ambient=self))
-#    constituent_of = AssociationProxy('oldspaces_associations', 'ambient',
-#                                        creator= lambda ambient: OldspaceAssociation(ambient=ambient))
-#    has_many('oldspace_factors', through='{0}Modularsymbols_oldspace_factor'.format(prefix),
-#             via='{0}ModularSymbols_ambient'.format(prefix))
-    has_one('base_field', of_kind='{0}ModularSymbols_base_field'.format(prefix))
 
-class OldspaceAssociation(Entity):
+    # decomposition data
+    newform_orbits = OneToMany('ModularSymbols_newspace_factor')
+    oldspace_factors = OneToMany('ModularSymbols_oldspace_factor', inverse='ambient')
+    oldspaces = AssociationProxy('oldspace_factors', 'factor',
+                                        creator= lambda (factor,multiplicity):
+                                        ModularSymbols_oldspace_factor(factor=factor,multiplicity=multiplicity))
+
+class ModularSymbols_oldspace_factor(Entity):
     multiplicity = Field(Integer)
     ambient = ManyToOne('{0}ModularSymbols_ambient'.format(prefix))
     factor = ManyToOne('{0}ModularSymbols_ambient'.format(prefix))
-
-#class ModularSymbols_oldspace_factor(Entity):
-#    belongs_to('ambient', of_kind='{0}ModularSymbols_ambient'.format(prefix))
-#    has_one('factor', of_kind='{0}ModularSymbols_ambient'.format(prefix))
-#    multiplicity = Field(Integer)
     
 class ModularSymbols_newspace_factor(Entity):
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient'.format(prefix))
+    # data to rectonstruct the ModularSymbols space
+    B = Field(Text)
+    Bd = Field(Text)
+    v = Field(Text)
+    nz = Field(Text)
+    #
     dimension = Field(Integer)
     has_cm = Field(Boolean) # has complex multiplication?
     has_one('coefficient_field', of_kind='{0}CoefficientField'.format(prefix))
