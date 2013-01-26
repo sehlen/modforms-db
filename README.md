@@ -6,8 +6,8 @@ Tool to build a modular forms database.
 Requirements
 ============
 
-Python
-Elixir http://elixir.ematia.de/ 
+* Python
+* Elixir http://elixir.ematia.de/ 
 
 Copyright
 ===========
@@ -25,4 +25,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with modforms-db.  If not, see <http://www.gnu.org/licenses/>.
+
+Example usage
+==============
+
+
+## Initial setup of database
+
+import schema
+schema.setup_all()
+schema.create_all()
 
