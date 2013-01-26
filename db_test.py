@@ -1,0 +1,67 @@
+r"""
+Inserting records in the database from 
+
+"""
+import inspect,os
+
+basedir =  os.path.dirname(inspect.getabsfile(inspect.currentframe()))
+os.sys.path.append("{0}/../mfdb/".format(basedir))
+os.sys.path.append("{0}".format(basedir))
+os.sys.path.append("{0}/mdb/".format(basedir))
+
+import mfdb
+import mdb
+import schema
+from schema import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
+schema.setup_all() 
+schema.create_all()
+DB=mfdb.WDB('git/mfdb/data/')
+
+#print DB.known(format='web')
+
+def insert_spaces(DB,q="N=1 and k=12"):
+    
+    for N,k,ch,numo,nap in DB.known(q):
+        print "Inserting {0},{1},{2},{3},{4}".format(N,k,ch,numo,nap)
+        d = DB.get_spaces(N,k,ch,format='data')[0]
+        M = d['ambient']
+        d['level']=N; d['weight']=k; d['character']=ch
+        orbits = d['orbits']
+        assert d['num_orbits']==numo
+        d['orbits_dict'] = DB.get_decomposition(N,k,ch)[(N,k,ch)]    
+        insert_space_into_new_db(d)
+
+    
+def insert_space_into_new_db(M):
+    r"""
+    Insert M into the database.
+    M can be either a ModularSymbol_ambient or a dictionary.
+    orbits is either a list of 
+    """
+    if not isinstance(M,dict):
+        raise NotImplementedError("Method needs to be called with dictionary")
+    basis = None; manin= None; rels = None; mod2term = None
+    orbits = M['orbits']
+    num_orbits = len(orbits)
+    level=M['level']; weight=M['weight']; character = M['character']
+    #Md = M['ambient_dict']
+    #basis = Md['basis']; manin=Md['manin']
+    #rels = Md['rels']; mod2term=Md['mod2term']
+    A = ModularSymbols_ambient(level=level,weight=weight,character=character,basis=basis,manin=manin,rels=rels,mod2term=mod2term)
+    print "Inserted A"
+    for i in range(M.get('num_orbits',0)):
+        orbit = orbits[i]
+        d = int(orbit.dimension())
+        B=str(M['orbits_dict'][i]['B'])
+        Bd=str(M['orbits_dict'][i]['Bd'])
+        v=unicode(M['orbits_dict'][i]['v'])
+        nz=unicode(M['orbits_dict'][i]['nz'])
+        print "v=",v
+        print "nz=",nz
+        Anew = ModularSymbols_newspace_factor(dimension=d,B=B,Bd=Bd,v=v,nz=nz)
+    
+    A.newform_orbits.append(Anew)
+    schema.session.commit()
+
+def view_db():
+    return ModularSymbols_ambient.query.all()

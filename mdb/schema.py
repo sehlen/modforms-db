@@ -1,10 +1,14 @@
+import inspect
+import os
 from elixir import *
 from sqlalchemy.ext.associationproxy import AssociationProxy
 import bz2 as comp
 
 prefix='schema.'
-
-metadata.bind = "sqlite:///modularforms.sqlite"
+f = inspect.getabsfile(inspect.currentframe())
+datadir = "/".join(os.path.dirname(f).rsplit("/")[0:-1]+["data"])
+#metadata.bind = "sqlite:///data/modularforms.sqlite"
+metadata.bind = "sqlite:///{0}/modularforms.sqlite".format(datadir)
 metadata.bind.echo = True
 
 class ModularSymbols_ambient_DB(Entity):
@@ -102,9 +106,8 @@ class ModularSymbols_newspace_factor_DB(Entity):
     has_many('coefficients', of_kind='{0}Coefficient_DB'.format(prefix))
 
     def __repr__(self):
-        return 'Newspace factor of level {0}, weight {1}, character {2}, dimension {3}'\
-               + ' of Modular forms ambient space of level {4}, weight {5}, character {6} and dimension {7}' .format(
-            self.level, self.weight, self.character, self.multiplicity,
+        return 'Newspace factor of dimension {0} of Modular forms ambient space of level {1}, weight {2}, character {3} and dimension {4}'.format(
+            self.dimension,
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
 class Coefficient_DB(Entity):
