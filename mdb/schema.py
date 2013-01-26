@@ -1,8 +1,12 @@
+import inspect
+import os
 from elixir import *
 from sqlalchemy.ext.associationproxy import AssociationProxy
 prefix='schema.'
-
-metadata.bind = "sqlite:///modularforms.sqlite"
+f = inspect.getabsfile(inspect.currentframe())
+datadir = "/".join(os.path.dirname(f).rsplit("/")[0:-1]+["data"])
+#metadata.bind = "sqlite:///data/modularforms.sqlite"
+metadata.bind = "sqlite:///{0}/modularforms.sqlite".format(datadir)
 metadata.bind.echo = True
 
 class ModularSymbols_ambient(Entity):
