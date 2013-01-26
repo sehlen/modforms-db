@@ -69,9 +69,8 @@ class ModularSymbols_newspace_factor(Entity):
     has_many('coefficients', of_kind='{0}Coefficient'.format(prefix))
 
     def __repr__(self):
-        return 'Newspace factor of level {0}, weight {1}, character {2}, dimension {3}'\
-               + ' of Modular forms ambient space of level {4}, weight {5}, character {6} and dimension {7}' .format(
-            self.level, self.weight, self.character, self.multiplicity,
+        return 'Newspace factor of dimension {0} of Modular forms ambient space of level {1}, weight {2}, character {3} and dimension {4}'.format(
+            self.dimension,
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
 class Coefficient(Entity):
