@@ -68,7 +68,7 @@ def insert_space_into_new_db(M):
         Anew.set_v(v)
         Anew.set_nz(nz)
 
-    A.newform_orbits.append(Anew)
+    A.newspace_factors.append(Anew)
     schema.session.commit()
 
 def view_db():

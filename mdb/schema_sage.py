@@ -2,6 +2,10 @@ from schema import *
 from sage.all import sage_eval
 from conversions import *
 
+Q = NumberField_DB()
+Q.minimal_polynomial = 'x'
+Q.degree = int(1)
+
 class SageObject_DB(object):
     def sage_object(self):
         r"""
@@ -9,7 +13,7 @@ class SageObject_DB(object):
         """
         return NotImplementedError()
 
-    def from_sage_object(self, so):
+    def from_sage(self, so):
         r"""
             Sets the properties of self from a corresponding sage object.
         """
@@ -33,14 +37,21 @@ class ModularSymbols_ambient(ModularSymbols_ambient_DB, SageObject_DB):
         d=sage_ambient_to_dict(M)
         self.level = int(M.level())
         self.weight = int(M.weight())
-        self.character = int(dirichlet_character_conrey_galois_orbit_rep(M.character()))
+        self.character = int(dirichlet_character_to_int(M.character(), convention='Conrey'))
         self.set_basis(d['basis'])
         self.set_manin(d['manin'])
-        self.get_rels(d['rels'])
-        self.get_mod2term(d['mod2term'])
+        self.set_rels(d['rels'])
+        self.set_mod2term(d['mod2term'])
         self.dimension_modular_forms = int(M.dimension())
         self.dimension_new_cusp_forms = int(M.cuspidal_subspace().new_subspace().dimension())
         self.dimension_cusp_forms = int(M.cuspidal_subspace().dimension())
+        self.base_field = ModularSymbols_base_field()
+        self.base_field.minimal_polynomial = str(M.base_ring().defining_polynomial())
+        self.base_field.degree = int(M.base_ring().degree())
+        for N in M.cuspidal_subspace().new_subspace().decomposition():
+            NN = ModularSymbols_newspace_factor(dimension = N.dimension())
+            self.newspace_factors.append(NN)
+            NN.from_sage(N)
 
 class ModularSymbols_oldspace_factor(ModularSymbols_oldspace_factor_DB, SageObject_DB):
     def sage_object():
@@ -56,10 +67,10 @@ class ModularSymbols_newspace_factor(ModularSymbols_newspace_factor_DB, SageObje
         return dict_to_factor_sage(d)
     
     def from_sage(self, M, names='a'):
-        d=sage_factor_to_dict(M)
+        d=factor_to_dict_sage(M)
         self.set_B(d['B'])
         self.set_Bd(d['Bd'])
-        self.get_v(d['v'])
+        self.set_v(d['v'])
         self.set_nz(d['nz'])
         self.dimension = int(M.dimension())
         #self.has_cm = has_cm(M)
@@ -68,15 +79,26 @@ class ModularSymbols_newspace_factor(ModularSymbols_newspace_factor_DB, SageObje
         if extension_field != M.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
             assert extension_field.base_field() == M.base_ring()
             minpoly = extension_field.relative_polynomial()
-            degree = M.base_ring().degree()*minpoly.degree()
+            degree = int(minpoly.degree())
         else:
             minpoly = extension_field.defining_polynomial()
             degree = extension_field.degree()
-        self.coefficient_field = NumberField()
+        self.coefficient_field = CoefficientField()
         self.coefficient_field.minimal_polynomial = str(minpoly)
+        self.coefficient_field.base_field = self.ambient.base_field
         self.coefficient_field.degree = degree
 
-        
+        if hasattr(M,'_HeckeModule_free_module__eigenvalues'):
+            for n,c in M._HeckeModule_free_module__eigenvalues.iteritems():
+                print n,c
+                value = str(c[c.keys()[0]].list())
+                print value
+                cc = Coefficient(index=int(n))
+                a = AlgebraicNumber()
+                a.number_field = self.coefficient_field
+                a.set_value(value)
+                cc.value = a
+                self.coefficients.append(cc)
 
 class Coefficient(Coefficient_DB, SageObject_DB):
     def sage_object():

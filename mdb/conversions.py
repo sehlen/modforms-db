@@ -188,8 +188,8 @@ def factor_to_dict_sage(factor):
     """
     import sage.modular.modsym.subspace
     M  = sage_ambient_to_dict(factor.ambient())
-    B  = factor.basis_matrix()
-    Bd = factor.dual_basis_matrix()
+    B  = factor.free_module().basis_matrix()
+    Bd = factor.dual_free_module().basis_matrix()
     v  = factor.dual_eigenvector(names='a', lift=False) 
     nz = factor._eigen_nonzero()
     B._cache['in_echelon_form'] = True
