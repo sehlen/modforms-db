@@ -82,8 +82,12 @@ class ModularSymbols_newspace_factor_DB(Entity):
     r"""
         A single Galois orbit contained in `ambient`.
     """
+
+    __metaclass__ = Accessors
+
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
     # data to rectonstruct the ModularSymbols space
+
 
     bfields = ['_B', '_Bd', '_v', '_nz']
     if compress:
@@ -150,6 +154,8 @@ class AlgebraicNumber_DB(Entity):
         An algebraic number is represented by a vector of coefficients
         in terms of a power basis of the number_field it is contained in.
     """
+    __metaclass__ = Accessors
+    
     belongs_to('number_field', of_kind='{0}NumberField_DB'.format(prefix))
     belongs_to('coefficient', of_kind='{0}Coefficient_DB'.format(prefix))
 
