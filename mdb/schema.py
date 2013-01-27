@@ -7,6 +7,7 @@ from accessor import Accessors
 prefix='schema.'
 f = inspect.getabsfile(inspect.currentframe())
 datadir = "/".join(os.path.dirname(f).rsplit("/")[0:-1]+["data"])
+print datadir
 #metadata.bind = "sqlite:///data/modularforms.sqlite"
 metadata.bind = "sqlite:///{0}/modularforms.sqlite".format(datadir)
 metadata.bind.echo = True
@@ -28,19 +29,19 @@ class ModularSymbols_ambient_DB(Entity):
     
     # data to reconstruct the space
     # TODO: add documentation!
-    bfields = ['_basis', '_manin', '_rels', '_mod2term']
+    __bfields = ['_basis', '_manin', '_rels', '_mod2term']
     if compress:
         _basis = Field(Binary, colname = 'basis')
         _manin = Field(Binary, colname = 'manin')
         _rels = Field(Binary, colname = 'rels')
         _mod2term = Field(Binary, colname = 'mod2term')
-        _COMPRESSED = bfields
+        _COMPRESSED = __bfields
     else:
         _basis = Field(Text, colname = 'basis')
         _manin = Field(Text, colname = 'manin')
         _rels = Field(Text, colname = 'rels')
         _mod2term = Field(Text, colname = 'mod2term')
-        _READ_WRITE = bfields
+        _READ_WRITE = __bfields
 
     # the field of values of the character
     has_one('base_field', of_kind='{0}ModularSymbols_base_field_DB'.format(prefix))
@@ -51,7 +52,7 @@ class ModularSymbols_ambient_DB(Entity):
     dimension_new_cusp_forms = Field(Integer, default=-1)
 
     # decomposition data
-    newform_orbits = OneToMany('ModularSymbols_newspace_factor_DB')
+    newspace_factors = OneToMany('ModularSymbols_newspace_factor_DB')
     oldspace_factors = OneToMany('ModularSymbols_oldspace_factor_DB', inverse='ambient')
     oldspaces = AssociationProxy('oldspace_factors', 'factor',
                                         creator= lambda (factor,multiplicity):
@@ -82,26 +83,25 @@ class ModularSymbols_newspace_factor_DB(Entity):
     r"""
         A single Galois orbit contained in `ambient`.
     """
-
     __metaclass__ = Accessors
+    
 
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
     # data to rectonstruct the ModularSymbols space
 
-
-    bfields = ['_B', '_Bd', '_v', '_nz']
+    __bfields = ['_B', '_Bd', '_v', '_nz']
     if compress:
         _B = Field(Binary, colname = 'B')
         _Bd = Field(Binary, colname = 'Bd')
         _v = Field(Binary, colname = 'v')
         _nz = Field(Binary, colname = 'nz')
-        _COMPRESSED = bfields
+        _COMPRESSED = __bfields
     else:
         _B = Field(Text, colname = 'B')
         _Bd = Field(Text, colname = 'Bd')
         _v = Field(Text, colname = 'v')
         _nz = Field(Text, colname = 'nz')
-        _READ_WRITE = bfields
+        _READ_WRITE = __bfields
 
     dimension = Field(Integer)
     has_cm = Field(Boolean) # has complex multiplication?
@@ -161,13 +161,13 @@ class AlgebraicNumber_DB(Entity):
 
     # _value is the coefficient vector in terms of a power basis
     # of the number field (with specified minimal polynomial)
-    bfields = ['_value']
+    __bfields = ['_value']
     if compress:
         _value = Field(Binary, colname='value')
-        _COMPRESSED = bfields
+        _COMPRESSED = __bfields
     else:
         _value = Field(Text, colname='value')
-        _READ_WRITE = bfields
+        _READ_WRITE = __bfields
     
     def __repr__(self):                    
         return 'Algebraic Number {0}, element of Number Field with defining polynomial {1} over its base field.'.format(
