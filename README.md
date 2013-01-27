@@ -7,7 +7,8 @@ Requirements
 ============
 
 * Python
-* Elixir http://elixir.ematia.de/ 
+* Elixir (http://elixir.ematia.de/)
+* dirichlet_conrey (https://github.com/jwbober/conrey-dirichlet-characters)
 
 Copyright
 ===========

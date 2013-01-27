@@ -12,7 +12,7 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 import mfdb
 import mdb
 import schema
-from schema import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
+from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
 schema.setup_all() 
 schema.create_all()
 DB=mfdb.WDB('git/mfdb/data/')
@@ -31,6 +31,8 @@ def insert_spaces(DB,q="N=1 and k=12"):
         d['orbits_dict'] = DB.get_decomposition(N,k,ch)[(N,k,ch)]    
         insert_space_into_new_db(d)
 
+
+
     
 def insert_space_into_new_db(M):
     r"""
@@ -47,7 +49,7 @@ def insert_space_into_new_db(M):
     #Md = M['ambient_dict']
     #basis = Md['basis']; manin=Md['manin']
     #rels = Md['rels']; mod2term=Md['mod2term']
-    A = ModularSymbols_ambient(level=level,weight=weight,character=character,basis=basis,manin=manin,rels=rels,mod2term=mod2term)
+    A = ModularSymbols_ambient_DB(level=level,weight=weight,character=character,basis=basis,manin=manin,rels=rels,mod2term=mod2term)
     print "Inserted A"
     for i in range(M.get('num_orbits',0)):
         orbit = orbits[i]
@@ -58,7 +60,7 @@ def insert_space_into_new_db(M):
         nz=unicode(M['orbits_dict'][i]['nz'])
         print "v=",v
         print "nz=",nz
-        Anew = ModularSymbols_newspace_factor(dimension=d,B=B,Bd=Bd,v=v,nz=nz)
+        Anew = ModularSymbols_newspace_factor_DB(dimension=d,B=B,Bd=Bd,v=v,nz=nz)
     
     A.newform_orbits.append(Anew)
     schema.session.commit()
