@@ -14,6 +14,9 @@ metadata.bind.echo = True
 compress = True
 
 class ModularSymbols_ambient_DB(Entity):
+    r"""
+        Ambient modular symbols space.
+    """
     __metaclass__ = Accessors
     
     # primary key
@@ -21,6 +24,7 @@ class ModularSymbols_ambient_DB(Entity):
     weight = Field(Integer, primary_key=True)
     # the character is an integer following the Conrey naming scheme
     character = Field(Integer, default=0, primary_key=True)
+    sign = Field(Integer, default=1)
     
     # data to reconstruct the space
     # TODO: add documentation!
@@ -58,6 +62,11 @@ class ModularSymbols_ambient_DB(Entity):
             self.level, self.weight, self.character, self.dimension_modular_forms)
 
 class ModularSymbols_oldspace_factor_DB(Entity):
+    r"""
+        An oldspace factor is a newspace `factor` that has an
+        inclusion map into `ambient`. The number of different inclusion
+        is the `multiplicity`
+    """
     multiplicity = Field(Integer)
     ambient = ManyToOne('{0}ModularSymbols_ambient_DB'.format(prefix))
     factor = ManyToOne('{0}ModularSymbols_ambient_DB'.format(prefix))
@@ -70,6 +79,9 @@ class ModularSymbols_oldspace_factor_DB(Entity):
 
     
 class ModularSymbols_newspace_factor_DB(Entity):
+    r"""
+        A single Galois orbit contained in `ambient`.
+    """
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
     # data to rectonstruct the ModularSymbols space
 
@@ -98,11 +110,18 @@ class ModularSymbols_newspace_factor_DB(Entity):
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
 class Coefficient_DB(Entity):
+    r"""
+        A coefficient of a newform (factor).
+    """
     belongs_to('newform', of_kind='{0}ModularSymbols_newspace_factor_DB'.format(prefix))
     index = Field(Integer)
     has_one('value', of_kind='{0}AlgebraicNumber_DB'.format(prefix))
 
 class NumberField_DB(Entity):
+    r"""
+        A relative number field, represented by the minimal polynomial
+        of a generator over its base field.
+    """
     has_many('extensions', of_kind='{0}NumberField_DB'.format(prefix))
     belongs_to('base_field', of_kind='{0}NumberField_DB'.format(prefix))
     minimal_polynomial = Field(String, primary_key=True) # relative to the base field
@@ -113,12 +132,24 @@ class NumberField_DB(Entity):
         return 'Number field with minimal polynomial {0} over its base field.'.format(self.minimal_polynomial)
 
 class ModularSymbols_base_field_DB(NumberField_DB):
+    r"""
+        The base field of a Moular symbols space.
+        This will always be a cyclotomic field, determined by the field of values
+        of the Dirichlet character.
+    """
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB'.format(prefix))
 
 class CoefficientField_DB(NumberField_DB):
+    r"""
+        The field of definition of a newform.
+    """
     belongs_to('newspace', of_kind='{0}ModularSymbols_newspace_factor_DB'.format(prefix))
 
 class AlgebraicNumber_DB(Entity):
+    r"""
+        An algebraic number is represented by a vector of coefficients
+        in terms of a power basis of the number_field it is contained in.
+    """
     belongs_to('number_field', of_kind='{0}NumberField_DB'.format(prefix))
     belongs_to('coefficient', of_kind='{0}Coefficient_DB'.format(prefix))
 
