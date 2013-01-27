@@ -38,19 +38,21 @@ def insert_space_into_new_db(M):
     r"""
     Insert M into the database.
     M can be either a ModularSymbol_ambient or a dictionary.
-    orbits is either a list of 
     """
     if not isinstance(M,dict):
         raise NotImplementedError("Method needs to be called with dictionary")
-    basis = None; manin= None; rels = None; mod2term = None
     orbits = M['orbits']
     num_orbits = len(orbits)
     level=M['level']; weight=M['weight']; character = M['character']
-    #Md = M['ambient_dict']
-    #basis = Md['basis']; manin=Md['manin']
-    #rels = Md['rels']; mod2term=Md['mod2term']
-    A = ModularSymbols_ambient_DB(level=level,weight=weight,character=character,basis=basis,manin=manin,rels=rels,mod2term=mod2term)
-    print "Inserted A"
+    Md = M['ambient_dict']
+    basis = Md['basis']; manin=Md['manin']
+    rels = Md['rels']; mod2term=Md['mod2term']
+    A = ModularSymbols_ambient(level=level,weight=weight,character=character)
+    A.set_basis(basis)
+    A.set_manin(manin)
+    A.set_rels(rels)
+    A.set_mod2term(mod2term)
+    print "Inserted ambient space"
     for i in range(M.get('num_orbits',0)):
         orbit = orbits[i]
         d = int(orbit.dimension())
@@ -60,8 +62,12 @@ def insert_space_into_new_db(M):
         nz=unicode(M['orbits_dict'][i]['nz'])
         print "v=",v
         print "nz=",nz
-        Anew = ModularSymbols_newspace_factor_DB(dimension=d,B=B,Bd=Bd,v=v,nz=nz)
-    
+        Anew = ModularSymbols_newspace_factor(dimension=d)
+        Anew.set_B(B)
+        Anew.set_Bd(Bd)
+        Anew.set_v(v)
+        Anew.set_nz(nz)
+
     A.newform_orbits.append(Anew)
     schema.session.commit()
 
