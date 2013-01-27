@@ -12,21 +12,27 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 import mfdb
 import mdb
 import schema
+import schema_sage 
 from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
 #schema.setup_all() 
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
-
+from mfdb import WDB
 #print DB.known(format='web')
 
 class WDBtoMFDB(WDB):
     r"""
     Class to pull records from database in William's format and insert in our database
     """
-    def __init__(datadir):
-        super(WDB,self).__init__(datadir)
-        schema.setup_all() 
-        schema.create_all()       
+    def __init__(self,datadir,verbose=0):
+        super(WDBtoMFDB,self).__init__(dir=datadir)
+        self._ss = schema_sage
+        self._ss.bind = schema.metadata.bind
+        if verbose>0:
+            self._ss.bind.echo = True
+
+        self._ss.setup_all() 
+        self._ss.create_all()       
 
     def insert_spaces(self,q="N=1 and k=12"):
         r"""
@@ -34,17 +40,20 @@ class WDBtoMFDB(WDB):
         """
         if q=='all':
             q = ""
-        for N,k,ch,numo,nap in self.known(q):
+        for level,weight,character,numo,nap in self.known(q):
             ## First check if record already exists.
-            is_in_db = len(ModularSymbols_ambient.query.filter_by(level=N,weight=k,character=ch))
-            print "Inserting {0},{1},{2},{3},{4}".format(N,k,ch,numo,nap)
-            d = self.get_spaces(N,k,ch,format='data')[0]
+            level=int(level); weight=int(weight); characer=int(character)
+            if ModularSymbols_ambient.query.filter_by(level=level,weight=weight,character=character).count()>0:
+                continue
+            print "Inserting {0},{1},{2},{3},{4}".format(level,weight,character,numo,nap)
+            d = self.get_spaces(level,weight,character,format='data')[0]
             M = d['ambient']
-            d['level']=N; d['weight']=k; d['character']=ch
+            d['level']=level; d['weight']=weight; d['character']=character
             orbits = d['orbits']
             assert d['num_orbits']==numo
-            d['orbits_dict'] = self.get_decomposition(N,k,ch)[(N,k,ch)]    
-            insert_space_into_new_db(d)
+            d['orbits_dict'] = self.get_decomposition(level,weight,character)[(level,weight,character)]    
+            print "d=",d
+            self.insert_space_into_new_db(d)
 
 
     def insert_space_into_new_db(self,M):
@@ -56,7 +65,10 @@ class WDBtoMFDB(WDB):
             raise NotImplementedError("Method needs to be called with dictionary")
         orbits = M['orbits']
         num_orbits = len(orbits)
-        level=M['level']; weight=M['weight']; character = M['character']
+        level=M.get('level',0); weight=M.get('weight',-1); character = M.get('character',-1)
+        level=int(level); weight=int(weight); characer=int(character)
+        if ModularSymbols_ambient.query.filter_by(level=level,weight=weight,character=character).count()>0:
+            return 
         Md = M['ambient_dict']
         basis = Md['basis']; manin=Md['manin']
         rels = Md['rels']; mod2term=Md['mod2term']
@@ -80,9 +92,54 @@ class WDBtoMFDB(WDB):
             Anew.set_Bd(Bd)
             Anew.set_v(v)
             Anew.set_nz(nz)
-            A.newform_orbits.append(Anew)
-        schema.session.commit()
+            A.newspace_factors.append(Anew)
+        self._ss.session.commit()
+
+    def number_of_records(self):
+        r"""
+        Find how many records are in the new DB.
+        """        
+        return ModularSymbols_ambient.query.count()            
+
+    def levels_in_DB(self):
+        r"""
+        Return a list of levels in the database
+        """
+        level = ModularSymbols_ambient.level
+        res = []
+        for x in self._ss.session.query(level).distinct().all():
+            res.append(x[0])
+        return res
+    
+    def weights_in_DB(self,level=None):
+        weight = ModularSymbols_ambient.weight
+        res = []
+        query = self._ss.session.query(weight)
+        if level==None:
+            query = query.distinct().all()
+        else:
+            query = query.filter_by(level=int(level))
+            query = query.all()
+        for x in self._ss.session.query(weight).distinct().all():
+            res.append(x[0])
+        return res
+
 
     def view_db(self):
-
+        
         return ModularSymbols_ambient.query.all()
+
+def my_get(dict, key, default, f=None):
+    r"""
+    Improved version of dict.get where an empty string also gives default.
+    and before returning we apply f on the result.
+    """
+    x = dict.get(key, default)
+    if x == '':
+        x = default
+    if f is not None:
+        try:
+            x = f(x)
+        except:
+            pass
+    return x

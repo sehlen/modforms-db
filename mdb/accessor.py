@@ -44,7 +44,7 @@ class Accessors(EntityMeta):
         for fldName in dict.get('_WRITE', []) + dict.get('_READ_WRITE', []):
             _addMethod(fldName, clsName, 'set', _makeSetter, dict)
         for fldName in dict.get('_COMPRESSED',[]):
-            print 'adding get and set for ', fldName
+            #print 'adding get and set for ', fldName
             _addMethod(fldName, clsName, 'set', _makeSetterCompressed, dict)
             _addMethod(fldName, clsName, 'get', _makeGetterCompressed, dict)
         return EntityMeta.__new__(cls, clsName, bases, dict)
