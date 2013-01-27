@@ -56,6 +56,13 @@ class WDBtoMFDB(WDB):
             self.insert_space_into_new_db(d)
 
 
+    def insert_ambient_spac_into_new_db(self,M):
+        r"""
+        Insert the ambient space into the database.
+        """
+        
+            
+
     def insert_space_into_new_db(self,M):
         r"""
         Insert M into the database.
