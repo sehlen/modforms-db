@@ -55,6 +55,44 @@ class WDBtoMFDB(WDB):
             print "d=",d
             self.insert_space_into_new_db(d)
 
+    def insert_coefficients(self,q="N=1 and k=12"):
+        r"""
+        Insert coefficients for the spaces matching the query
+        """
+        if q=='all':
+            q = ""
+        for level,weight,character,numo,nap in self.known(q):
+            if nap == 0:
+                continue
+            q = ModularSymbols_ambient.query
+            q = q.filter_by(level=level,weight=weight,character=character)
+            if q.count()==0:
+                continue
+            A = q[0]
+            numfac = len(A.newspace_factors)
+            assert numfac == numo
+            for i in range(numfac):
+                aps = A.get_aps(level,weight,character,i)[(level,weight,character)][0]
+                ## Make an's from ap's by builtin methods
+                N = A.newspace_factors[i]
+                if not hasattr(N,_HeckeModule_free_module__eigenvalues):
+                    evs = {}
+                else:
+                    evs = N._HeckeModule_free_module__eigenvalues
+                evs[1]={'alpha':1}
+                list_of_primes = primes_first_n(len(aps))
+                for i in len(list_of_primes):
+                    if not has_key(evs,p):
+                        evs[list_of_primes[i]]={'alpha': ap[i]}
+                ## Now we have ap's and want to set an's
+                N._HeckeModule_free_module__eigenvalues = evs
+#                for n in range(100):
+#                    if not is_prime(n):                   
+                for n in range(100):
+                    c = Coefficient(N.eigenvalue(n))
+                    A.coefficients.append()
+            
+            
 
     def insert_ambient_spac_into_new_db(self,M):
         r"""
