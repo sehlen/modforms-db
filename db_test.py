@@ -25,15 +25,31 @@ class WDBtoMFDB(WDB):
     Class to pull records from database in William's format and insert in our database
     """
     def __init__(self,datadir,verbose=0):
+        self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir)
         self._ss = schema_sage
         self._ss.bind = schema.metadata.bind
         if verbose>0:
             self._ss.bind.echo = True
-
+        else:
+            self._ss.bind.echo = False
         self._ss.setup_all() 
         self._ss.create_all()       
 
+    def source_db(self):
+        r"""
+        Return a description of the source database.
+        """
+        print "Source DB = Files at {0}".format(self._dir)
+
+    def target_db(self):
+        r"""
+        Return a description of the target database.
+        """
+        print "Target DB= {0}".format(self._ss.metadata.bind)
+
+
+        
     def insert_spaces(self,q="N=1 and k=12"):
         r"""
         Insert spaces matching query.
@@ -170,8 +186,7 @@ class WDBtoMFDB(WDB):
         return res
 
 
-    def view_db(self):
-        
+    def view_db(self):        
         return ModularSymbols_ambient.query.all()
 
 def my_get(dict, key, default, f=None):
