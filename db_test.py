@@ -3,8 +3,14 @@ Inserting records in the database from ?
 
 EXAMPLES::
 
-    sage: 
-
+    sage: C=ComputeMFData('/home/purem/cvzx53/Programming/git/modforms-db/data')
+    # Compute ambient space of newforms of level 7, weight 12 and all characters
+    sage: C.compute_ambient_space(7,12,'all',1)
+    # Compute the decomposition of these spaces into Galois orbits
+    sage: C.compute_decompositions(7,12,'all')
+    # Compute lists of Fourier coeficients
+    sage: C.compute_aplists(7,12,'all')
+    
 """
 import inspect,os
 
@@ -21,10 +27,13 @@ from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,Mo
 #schema.setup_all() 
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
-from mfdb import WDB
+from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
 
 #print DB.known(format='web')
+#def do_computations_ranges(
+
+
 
 class WDBtoMFDB(WDB):
     r"""
