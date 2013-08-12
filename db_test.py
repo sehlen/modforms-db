@@ -18,6 +18,8 @@ from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,Mo
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
 from mfdb import WDB
+from mfdb import FilenamesMFDB
+
 #print DB.known(format='web')
 
 class WDBtoMFDB(WDB):
