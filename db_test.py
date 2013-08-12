@@ -1,5 +1,9 @@
 r"""
-Inserting records in the database from 
+Inserting records in the database from ?
+
+EXAMPLES::
+
+    sage: 
 
 """
 import inspect,os
