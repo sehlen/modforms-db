@@ -1,5 +1,5 @@
 import bz2 as comp
-from elixir import EntityMeta
+#from elixir import EntityMeta
 
 def _addMethod(fldName, clsName, verb, methodMaker, dict):
     """Make a get or set method and add it to dict."""
@@ -36,7 +36,9 @@ def _makeSetter(compiledName):
     """Return a method that sets compiledName's value."""    
     return lambda self, value: setattr(self, compiledName, value)
 
-class Accessors(EntityMeta):
+#class Accessors(EntityMeta):
+from flask.ext.sqlalchemy import DeclarativeMeta
+class Accessors(DeclarativeMeta):
     """Adds accessor methods to a class."""
     def __new__(cls, clsName, bases, dict):
         for fldName in dict.get('_READ', []) + dict.get('_READ_WRITE', []):
@@ -47,4 +49,5 @@ class Accessors(EntityMeta):
             #print 'adding get and set for ', fldName
             _addMethod(fldName, clsName, 'set', _makeSetterCompressed, dict)
             _addMethod(fldName, clsName, 'get', _makeGetterCompressed, dict)
-        return EntityMeta.__new__(cls, clsName, bases, dict)
+#        return EntityMeta.__new__(cls, clsName, bases, dict)
+        return DeclarativeMeta.__new__(cls, clsName, bases, dict)

@@ -83,7 +83,17 @@ class WDBtoMFDB(WDB):
             orbits = d['orbits']
             assert d['num_orbits']==numo
             d['orbits_dict'] = self.get_decomposition(level,weight,character)[(level,weight,character)]    
+            if character == 0 or character == 1:
+                d['dimension_modular_forms']=dimension_modular_forms(level,weight)
+                d['dimension_cusp_forms']=dimension_cusp_forms(level,weight)
+                d['dimension_new_cusp_forms']=dimension_new_cusp_forms(level,weight)
+            else:
+                x = DirichletGroup(level)[character]
+                d['dimension_modular_forms']=dimension_modular_forms(x,weight)
+                d['dimension_cusp_forms']=dimension_cusp_forms(x,weight)
+                d['dimension_new_cusp_forms']=dimension_new_cusp_forms(x,weight)                
             print "d=",d
+
             self.insert_space_into_new_db(d)
 
     def insert_coefficients(self,q="N=1 and k=12"):
@@ -148,7 +158,10 @@ class WDBtoMFDB(WDB):
         Md = M['ambient_dict']
         basis = Md['basis']; manin=Md['manin']
         rels = Md['rels']; mod2term=Md['mod2term']
-        A = ModularSymbols_ambient(level=level,weight=weight,character=character)
+        d_mf = M['ambient'].dimension()
+        d_cf = M['ambient'].cuspidal_subspace().dimension()        
+        d_new_cf = M['ambient'].new_subspace().cuspidal_subspace().dimension()
+        A = ModularSymbols_ambient(level=level,weight=weight,character=character,dimension_modular_forms=d_mf,dimension_cusp_forms=d_cf,dimension_new_cusp_forms=d_new_cf)
         A.set_basis(basis)
         A.set_manin(manin)
         A.set_rels(rels)
@@ -218,3 +231,10 @@ def my_get(dict, key, default, f=None):
         except:
             pass
     return x
+
+def find_modular_form_data(data={},**kwds):
+    level = data.get('level',kwds.get('level',0))
+    weight = data.get('weight',kwds.get('weight',0))
+    character = data.get('character',kwds.get('character',0))
+    q = ModularSymbols_ambient.query.filter(level=level,weight=weight,character=character)
+    return q #.all()

@@ -3,22 +3,34 @@ import os
 from elixir import *
 from sqlalchemy.ext.associationproxy import AssociationProxy
 from accessor import Accessors
+from sqlalchemy.ext.declarative import declarative_base
 
 prefix='schema.'
 f = inspect.getabsfile(inspect.currentframe())
 datadir = "/".join(os.path.dirname(f).rsplit("/")[0:-1]+["data"])
 print datadir
-#metadata.bind = "sqlite:///data/modularforms.sqlite"
-metadata.bind = "sqlite:///{0}/modularforms.sqlite".format(datadir)
-metadata.bind.echo = True
+# Commented out:
+#metadata.bind = "sqlite:///{0}/modularforms.sqlite".format(datadir)
+#metadata.bind.echo = True
+
 
 compress = True
 
-class ModularSymbols_ambient_DB(Entity):
+from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy,DeclarativeMeta
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///{0}/modularforms.sqlite".format(datadir)
+db = SQLAlchemy(app)
+
+class MyMeta(Accessors,DeclarativeMeta):
+    pass
+
+class ModularSymbols_ambient_DB(db.Model):
     r"""
         Ambient modular symbols space.
     """
-    __metaclass__ = Accessors
+    __metaclass__ = MyMeta #Accessors
     
     # primary key
     level = Field(Integer, primary_key=True)
@@ -62,7 +74,7 @@ class ModularSymbols_ambient_DB(Entity):
         return 'Modular smybols ambient space of level {0}, weight {1}, character {2} and dimension {3}'.format(
             self.level, self.weight, self.character, self.dimension_modular_forms)
 
-class ModularSymbols_oldspace_factor_DB(Entity):
+class ModularSymbols_oldspace_factor_DB(db.Model):
     r"""
         An oldspace factor is a newspace `factor` that has an
         inclusion map into `ambient`. The number of different inclusion
@@ -79,7 +91,7 @@ class ModularSymbols_oldspace_factor_DB(Entity):
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
     
-class ModularSymbols_newspace_factor_DB(Entity):
+class ModularSymbols_newspace_factor_DB(db.Model):
     r"""
         A single Galois orbit contained in `ambient`.
     """
@@ -113,7 +125,7 @@ class ModularSymbols_newspace_factor_DB(Entity):
             self.dimension,
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
-class Coefficient_DB(Entity):
+class Coefficient_DB(db.Model):
     r"""
         A coefficient of a newform (factor).
     """
@@ -121,7 +133,7 @@ class Coefficient_DB(Entity):
     index = Field(Integer)
     has_one('value', of_kind='{0}AlgebraicNumber_DB'.format(prefix))
 
-class NumberField_DB(Entity):
+class NumberField_DB(db.Model):
     r"""
         A relative number field, represented by the minimal polynomial
         of a generator over its base field.
@@ -149,7 +161,7 @@ class CoefficientField_DB(NumberField_DB):
     """
     belongs_to('newspace', of_kind='{0}ModularSymbols_newspace_factor_DB'.format(prefix))
 
-class AlgebraicNumber_DB(Entity):
+class AlgebraicNumber_DB(db.Model):
     r"""
         An algebraic number is represented by a vector of coefficients
         in terms of a power basis of the number_field it is contained in.
