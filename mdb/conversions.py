@@ -11,7 +11,7 @@ Note: We follow Conrey's convention for enumerating characters.
 
 from sage.all import cached_function,QQ,trivial_character,ModularSymbols
 from dirichlet_conrey import *
- 
+import sage 
 
 def sage_ambient_to_dict(M, i=None):
     """
@@ -37,11 +37,39 @@ def sage_ambient_to_dict(M, i=None):
     """
     if i is None:
         i = dirichlet_character_to_int(M.character(),convention='Conrey')
-    return {'space':(int(M.level()), int(M.weight()), int(i)),
+    res = {'space':(int(M.level()), int(M.weight()), int(i)),
             'manin':[(t.i,t.u,t.v) for t in M._manin_generators],
             'basis':M._manin_basis,
             'rels':M._manin_gens_to_basis,
-            'mod2term':M._mod2term}
+            'mod2term':M._mod2term,
+            'dimension_modular_forms'  : int(M.dimension()),
+            'dimension_new_cusp_forms' : int(M.cuspidal_subspace().new_subspace().dimension()),
+            'dimension_cusp_forms'     : int(M.cuspidal_subspace().dimension()),
+             'base_field'  : base_ring_to_dict(M.base_ring()),
+             'newspace_factors':[]}
+    
+    for N in M.cuspidal_subspace().new_subspace().decomposition():
+        NN =  factor_to_dict_sage(N)
+        #ModularSymbols_newspace_factor(dimension = N.dimension())
+        res['newspace_factors'].append(NN)
+    return res
+
+def base_ring_to_dict(F):
+    degree = F.degree()
+    if hasattr(F,'is_cyclotomic'):
+        is_cyclotomic=F.is_cyclotomic()
+    elif isinstance(F,sage.rings.number_field.number_field.NumberField_cyclotomic):
+        is_cyclotomic=True
+    else:
+        is_cyclotomic=False
+    if degree > 1:
+        minimal_polynomial = str(F.polynomial())
+    else:
+        minimal_polynomial = 'x'           
+    return {'minimal_polynomial' : minimal_polynomial,
+            'degree' : degree,
+            'is_cyclotomic': is_cyclotomic }
+        
 
 def dict_to_ambient_sage(modsym,convention='Conrey'):
     r"""
@@ -186,15 +214,15 @@ def factor_to_dict_sage(factor):
     r"""
     Take a newform factor of the type ModularSymbolSubspace and return a dictionary.
     """
-    import sage.modular.modsym.subspace
-    M  = sage_ambient_to_dict(factor.ambient())
+#    import sage.modular.modsym.subspace
+#    M  = sage_ambient_to_dict(factor.ambient())
     B  = factor.free_module().basis_matrix()
     Bd = factor.dual_free_module().basis_matrix()
     v  = factor.dual_eigenvector(names='a', lift=False) 
     nz = factor._eigen_nonzero()
     B._cache['in_echelon_form'] = True
     Bd._cache['in_echelon_form'] = True   
-    res = {'ambient':M,'B':B,'Bd':Bd,'v':v,'nz':nz}
+    res = {'B':B,'Bd':Bd,'v':v,'nz':nz}
     return res
 
 

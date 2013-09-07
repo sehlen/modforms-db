@@ -21,15 +21,17 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 
 import mfdb
 import mdb
-import schema
-import schema_sage 
-from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
+from mdb import schema
+from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,AlgebraicNumber_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class
+#from mdb import schema_sage 
+#from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
 #schema.setup_all() 
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
 from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
 
+from mdb import db
 #print DB.known(format='web')
 #def do_computations_ranges(
 
@@ -43,7 +45,7 @@ class WDBtoMFDB(WDB):
         self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir)
         self._ss = schema_sage
-        self._ss.bind = schema.metadata.bind
+        self._ss.bind = mdb.schema.metadata.bind
         if verbose>0:
             self._ss.bind.echo = True
         else:
@@ -238,3 +240,265 @@ def find_modular_form_data(data={},**kwds):
     character = data.get('character',kwds.get('character',0))
     q = ModularSymbols_ambient.query.filter(level=level,weight=weight,character=character)
     return q #.all()
+
+## Methods to find or insert objects
+
+def get_input(M=None,**kwds):
+    res = {}
+    if isinstance(M,sage.modular.modsym.ambient.ModularSymbolsAmbient):
+        level = M.level(); weight = M.weight()
+        character = int(dirichlet_character_to_int(M.character(), convention='Conrey'))
+    elif isinstance(M,db.Model):
+        pass
+    else:
+        res.update(**kwds)
+    return res
+
+def create_query(obj,data={},**kwds):
+    r"""
+    
+    """
+    q = obj.query
+    search = {}
+    search.update(data,**kwds)
+    #DictLowerJson(data,**kwds)
+    keys_num = ['level','weight','character','dimension_modular_forms','number_of_orbits']
+    keys_in_db = {key:key for key in keys_num}
+    for key in keys_num:
+        val = search.get(key,None)        
+        if val<>None:
+            q=q.filter(obj.__dict__[keys_in_db[key]]==val)
+        else: # check range arguments
+            val = search.get("{0}_range".format(key),[])
+            if len(val)>0:
+                q=q.filter(obj.__dict__[key].in_(val))
+#    for key in keys_bool:
+#        val = search.get(key,None)
+#        print "search for {0}=={1}".format(key,val)
+#        if val<>None:
+#            q=q.filter(obj.__dict__[keys_in_db[key]]==val)
+    return q
+
+import sage.modular.modsym.ambient
+from conversions import dirichlet_character_to_int,sage_ambient_to_dict
+
+def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObject_DB):
+    r"""
+
+    """
+    data = get_input(M,**kwds)
+    s = create_query(ModularSymbols_ambient_DB_class,data,**kwds)     
+    if s.count()>0:
+        return s    
+    # Else insert a new instance.
+    if isinstance(M,sage.modular.modsym.ambient.ModularSymbolsAmbient):
+        if M.sign()==0:
+            raise ValueError,"Set sign to 1 or -1! otherwise factors wil not be simple!"
+        M = sage_ambient_to_dict(M,**kwds) #return ModularSymbols_ambient_from_sage(M,**kwds)
+    elif not isinstance(M,dict):
+        raise ValueError,"Need to call this with a ModularSymbolsAmbient or dict!!"
+    return ModularSymbols_ambient_from_dict(M,**kwds)
+
+## ef ModularSymbols_ambient_from_sage(M,**kwds):
+ ##    r"""
+ ##    Construct a ModularSymbols_ambient_DB_class instance from sage.
+ ##    """
+ ##    if not isinstance(M,sage.modular.modsym.ambient.ModularSymbolsAmbient):
+ ##        raise ValueError,"Need to call this with a ModularSymbolsAmbient!"
+ ##        # From sage object
+ ##    new_rec.level = int(M.level())
+ ##    new_rec.weight = int(M.weight())
+ ##    new_rec.character = int(dirichlet_character_to_int(M.character(), convention='Conrey'))
+ ##    new_rec = ModularSymbols_ambient_DB_class(level=level,weight=weight,character=character)
+ ##    d=sage_ambient_to_dict(M)
+ ##    return update_ModularSymbols_ambient(new_rec,d,**kwds)
+
+def ModularSymbols_ambient_from_dict(data={},**kwds):
+    r"""
+    Construct a ModularSymbols_ambient_DB_class instance from a dict.
+    """
+    if not isinstance(data,dict):
+        raise ValueError,"Need to call this with a ModularSymbolsAmbient!"
+        # From sage object
+#    print "data=",data
+    new_rec = ModularSymbols_ambient_DB_class()
+    new_rec.level=data['space'][0]
+    new_rec.weight=data['space'][1]
+    new_rec.character=data['space'][2]
+    #new_rec.character = int(dirichlet_character_to_int(M.character(), convention='Conrey'))
+    #d=sage_ambient_to_dict(M)
+    return update_ModularSymbols_ambient(new_rec,data,**kwds)
+
+def update_ModularSymbols_ambient(obj,d={},**kwds):
+    r"""
+    Update properties of a ModularSymbols_ambient_DB_class from dict or by key words.
+    """
+    basis = d.get('basis',kwds.get('basis',None))
+    print obj
+    if basis <> None:
+        obj.basis = basis
+    manin = d.get('manin',kwds.get('manin',None))
+    if basis <> None:
+        obj.manin(d['manin'])
+    rels = d.get('rels',kwds.get('rels',None))
+    if rels <> None:
+        obj.rels(rels)
+    set_mod2term = d.get('mod2term',kwds.get('mod2term',None))
+    if mod2term <> None:
+        obj.mod2term(mod2term)
+    properties = [ 'dimension_modular_forms','dimension_new_cusp_forms',
+                   'dimension_cusp_forms'] 
+    for prop in properties:
+        val = d.get(prop,kwds.get(prop))
+        if val <> None:
+            obj.__dict__[prop]=val
+    base_field = d.get('base_field',kwds.get('base_field'))
+    if base_field == None:
+        raise ValuError,"Need complete dict!"
+    obj.base_field = ModularSymbols_base_field(base_field)
+
+    for N in M.get('newspace_factors',[]):
+        NN = ModularSymbols_newspace_factor(N) #dimension = N['dimension'])
+        obj.newspace_factors.append(NN)
+        #NN.from_sage(N)
+    return obj
+            
+
+    # def as_dict(self):
+    #     d=dict()
+    #     d['basis'] = self.get_basis()
+    #     d['manin'] = self.get_manin()
+    #     d['rels'] = self.get_rels()
+    #     d['mod2term'] = self.get_mod2term()
+    #     d['space'] = (self.level, self.weight, self.character)
+    #     return d
+
+
+        
+
+def ModularSymbols_oldspace_factor(*args,**kwds):    
+    return NotImplementedError()
+    
+def ModularSymbols_newspace_factor(N,**kwds):
+    if isinstance(N,dict):
+        N = dict_to_factor_sage(N)
+    elif not isinstance(N,sage.modular.modsym.subspace.ModularSymbolsSubspace):
+        raise ValueError,"Need to be called with dict or ModularSymbolsSubspace instance!"
+    return  ModularSymbols_newspace_factor_from_sage(N,**kwds)
+
+def ModularSymbols_newspace_factor_from_sage(N,**kwds):
+    names = kwds.get('names','a')
+    d=factor_to_dict_sage(N)
+    self.set_B(d['B'])
+    self.set_Bd(d['Bd'])
+    self.set_v(d['v'])
+    self.set_nz(d['nz'])
+    self.dimension = int(M.dimension())
+    #self.has_cm = has_cm(M)
+    # now we set the coefficient field
+    extension_field = M.eigenvalue(1,name=names).parent()
+    if extension_field != M.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
+        assert extension_field.base_field() == M.base_ring()
+        minpoly = extension_field.relative_polynomial()
+        degree = int(minpoly.degree())
+    else:
+        minpoly = extension_field.defining_polynomial()
+        degree = extension_field.degree()
+    self.coefficient_field = CoefficientField()
+    self.coefficient_field.minimal_polynomial = str(minpoly)
+    self.coefficient_field.base_field = self.ambient.base_field
+    self.coefficient_field.degree = degree
+
+    if hasattr(M,'_HeckeModule_free_module__eigenvalues'):
+        for n,c in M._HeckeModule_free_module__eigenvalues.iteritems():
+            print n,c
+            value = str(c[c.keys()[0]].list())
+            print value
+            cc = Coefficient(index=int(n))
+            a = AlgebraicNumber()
+            a.number_field = self.coefficient_field
+            a.set_value(value)
+            cc.value = a
+            self.coefficients.append(cc)
+
+# class Coefficient(Coefficient_DB_class, SageObject_DB_class):
+#     def sage_object():
+#         return NotImplementedError()
+
+def NumberField_DB(F,**kwds): #NumberField_DB_class, SageObject_DB_class):
+    r"""
+
+    """
+    return get_number_field(NumberField_DB_class,F,**kwds)
+    # if isinstance(F,sage.rings.number_field.number_field_base.NumberField):
+    #     degree = F.degree()
+    #     if hasattr(F,'is_cyclotomic'):
+    #         is_cyclotomic=F.is_cyclotomic()
+    #     else:
+    #         is_cyclotomic=False
+    #     if degree > 1:
+    #         minimal_polynomial = str(F.polynomial())
+    #     else:
+    #         minimal_polynomial = 'x'
+    # elif isinstance(F,dict):
+    #     degree = F['degree']
+    #     is_cyclotomic=F['is_cyclotomic']
+    #     minimal_polynomial = F['minimal_polynomial']
+       
+    # s = NumberField_DB_class.query.filter(minimal_polynomial=minimal_polynomial)
+    # if s.count>0:
+    #     return s[0]
+    # else:
+    #     return NumberField_DB_class(degree=degree,is_cyclotomic=ic_cyclotomic,
+    #                                 minimal_polynomial=minimal_polynomial)
+        
+    #     def sage_object(self):
+#         minpoly = self.minimal_polynomial
+        
+def get_number_field(cls,data={},**kwds):
+    if not isinstance(cls,NumberField_DB_class):
+        raise ValueError,"Expected a database class!"
+    minimal_polynomial = data.get('minimal_polynomial',kwds.get('minimal_polynomial'))
+    if minimal_polynomial<>None:
+        s = cls.query.filter(minimal_polynomial=minimal_polynomial)
+        if s.count>0:
+            return s[0]
+    if isinstance(data,sage.rings.number_field.number_field_base.NumberField):
+        degree = data.degree()
+        if hasattr(F,'is_cyclotomic'):
+            is_cyclotomic=data.is_cyclotomic()
+        else:
+            is_cyclotomic=False
+        if degree > 1:
+            minimal_polynomial = str(data.polynomial())
+        else:
+            minimal_polynomial = 'x'
+    elif isinstance(data,dict):
+        degree = data['degree']
+        is_cyclotomic=data['is_cyclotomic']
+        minimal_polynomial = data['minimal_polynomial']
+    return cls(degree=degree,is_cyclotomic=ic_cyclotomic,
+               minimal_polynomial=minimal_polynomial)
+    
+def ModularSymbols_base_field(*args,**kwds): #ModularSymbols_base_field_DB_class, SageObject_DB_class):
+    return get_number_field(ModularSymbols_base_field_DB_class,F,**kwds)
+
+def CoefficientField(F,**kwds):
+    return get_number_field(CoefficientField_DB_class,F,**kwds)
+
+
+#     def sage_object():
+#         return NotImplementedError()
+
+# class CoefficientField(CoefficientField_DB_class, SageObject_DB_class):
+#     def sage_object():
+#         return NotImplementedError()
+
+# class AlgebraicNumber(AlgebraicNumber_DB_class, SageObject_DB_class):
+    
+#     def as_vector(self):
+#         return sage_eval(self.get_value())
+    
+#     def _set_value_from_sage(self,x):
+#         v = x.list()
+#         self.set_value(v)
