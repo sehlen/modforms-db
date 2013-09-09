@@ -3,18 +3,38 @@ import os
 import bz2 as comp
 from elixir import has_one,OneToMany,ManyToOne,belongs_to,has_many
 from sqlalchemy.ext.associationproxy import AssociationProxy
-from accessor import MixinAccessors
+#from accessor import MixinAccessors
 from sqlalchemy.ext.hybrid import hybrid_property
-from mdb import db
+#from mdb import db
+from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy,DeclarativeMeta
+
+#prefix='schema.'
+#f = inspect.getabsfile(inspect.currentframe())
+#datadir = "/".join(os.path.dirname(f).rsplit("/")[0:-1]+["data"])
+#print datadir
+#app = Flask(__name__)
+#app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///{0}/modularforms.sq#lite".format(datadir)
+#db = SQLAlchemy(app)
+#print "Here:",app
 # Types from db
+from db import db
+# Schemas for number fields.
+from nf_schema import NumberField_DB_class,get_number_field,AlgebraicNumber_DB_class,NumberField_DB
+from conversions import extract_args_kwds
+
 Text = db.Text
 String = db.String
 Boolean = db.Boolean
 Binary = db.Binary
 # Note: We keep the namespace for db.Integer to avoid confusion with Sage's Integer.
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 compress = True
 prefix = ''
+
 
 
 class ModularSymbols_generic_DB_Mixin(object): #MixinAccessors): #,ModularSymbols_ambient_DB_class_base):
@@ -48,8 +68,6 @@ class ModularSymbols_generic_DB_Mixin(object): #MixinAccessors): #,ModularSymbol
         return 'Modular smybols generic space of level {0}, weight {1}, character {2} and dimension {3}'.format(
             self.level, self.weight, self.character, self.dimension_modular_forms)
 
-
-
 #class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
 class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
     r"""
@@ -57,8 +75,9 @@ class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
     """
     #__metaclass__ = Accessors
     __tablename__ = 'ModularSymbols_ambient_DB_class'
-    __table_args__ = {'useexisting': True}
+    __table_args__ = {'extend_existing': True}
     compress = True
+    id = db.Column(db.Integer,primary_key=True)
     # data to reconstruct the space
     # TODO: add documentation!
     __bfields = ['_basis', '_manin', '_rels', '_mod2term']
@@ -83,11 +102,12 @@ class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
     #    has_one('base_field', of_kind='{0}ModularSymbols_base_field_DB_class'.format(prefix))
     is_ambient = True
     # decomposition data
-    newspace_factors = OneToMany('ModularSymbols_newspace_factor_DB_class')
-    oldspace_factors = OneToMany('ModularSymbols_oldspace_factor_DB_class', inverse='ambient')
-    oldspaces = AssociationProxy('oldspace_factors', 'factor',
-                                 creator= lambda (factor,multiplicity):
-                                     ModularSymbols_oldspace_factor(factor=factor,multiplicity=multiplicity))
+    newspace_factors = db.relationship('ModularSymbols_newspace_factor_DB_class',backref='ambient')
+#    dummies = db.relationship('Dummy')
+#    oldspace_factors = db.relationship('ModularSymbols_oldspace_factor_DB_class', backref='ambient')
+#    oldspaces = AssociationProxy('oldspace_factors', 'factor',
+#                                 creator= lambda (factor,multiplicity):
+#                                     ModularSymbols_oldspace_factor(factor=factor,multiplicity=multiplicity))
     @hybrid_property
     def basis(self):
         return self._basis
@@ -132,37 +152,21 @@ class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
 
 
 
-class ModularSymbols_oldspace_factor_DB_class(ModularSymbols_generic_DB_Mixin):
-    r"""
-    An oldspace factor is a newspace `factor` that has an
-    inclusion map into `ambient`. The number of different inclusion
-    is the `multiplicity`
-    """
-    multiplicity = db.Column(db.Integer)
-    ambient = ManyToOne('ModularSymbols_ambient_DB_class')
-    factor = ManyToOne('ModularSymbols_ambient_DB_class')
-    is_oldspace_factor = True
-    #ambient = ManyToOne('{0}ModularSymbols_ambient_DB_class'.format(prefix))
-    #factor = ManyToOne('{0}ModularSymbols_ambient_DB_class'.format(prefix))
 
-
-    def __repr__(self):
-        return 'Oldspace factor of level {0}, weight {1}, character {2}, dimension {3} with multiplicity {4}'\
-            + ' of Modular forms ambient space of level {5}, weight {6} and character {7}' .format(
-            self.factor.level, self.factor.weight, self.factor.character, self.factor.multiplicity,
-            self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
-
-
-class ModularSymbols_newspace_factor_DB_class(ModularSymbols_generic_DB_Mixin):
+class ModularSymbols_newspace_factor_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
     r"""
     A single Galois orbit contained in `ambient`.
     """
-    #__metaclass__ = Accessors
 
+    __tablename__ = 'ModularSymbols_newspace_factor_DB_class'
+    __table_args__ = {'useexisting': True}
     is_newspace_factor = True
-
+    id = db.Column(db.Integer,primary_key=True)
+#    ambient_id = db.Column(db.Integer,db.ForeignKey('ambient.id'))
+    ambient_id = db.Column(db.Integer,db.ForeignKey('ModularSymbols_ambient_DB_class.id'))
+                           
     #belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB_class'.format(prefix))
-    belongs_to('ambient', of_kind='ModularSymbols_ambient_DB_class')
+    #belongs_to('ambient', of_kind='ModularSymbols_ambient_DB_class')
     # data to rectonstruct the ModularSymbols space
 
     __bfields = ['_B', '_Bd', '_v', '_nz']
@@ -184,37 +188,109 @@ class ModularSymbols_newspace_factor_DB_class(ModularSymbols_generic_DB_Mixin):
     #has_one('coefficient_field', of_kind='{0}Coefficientdb.Column_DB_class'.format(prefix))
     #has_many('coefficients', of_kind='{0}Coefficient_DB_class'.format(prefix))
     has_one('coefficient_field', of_kind='CoefficientField_DB_class')
-    has_many('coefficients', of_kind='Coefficient_DB_class')
+    coefficients_list = db.relationship('Coefficient_DB_class',backref='newform')    
+    coefficients = AssociationProxy('coefficients_list', 'value',
+                                    creator= lambda (index,value):
+                                        Coefficient_DB(index=index,value=value))
+#
+#                                 backref = db.backref('base_field',lazy='joined'),  #remote_side=[id,base_field_id]) #,
+#                   primaryjoin=id==extensions.c.extension_id,
+#                                 secondaryjoin=id==extensions.c.base_field_id)
+#    extensions_list = AssociationProxy('extensions_list','relative_polynomial',
+#                                    creator= lambda x:
+#                                        NumberField_DB(x))
+    
+    @hybrid_property
+    def B(self):
+        return self._B
+    @B.setter
+    def B(self,B):
+        if compress:
+            self._B = comp.compress(str(B))
+        else:
+            self._B = str(B)
+    @hybrid_property
+    def Bd(self):
+        return self._Bd
+    @Bd.setter
+    def Bd(self,Bd):
+        if compress:
+            self._Bd = comp.compress(str(Bd))
+        else:
+            self._Bd = str(Bd)
+    @hybrid_property
+    def v(self):
+        return self._v
+    @v.setter
+    def v(self,v):
+        if compress:
+            self._v = comp.compress(str(v))
+        else:
+            self._v = str(v)
+    @hybrid_property
+    def nz(self):
+        return self._nz
+    @nz.setter
+    def nz(self,nz):
+        if compress:
+            self._nz = comp.compress(str(nz))
+        else:
+            self._nz = str(nz)
 
+            
     def __repr__(self):
         return 'Newspace factor of dimension {0} of Modular forms ambient space of level {1}, weight {2}, character {3} and dimension {4}'.format(
             self.dimension,
             self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
 
+
+    
+class ModularSymbols_oldspace_factor_DB_class(ModularSymbols_newspace_factor_DB_class):
+    r"""
+    An oldspace factor is a newspace `factor` that has an
+    inclusion map into `ambient`. The number of different inclusion
+    is the `multiplicity`
+    """
+    
+    ambient = ManyToOne('ModularSymbols_ambient_DB_class')
+    factor = ManyToOne('ModularSymbols_newspace_factor_DB_class')
+    is_oldspace_factor = True
+
+    def __repr__(self):
+        return 'Oldspace factor of level {0}, weight {1}, character {2}, dimension {3} with multiplicity {4}'\
+            + ' of Modular forms ambient space of level {5}, weight {6} and character {7}' .format(
+            self.factor.level, self.factor.weight, self.factor.character, self.factor.multiplicity,
+            self.ambient.level, self.ambient.weight, self.ambient.character, self.ambient.dimension_modular_forms)
+
+
+
+    
 class Coefficient_DB_class(db.Model):
     r"""
     A coefficient of a newform (factor).
     """
+    __tablename__ = 'Coefficient_DB_class'
     __table_args__ = {'useexisting': True}
-    belongs_to('newform', of_kind='ModularSymbols_newspace_factor_DB_class',primary_key=True)
+    id = db.Column(db.Integer,primary_key=True)
+    #belongs_to('newform', of_kind='ModularSymbols_newspace_factor_DB_class',primary_key=True)
+    newform_id = db.Column(db.Integer,db.ForeignKey('ModularSymbols_newspace_factor_DB_class.id'))
     index = db.Column(db.Integer,primary_key=True)
-    has_one('value', of_kind='AlgebraicNumber_DB_class',primary_key=True)
+    value = db.relationship('AlgebraicNumber_DB_class',backref='coefficient')
+#has_one('value', of_kind='AlgebraicNumber_DB_class',primary_key=True)
 
-
-class NumberField_DB_class(db.Model):
-    r"""
-    A relative number field, represented by the minimal polynomial
-    of a generator over its base field.
-    """
-    __table_args__ = {'useexisting': True}
-    has_many('extensions', of_kind='{0}NumberField_DB_class'.format(prefix))
-    belongs_to('base_field', of_kind='{0}NumberField_DB_class'.format(prefix))
-    minimal_polynomial = db.Column(String, primary_key=True) # relative to the base field
-    degree = db.Column(db.Integer) # relative to the base field
-    is_cyclotomic = db.Column(Boolean)
-
-    def __repr__(self):
-        return 'Number field with minimal polynomial {0} over its base field.'.format(self.minimal_polynomial)
+    
+def Coefficient_DB(*args,**kwds):
+    print "args=",args
+    print "kwds=",kwds
+    kwds['value']=['index','value']
+    n,val = extract_args_kwds(*args,**kwds)
+    q = Coefficient_DB_class.query.filter_by(index=n,value=val)
+    if q.count()==1:
+        return q.first()
+    elif q.count()>1:
+        raise ValueError,"Coefficient not uniquely described!"
+    return Coefficient_DB_class(index=n,value=val)
+        
 
 class ModularSymbols_base_field_DB_class(NumberField_DB_class):
     r"""
@@ -222,6 +298,7 @@ class ModularSymbols_base_field_DB_class(NumberField_DB_class):
     This will always be a cyclotomic field, determined by the field of values
     of the Dirichlet character.
     """
+
     belongs_to('ambient', of_kind='{0}ModularSymbols_ambient_DB_class'.format(prefix))
 
 class CoefficientField_DB_class(NumberField_DB_class):
@@ -231,29 +308,8 @@ class CoefficientField_DB_class(NumberField_DB_class):
     belongs_to('newspace', of_kind='{0}ModularSymbols_newspace_factor_DB_class'.format(prefix),primary_key=True)
 
 
-class AlgebraicNumber_DB_class(db.Model,MixinAccessors):
-    r"""
-    An algebraic number is represented by a vector of coefficients
-    in terms of a power basis of the number_field it is contained in.
-    """
-    #__metaclass__ = Accessors
-    __tablename__ = 'AlgebraicNumber_DB_class'
-    __table_args__ = {'useexisting': True}
-    id = db.Column("id", db.Integer, primary_key=True)
+def ModularSymbols_base_field(*args,**kwds): #ModularSymbols_base_field_DB_class, SageObject_DB_class):
+    return get_number_field(ModularSymbols_base_field_DB_class,*args,**kwds)
 
-    belongs_to('number_field', of_kind='{0}NumberField'.format(prefix),primary_key=True)
-    belongs_to('coefficient', of_kind='{0}Coefficient_DB_class'.format(prefix),primary_key=True)
-
-    # _value is the coefficient vector in terms of a power basis
-    # of the number field (with specified minimal polynomial)
-    __bfields = ['_value']
-    if compress:
-        _value = db.Column(Binary, name='value')
-        _COMPRESSED = __bfields
-    else:
-        _value = db.Column(Text, name='value')
-        _READ_WRITE = __bfields
-
-    def __repr__(self):
-        return 'Algebraic Number {0}, element of Number Fields with defining polynomial {1} over its base field.'.format(
-            self.value, self.number_field.minimal_polynomial)
+def CoefficientField(*args,**kwds):
+    return get_number_field(CoefficientField_DB_class,*args,**kwds)

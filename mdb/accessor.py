@@ -1,6 +1,6 @@
 import bz2 as comp
 #from elixir import EntityMeta
-from mdb import db
+from db import db
 
 MetaBase = type(db.Model)
 

@@ -12,6 +12,29 @@ Note: We follow Conrey's convention for enumerating characters.
 from sage.all import cached_function,QQ,trivial_character,ModularSymbols
 from dirichlet_conrey import *
 import sage 
+from sage.structure.sequence import Sequence
+
+import collections
+def extract_args_kwds(*args,**kwds):
+    r"""
+    Extract a list of keywords from arguments. The kwds takes priority.
+
+    """
+    res = []
+    keywords = kwds.get('keywords',[])
+    for key in keywords:
+        val = kwds.get(key)
+        if val==None and len(args)>0:
+            for arg in args:
+                if isinstance(arg,(dict,collections.MutableMapping)):
+                    val = arg.get(key)
+        res.append(val)
+    if len(res)>1:
+        return tuple(res)
+    elif len(res)==1:
+        return res[0]
+    else:
+        return tuple()
 
 def sage_ambient_to_dict(M, i=None):
     """
@@ -49,7 +72,7 @@ def sage_ambient_to_dict(M, i=None):
              'newspace_factors':[]}
     
     for N in M.cuspidal_subspace().new_subspace().decomposition():
-        NN =  factor_to_dict_sage(N)
+        NN =  factor_to_dict_sage(N,with_ambient=False)
         #ModularSymbols_newspace_factor(dimension = N.dimension())
         res['newspace_factors'].append(NN)
     return res
@@ -90,9 +113,10 @@ def dict_to_ambient_sage(modsym,convention='Conrey'):
         eps = trivial_character(N)
     else:
         if F<>QQ or convention=='Sage':
-            eps = DirichletGroup(N, F)(eps)
+            print "i=",i
+            eps = DirichletGroup(N, F)(i)
         else:
-            eps = DirichletGroup_conrey(N)[eps].sage_character()
+            eps = DirichletGroup_conrey(N)[i].sage_character()
     from sage.modular.modsym.manin_symbols import ManinSymbolList, ManinSymbol
     manin_symbol_list = ManinSymbolList(k, manin)
 
@@ -187,17 +211,19 @@ def dirichlet_character_to_int(chi,convention='Conrey'):
         raise ValueError("convention must be one of 'Sage' or 'Conrey' ")
 
 
-def dict_to_factor_sage(factor):
+def dict_to_factor_sage(factor,**kwds):
     r"""
     Returns a newform factor as in instance of the Sage class ModularSymbolsSubspace
     """
-    M = factor.get('ambient',None)
+    print "factor=",factor
+    M = factor.get('ambient',kwds.get('ambient',None))
+    if M == None:
+        raise ValueError('Dictionary does not contain an ambient space!')
     B = factor.get('B',None)
     Bd = factor.get('Bd',None)
-    d = factor.get('d',None)
     v = factor.get('v',None)
     nz = factor.get('nz',None)
-    if M is None or B is None or Bd is None or d is None or v is None or nz is None:
+    if M is None or B is None or Bd is None or v is None or nz is None:
         raise ValueError('Dictionary does not contain correct data!')
     M = dict_to_ambient_sage(M)
     B._cache['in_echelon_form'] = True
@@ -210,19 +236,28 @@ def dict_to_factor_sage(factor):
     A._HeckeModule_free_module__decomposition = {(None,True):Sequence([A], check=False)}
     return A
 
-def factor_to_dict_sage(factor):
+def factor_to_dict_sage(factor,with_ambient=False):
     r"""
     Take a newform factor of the type ModularSymbolSubspace and return a dictionary.
+    THe parameter with_ambient is there to avoid recursion.
     """
 #    import sage.modular.modsym.subspace
-#    M  = sage_ambient_to_dict(factor.ambient())
+    if with_ambient:
+        M  = sage_ambient_to_dict(factor.ambient())
     B  = factor.free_module().basis_matrix()
     Bd = factor.dual_free_module().basis_matrix()
     v  = factor.dual_eigenvector(names='a', lift=False) 
     nz = factor._eigen_nonzero()
+    print "factor=",factor,type(factor)
+    print "B=",B,type(B)
+    print "B._cache=",B._cache
+    B._cache = {}
     B._cache['in_echelon_form'] = True
     Bd._cache['in_echelon_form'] = True   
-    res = {'B':B,'Bd':Bd,'v':v,'nz':nz}
+    if with_ambient:
+        res = {'B':B,'Bd':Bd,'v':v,'nz':nz,'ambient':M}
+    else:
+        res = {'B':B,'Bd':Bd,'v':v,'nz':nz}
     return res
 
 

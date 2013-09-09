@@ -22,7 +22,10 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 import mfdb
 import mdb
 from mdb import schema
-from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,AlgebraicNumber_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class
+from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
+from nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
+from conversions import extract_args_kwds
+
 #from mdb import schema_sage 
 #from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
 #schema.setup_all() 
@@ -31,27 +34,102 @@ from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberFi
 from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
 
-from mdb import db
+from mdb.db import db
 #print DB.known(format='web')
 #def do_computations_ranges(
+from sage.all_cmdline import *   # import sage library
+if not os.path.exists('data'):
+    os.makedirs('data')
+import glob, os, os.path,re, sys
+import pymongo
+from pymongo import Connection
+import gridfs
 
+class WDBtoMongo(WDBtoMFDB):
+    r"""
+
+    """
+    def __init__(self,datadir,host='localhost',port=37010,verbose=0):
+        super(WDBtoMongo,self).__init__(datadir)
+        self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))
+
+    def insert_one_set(fs,N,k):
+        """
+        INPUT:
+        N -- positive integer
+        k -- even integer >= 2
+        OUTPUT:
+        (N,k) -- level and weight
+        (t0,t1,t2,t3,tall)  -- timings
+        Modular symbols space -- with new cuspidal subspace decomposed.
+        """
+        G = DirichletGroup(N)
+        G_orbits = G.galois_orbits(reps_only=True)
+        for i in range(len(G_orbits)):
+            name = 'data/gamma0-%s-%s-%s.sobj'%(N,k,i)
+            chi = G_orbits[i]
+            #if chi.is_even() and not is_even(k):
+            #   continue
+            d=dimension_modular_forms(chi,k)
+            if d>200:
+                print "Dimension too large! d=",d
+                continue
+            if d==0:
+                continue
+            t = (int(N),int(k),int(i))
+            if not fs.exists({"t":t}):
+                ModularSymbols_clear_cache()
+                print name," dim=",d
+                fname = 'gamma0-modsym-%s-%s-%s'%(N,k,i)
+                try:
+                    M=load(fname)
+                except:
+                    M=ModularSymbols(chi,k,sign=Integer(1))         
+                    # fname = 'gamma0-modsym-%s-%s-%s'%(N,k,i)
+                try:
+                    try: 
+                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
+                    except MemoryError:
+                        # restart connection and see if this helps...
+                        fs = gridfs.GridFS(connection.modularforms,'Modular_symbols') 
+                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
+                except Exception as e:
+                    save(M,fname)
+                    print e
+                    print "saved to ",fname
+                    return
+            else:
+                print name," is already in db! dim=",d 
+            ModularSymbols_clear_cache()
+        return N,k
+
+    def get_data(N0,N1,k0=2,k1=12): 
+        v = (ellipsis_range(Integer(N0),Ellipsis,Integer(N1)))
+        kv = (ellipsis_range(Integer(k0),Ellipsis,Integer(k1+1)))
+        step = 1 #len(v)//chunk
+        for i in range(step):
+            for k in kv: #range(2,13):
+                for N in v: #v[chunk*i:chunk*(i+Integer(1))]:
+                    fs = gridfs.GridFS(connection.modularforms,'Modular_symbols')	
+                    insert_one_set(fs,N,k)
 
 
 class WDBtoMFDB(WDB):
     r"""
-    Class to pull records from database in William's format and insert in our database
+    Class to pull records from database in William's format and insert in our database.
+
+    
     """
     def __init__(self,datadir,verbose=0):
         self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir)
-        self._ss = schema_sage
-        self._ss.bind = mdb.schema.metadata.bind
+        self._dbb = mdb.db.db 
         if verbose>0:
-            self._ss.bind.echo = True
+            self._dbb.session.bind.echo = True
         else:
-            self._ss.bind.echo = False
-        self._ss.setup_all() 
-        self._ss.create_all()       
+            self._dbb.session.bind.echo = False
+        #self._dbb.setup_all() 
+        self._dbb.create_all()       
 
     def source_db(self):
         r"""
@@ -63,7 +141,7 @@ class WDBtoMFDB(WDB):
         r"""
         Return a description of the target database.
         """
-        print "Target DB= {0}".format(self._ss.metadata.bind)
+        print "Target DB= {0}".format(self._dbb.metadata.bind)
 
 
         
@@ -179,12 +257,12 @@ class WDBtoMFDB(WDB):
             print "v=",v
             print "nz=",nz
             Anew = ModularSymbols_newspace_factor(dimension=d)
-            Anew.set_B(B)
-            Anew.set_Bd(Bd)
-            Anew.set_v(v)
-            Anew.set_nz(nz)
+            Anew.B = B
+            Anew.Bd = Bd
+            Anew.v = v
+            Anew.nz = nz
             A.newspace_factors.append(Anew)
-        self._ss.session.commit()
+        self._dbb.session.commit()
 
     def number_of_records(self):
         r"""
@@ -198,20 +276,20 @@ class WDBtoMFDB(WDB):
         """
         level = ModularSymbols_ambient.level
         res = []
-        for x in self._ss.session.query(level).distinct().all():
+        for x in self._dbb.session.query(level).distinct().all():
             res.append(x[0])
         return res
     
     def weights_in_DB(self,level=None):
         weight = ModularSymbols_ambient.weight
         res = []
-        query = self._ss.session.query(weight)
+        query = self._dbb.session.query(weight)
         if level==None:
             query = query.distinct().all()
         else:
             query = query.filter_by(level=int(level))
             query = query.all()
-        for x in self._ss.session.query(weight).distinct().all():
+        for x in self._dbb.session.query(weight).distinct().all():
             res.append(x[0])
         return res
 
@@ -238,7 +316,7 @@ def find_modular_form_data(data={},**kwds):
     level = data.get('level',kwds.get('level',0))
     weight = data.get('weight',kwds.get('weight',0))
     character = data.get('character',kwds.get('character',0))
-    q = ModularSymbols_ambient.query.filter(level=level,weight=weight,character=character)
+    q = ModularSymbols_ambient.query.filter(level==level,weight==weight,character==character)
     return q #.all()
 
 ## Methods to find or insert objects
@@ -280,7 +358,7 @@ def create_query(obj,data={},**kwds):
     return q
 
 import sage.modular.modsym.ambient
-from conversions import dirichlet_character_to_int,sage_ambient_to_dict
+from conversions import dirichlet_character_to_int,sage_ambient_to_dict,dict_to_factor_sage,factor_to_dict_sage
 
 def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObject_DB):
     r"""
@@ -327,6 +405,7 @@ def ModularSymbols_ambient_from_dict(data={},**kwds):
     new_rec.character=data['space'][2]
     #new_rec.character = int(dirichlet_character_to_int(M.character(), convention='Conrey'))
     #d=sage_ambient_to_dict(M)
+    print "updating!"
     return update_ModularSymbols_ambient(new_rec,data,**kwds)
 
 def update_ModularSymbols_ambient(obj,d={},**kwds):
@@ -334,18 +413,20 @@ def update_ModularSymbols_ambient(obj,d={},**kwds):
     Update properties of a ModularSymbols_ambient_DB_class from dict or by key words.
     """
     basis = d.get('basis',kwds.get('basis',None))
-    print obj
+    print "updating 0!"
+#    print obj
     if basis <> None:
         obj.basis = basis
     manin = d.get('manin',kwds.get('manin',None))
     if basis <> None:
-        obj.manin(d['manin'])
+        obj.manin=d['manin']
+    print "updating 1!"
     rels = d.get('rels',kwds.get('rels',None))
     if rels <> None:
-        obj.rels(rels)
-    set_mod2term = d.get('mod2term',kwds.get('mod2term',None))
+        obj.rels = rels
+    mod2term = d.get('mod2term',kwds.get('mod2term',None))
     if mod2term <> None:
-        obj.mod2term(mod2term)
+        obj.mod2term = mod2term
     properties = [ 'dimension_modular_forms','dimension_new_cusp_forms',
                    'dimension_cusp_forms'] 
     for prop in properties:
@@ -357,8 +438,8 @@ def update_ModularSymbols_ambient(obj,d={},**kwds):
         raise ValuError,"Need complete dict!"
     obj.base_field = ModularSymbols_base_field(base_field)
 
-    for N in M.get('newspace_factors',[]):
-        NN = ModularSymbols_newspace_factor(N) #dimension = N['dimension'])
+    for N in d.get('newspace_factors',[]):
+        NN = ModularSymbols_newspace_factor(N,ambient=d) #dimension = N['dimension'])
         obj.newspace_factors.append(NN)
         #NN.from_sage(N)
     return obj
@@ -381,7 +462,10 @@ def ModularSymbols_oldspace_factor(*args,**kwds):
     
 def ModularSymbols_newspace_factor(N,**kwds):
     if isinstance(N,dict):
-        N = dict_to_factor_sage(N)
+        ambient = N.get('ambient',kwds.get('ambient',None))
+        if ambient == None:
+            raise ValueError,"Need an ambient space."
+        N = dict_to_factor_sage(N,ambient=ambient)
     elif not isinstance(N,sage.modular.modsym.subspace.ModularSymbolsSubspace):
         raise ValueError,"Need to be called with dict or ModularSymbolsSubspace instance!"
     return  ModularSymbols_newspace_factor_from_sage(N,**kwds)
@@ -389,103 +473,46 @@ def ModularSymbols_newspace_factor(N,**kwds):
 def ModularSymbols_newspace_factor_from_sage(N,**kwds):
     names = kwds.get('names','a')
     d=factor_to_dict_sage(N)
-    self.set_B(d['B'])
-    self.set_Bd(d['Bd'])
-    self.set_v(d['v'])
-    self.set_nz(d['nz'])
-    self.dimension = int(M.dimension())
+    factor = ModularSymbols_newspace_factor_DB_class()
+    factor.B  =d['B']
+    factor.Bd = d['Bd']
+    factor.v =d['v']
+    factor.nz = d['nz']
+    factor.dimension = int(N.dimension())
     #self.has_cm = has_cm(M)
     # now we set the coefficient field
-    extension_field = M.eigenvalue(1,name=names).parent()
-    if extension_field != M.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
-        assert extension_field.base_field() == M.base_ring()
+    extension_field = N.eigenvalue(1,name=names).parent()
+    if extension_field != N.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
+        assert extension_field.base_field() == N.base_ring()
         minpoly = extension_field.relative_polynomial()
         degree = int(minpoly.degree())
     else:
-        minpoly = extension_field.defining_polynomial()
+        # QQ does not have a defining polynomial
+        if extension_field.degree()==1:
+            minpoly = ZZ['x'].gens()[0]
+        else:                
+            minpoly = extension_field.defining_polynomial()
         degree = extension_field.degree()
-    self.coefficient_field = CoefficientField()
-    self.coefficient_field.minimal_polynomial = str(minpoly)
-    self.coefficient_field.base_field = self.ambient.base_field
-    self.coefficient_field.degree = degree
-
-    if hasattr(M,'_HeckeModule_free_module__eigenvalues'):
-        for n,c in M._HeckeModule_free_module__eigenvalues.iteritems():
+    coefficient_field = CoefficientField(extension_field)
+    #coefficient_field.minimal_polynomial = str(minpoly)
+    #coefficient_field.base_field = N.ambient().base_field()
+    #coefficient_field.degree = degree
+    factor.coefficient_field = coefficient_field
+    if hasattr(N,'_HeckeModule_free_module__eigenvalues'):
+        for n,c in N._HeckeModule_free_module__eigenvalues.iteritems():
             print n,c
             value = str(c[c.keys()[0]].list())
             print value
-            cc = Coefficient(index=int(n))
-            a = AlgebraicNumber()
-            a.number_field = self.coefficient_field
-            a.set_value(value)
-            cc.value = a
-            self.coefficients.append(cc)
+            a = AlgebraicNumber_DB({'value':value,
+                                    'number_field':coefficient_field})
+            #if not a in self.coefficient_field.algebraic_numbers:
+            #    self.coefficient_field.algebraic_numbers.append(a)
+            #cc.value = a
+            #cc = Coefficient(index=int(n),value=a)
+            factor.coefficients.append( (n,value))
 
-# class Coefficient(Coefficient_DB_class, SageObject_DB_class):
 #     def sage_object():
 #         return NotImplementedError()
-
-def NumberField_DB(F,**kwds): #NumberField_DB_class, SageObject_DB_class):
-    r"""
-
-    """
-    return get_number_field(NumberField_DB_class,F,**kwds)
-    # if isinstance(F,sage.rings.number_field.number_field_base.NumberField):
-    #     degree = F.degree()
-    #     if hasattr(F,'is_cyclotomic'):
-    #         is_cyclotomic=F.is_cyclotomic()
-    #     else:
-    #         is_cyclotomic=False
-    #     if degree > 1:
-    #         minimal_polynomial = str(F.polynomial())
-    #     else:
-    #         minimal_polynomial = 'x'
-    # elif isinstance(F,dict):
-    #     degree = F['degree']
-    #     is_cyclotomic=F['is_cyclotomic']
-    #     minimal_polynomial = F['minimal_polynomial']
-       
-    # s = NumberField_DB_class.query.filter(minimal_polynomial=minimal_polynomial)
-    # if s.count>0:
-    #     return s[0]
-    # else:
-    #     return NumberField_DB_class(degree=degree,is_cyclotomic=ic_cyclotomic,
-    #                                 minimal_polynomial=minimal_polynomial)
-        
-    #     def sage_object(self):
-#         minpoly = self.minimal_polynomial
-        
-def get_number_field(cls,data={},**kwds):
-    if not isinstance(cls,NumberField_DB_class):
-        raise ValueError,"Expected a database class!"
-    minimal_polynomial = data.get('minimal_polynomial',kwds.get('minimal_polynomial'))
-    if minimal_polynomial<>None:
-        s = cls.query.filter(minimal_polynomial=minimal_polynomial)
-        if s.count>0:
-            return s[0]
-    if isinstance(data,sage.rings.number_field.number_field_base.NumberField):
-        degree = data.degree()
-        if hasattr(F,'is_cyclotomic'):
-            is_cyclotomic=data.is_cyclotomic()
-        else:
-            is_cyclotomic=False
-        if degree > 1:
-            minimal_polynomial = str(data.polynomial())
-        else:
-            minimal_polynomial = 'x'
-    elif isinstance(data,dict):
-        degree = data['degree']
-        is_cyclotomic=data['is_cyclotomic']
-        minimal_polynomial = data['minimal_polynomial']
-    return cls(degree=degree,is_cyclotomic=ic_cyclotomic,
-               minimal_polynomial=minimal_polynomial)
-    
-def ModularSymbols_base_field(*args,**kwds): #ModularSymbols_base_field_DB_class, SageObject_DB_class):
-    return get_number_field(ModularSymbols_base_field_DB_class,F,**kwds)
-
-def CoefficientField(F,**kwds):
-    return get_number_field(CoefficientField_DB_class,F,**kwds)
-
 
 #     def sage_object():
 #         return NotImplementedError()
@@ -494,11 +521,4 @@ def CoefficientField(F,**kwds):
 #     def sage_object():
 #         return NotImplementedError()
 
-# class AlgebraicNumber(AlgebraicNumber_DB_class, SageObject_DB_class):
-    
-#     def as_vector(self):
-#         return sage_eval(self.get_value())
-    
-#     def _set_value_from_sage(self,x):
-#         v = x.list()
-#         self.set_value(v)
+
