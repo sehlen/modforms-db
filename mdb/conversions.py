@@ -29,6 +29,7 @@ def extract_args_kwds(*args,**kwds):
                 if isinstance(arg,(dict,collections.MutableMapping)):
                     val = arg.get(key)
         res.append(val)
+        print "res=",res
     if len(res)>1:
         return tuple(res)
     elif len(res)==1:

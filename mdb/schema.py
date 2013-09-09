@@ -37,7 +37,8 @@ prefix = ''
 
 
 
-class ModularSymbols_generic_DB_Mixin(object): #MixinAccessors): #,ModularSymbols_ambient_DB_class_base):
+class ModularSymbols_generic_DB_Mixin(object):
+#MixinAccessors): #,ModularSymbols_ambient_DB_class_base):
     r"""
     Ambient modular symbols space.
     """
@@ -103,6 +104,7 @@ class ModularSymbols_ambient_DB_class(ModularSymbols_generic_DB_Mixin,db.Model):
     is_ambient = True
     # decomposition data
     newspace_factors = db.relationship('ModularSymbols_newspace_factor_DB_class',backref='ambient')
+
 #    dummies = db.relationship('Dummy')
 #    oldspace_factors = db.relationship('ModularSymbols_oldspace_factor_DB_class', backref='ambient')
 #    oldspaces = AssociationProxy('oldspace_factors', 'factor',

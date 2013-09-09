@@ -45,74 +45,6 @@ import pymongo
 from pymongo import Connection
 import gridfs
 
-class WDBtoMongo(WDBtoMFDB):
-    r"""
-
-    """
-    def __init__(self,datadir,host='localhost',port=37010,verbose=0):
-        super(WDBtoMongo,self).__init__(datadir)
-        self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))
-
-    def insert_one_set(fs,N,k):
-        """
-        INPUT:
-        N -- positive integer
-        k -- even integer >= 2
-        OUTPUT:
-        (N,k) -- level and weight
-        (t0,t1,t2,t3,tall)  -- timings
-        Modular symbols space -- with new cuspidal subspace decomposed.
-        """
-        G = DirichletGroup(N)
-        G_orbits = G.galois_orbits(reps_only=True)
-        for i in range(len(G_orbits)):
-            name = 'data/gamma0-%s-%s-%s.sobj'%(N,k,i)
-            chi = G_orbits[i]
-            #if chi.is_even() and not is_even(k):
-            #   continue
-            d=dimension_modular_forms(chi,k)
-            if d>200:
-                print "Dimension too large! d=",d
-                continue
-            if d==0:
-                continue
-            t = (int(N),int(k),int(i))
-            if not fs.exists({"t":t}):
-                ModularSymbols_clear_cache()
-                print name," dim=",d
-                fname = 'gamma0-modsym-%s-%s-%s'%(N,k,i)
-                try:
-                    M=load(fname)
-                except:
-                    M=ModularSymbols(chi,k,sign=Integer(1))         
-                    # fname = 'gamma0-modsym-%s-%s-%s'%(N,k,i)
-                try:
-                    try: 
-                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
-                    except MemoryError:
-                        # restart connection and see if this helps...
-                        fs = gridfs.GridFS(connection.modularforms,'Modular_symbols') 
-                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
-                except Exception as e:
-                    save(M,fname)
-                    print e
-                    print "saved to ",fname
-                    return
-            else:
-                print name," is already in db! dim=",d 
-            ModularSymbols_clear_cache()
-        return N,k
-
-    def get_data(N0,N1,k0=2,k1=12): 
-        v = (ellipsis_range(Integer(N0),Ellipsis,Integer(N1)))
-        kv = (ellipsis_range(Integer(k0),Ellipsis,Integer(k1+1)))
-        step = 1 #len(v)//chunk
-        for i in range(step):
-            for k in kv: #range(2,13):
-                for N in v: #v[chunk*i:chunk*(i+Integer(1))]:
-                    fs = gridfs.GridFS(connection.modularforms,'Modular_symbols')	
-                    insert_one_set(fs,N,k)
-
 
 class WDBtoMFDB(WDB):
     r"""
@@ -297,6 +229,104 @@ class WDBtoMFDB(WDB):
     def view_db(self):        
         return ModularSymbols_ambient.query.all()
 
+
+
+
+
+
+
+
+class WDBtoMongo(WDBtoMFDB):
+    r"""
+
+    """
+    def __init__(self,datadir,host='localhost',port=37010,verbose=0):
+        super(WDBtoMongo,self).__init__(datadir)
+        self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))
+
+    def insert_one_set(fs,N,k):
+        """
+        INPUT:
+        N -- positive integer
+        k -- even integer >= 2
+        OUTPUT:
+        (N,k) -- level and weight
+        (t0,t1,t2,t3,tall)  -- timings
+        Modular symbols space -- with new cuspidal subspace decomposed.
+        """
+        G = DirichletGroup(N)
+        G_orbits = G.galois_orbits(reps_only=True)
+        for i in range(len(G_orbits)):
+            name = 'data/gamma0-%s-%s-%s.sobj'%(N,k,i)
+            chi = G_orbits[i]
+            #if chi.is_even() and not is_even(k):
+            #   continue
+            d=dimension_modular_forms(chi,k)
+            if d>200:
+                print "Dimension too large! d=",d
+                continue
+            if d==0:
+                continue
+            t = (int(N),int(k),int(i))
+            if not fs.exists({"t":t}):
+                ModularSymbols_clear_cache()
+                print name," dim=",d
+                #fname = 'gamma0-modsym-%s-%s-%s'%(N,k,i)
+                try:
+                    #M=load(fname)
+                    spaces = self.get_spaces(N,k,i)
+                    M = spaces['ambient']
+                    M._HeckeModule_free_module__decomposition = {(None, True): Sequence(spaces['orbits'],check=False)}
+                except:
+                   print "{0},{1},{2}, Not in the old database!".format(N,k,i)
+                   continue
+                try:
+                    try: 
+                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
+                    except MemoryError:
+                        # restart connection and see if this helps...
+                        fs = gridfs.GridFS(connection.modularforms,'Modular_symbols') 
+                        fs.put(dumps(M),filename=fname,N=int(N), k=int(k),sign=int(1),chi=i,t=t)
+                except Exception as e:
+                    save(M,fname)
+                    print e
+                    print "saved to ",fname
+                    return
+            else:
+                print name," is already in db! dim=",d 
+            ModularSymbols_clear_cache()
+        return N,k
+
+    def get_data(N0,N1,k0=2,k1=12): 
+        v = (ellipsis_range(Integer(N0),Ellipsis,Integer(N1)))
+        kv = (ellipsis_range(Integer(k0),Ellipsis,Integer(k1+1)))
+        step = 1 #len(v)//chunk
+        for i in range(step):
+            for k in kv: #range(2,13):
+                for N in v: #v[chunk*i:chunk*(i+Integer(1))]:
+                    fs = gridfs.GridFS(connection.modularforms,'Modular_symbols')	
+                    insert_one_set(fs,N,k)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 def my_get(dict, key, default, f=None):
     r"""
     Improved version of dict.get where an empty string also gives default.
