@@ -52,9 +52,9 @@ class WDBtoMFDB(WDB):
 
     
     """
-    def __init__(self,datadir,verbose=0):
+    def __init__(self,datadir,verbose=0,**kwds):
         self._dir = datadir
-        super(WDBtoMFDB,self).__init__(dir=datadir)
+        super(WDBtoMFDB,self).__init__(dir=datadir,**kwds)
         self._dbb = mdb.db.db 
         if verbose>0:
             self._dbb.session.bind.echo = True
@@ -240,11 +240,85 @@ class WDBtoMongo(WDBtoMFDB):
     r"""
 
     """
-    def __init__(self,datadir,host='localhost',port=37010,verbose=0):
-        super(WDBtoMongo,self).__init__(datadir)
-        self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))
+    def __init__(self,datadir,host='localhost',port=37010,verbose=0,**kwds):
+        super(WDBtoMongo,self).__init__(datadir,**kwds)
+        self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+        
+        self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))['modularforms']
+        # Old collection
+        self._ms_collection = self._mongod['Modular_symbols']
+        
 
-    def insert_one_set(fs,N,k):
+    
+
+    def show_existing_mongo(self):
+        files = self._collection['Modular_symbols'].files
+        levels = files.distinct('N')
+        weights = files.distinct('k')
+        print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
+
+    def N_k_i_in_files(self,N,k,i):
+        s = "N={0} and k={1} and i={2}".format(N,k,i)
+        q = self._db.known(s).fetchall()
+        # if we have more than one file database
+        if self._db2<>None:
+            q2 = self._db2.known(s).fetchall()
+        q = q + q2
+        if len(q)==0:
+            return None
+        else:
+            N,k,i,o,nap=q[0]
+            return nap
+        return 
+    
+    def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
+        fid = rec['_id']
+        fs = gridfs.GridFS(self._mongod, 'Modular_symbols')
+        f = fs.get(fid)
+        ambient = loads(f.read())  # Ambient modular symbols space
+        #d = self._db.ambient_to_dict()
+        #fname = 'gamma0-ambient-'+self._db.space_name
+        N = rec['N']; k=rec['k']; i=rec['chi']        
+        filename = self._db.ambient(N, k, i)
+        if self.N_k_i_in_files(N,k,i)<>None:
+            return False
+        self._db.save_ambient_space(ambient,i)
+        ## We do not want to compute stuff so we only add orbits
+        ## if present in ambient
+        if ambient.__dict__.has_key('_HeckeModule_free_module__decomposition') or compute==True:
+            self._db.compute_decompositions(N,k,i)
+        # if fs.exists({"ambient-filename":fname}):
+        #     return False # Record already exists
+        # # Update record
+        # fs.remove({'_id':fid})
+        # N = rec['N']; k=rec['k']; chi=rec['chi']
+        # old_filename = rec['filename']
+        # dim = int(ambient.dimensionsion())
+        # version = str(version())
+        # t = (int(N),int(k),int(0))
+        #     fs.put(dumps(g[0]),filename=filename,N=int(N), k=int(k),chi=int(0),t=t,version=version)
+        return True
+
+
+    def convert_records(self,N,k='all'):
+        files = self._ms_collection.files
+        i=0
+        if k=='all':
+            s = {'N':int(N)}
+        else:
+            s = {'N':N,'k':k}
+        print "s=",s
+        #print "files=",files
+        for f in files.find(s):
+            #print "f=",f
+            if self.convert_mongo_rec_ambient_to_file(f):
+                i+=1
+        print "Converted {0} records!"
+        return True
+        
+         
+        
+    def insert_one_set(self,fs,N,k):
         """
         INPUT:
         N -- positive integer
