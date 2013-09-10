@@ -269,7 +269,7 @@ class WDBtoMongo(WDBtoMFDB):
         else:
             N,k,i,o,nap=q[0]
             return nap
-        return 
+        return
     
     def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
         fid = rec['_id']
@@ -281,7 +281,7 @@ class WDBtoMongo(WDBtoMFDB):
         N = rec['N']; k=rec['k']; i=rec['chi']        
         filename = self._db.ambient(N, k, i)
         if self.N_k_i_in_files(N,k,i)<>None:
-            return False
+            return 
         self._db.save_ambient_space(ambient,i)
         ## We do not want to compute stuff so we only add orbits
         ## if present in ambient
@@ -297,12 +297,14 @@ class WDBtoMongo(WDBtoMFDB):
         # version = str(version())
         # t = (int(N),int(k),int(0))
         #     fs.put(dumps(g[0]),filename=filename,N=int(N), k=int(k),chi=int(0),t=t,version=version)
-        return True
+        #return True
 
 
     def convert_records(self,N,k='all'):
         files = self._ms_collection.files
         i=0
+        v = [(N,k) for N in rangify(N) for k in rangify(krange)]
+        print v
         if k=='all':
             s = {'N':int(N)}
         else:
@@ -311,12 +313,22 @@ class WDBtoMongo(WDBtoMFDB):
         #print "files=",files
         for f in files.find(s):
             #print "f=",f
-            if self.convert_mongo_rec_ambient_to_file(f):
-                i+=1
-        print "Converted {0} records!"
+            self.convert_mongo_rec_ambient_to_file(f)
+        #print "Converted {0} records!"
         return True
+
+    def convert_all_records_N(self):
+        nrange = self._ms_collection.files.distinct('N')
+        self.convert_all_records_N(nrange)
         
-         
+    @parallel(ncpus=8)
+    def convert_all_records_N(self,N):
+        if N % 100 == 1:
+            print "Converting N={0}".format(N)
+        files = self._ms_collection.files        
+        for f in files.find({'N':int(N)}):
+            self.convert_mongo_rec_ambient_to_file(f)
+            
         
     def insert_one_set(self,fs,N,k):
         """
