@@ -401,7 +401,10 @@ class WDBtoMongo(WDBtoMFDB):
         # Insert ambient modular symbols
         m = self._db.number_of_known_factors(N, k, i)    
         if m == 0:
-            m = self._db2.number_of_known_factors(N, k, i)
+            try: 
+                m = self._db2.number_of_known_factors(N, k, i)
+            except OSError:
+                m = 0
         if m==0:
             print  "No factors computed for this space!"
             #return 
