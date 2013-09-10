@@ -247,10 +247,9 @@ class WDBtoMongo(WDBtoMFDB):
         self._mongod = pymongo.Connection('{0}:{1}'.format(host,port))['modularforms']
         # Old collection
         self._ms_collection = self._mongod['Modular_symbols']
+        self._sage_version = sage.version.version
+
         
-
-    
-
     def show_existing_mongo(self):
         files = self._collection['Modular_symbols'].files
         levels = files.distinct('N')
@@ -276,8 +275,6 @@ class WDBtoMongo(WDBtoMFDB):
         fs = gridfs.GridFS(self._mongod, 'Modular_symbols')
         f = fs.get(fid)
         ambient = loads(f.read())  # Ambient modular symbols space
-        #d = self._db.ambient_to_dict()
-        #fname = 'gamma0-ambient-'+self._db.space_name
         N = rec['N']; k=rec['k']; i=rec['chi']        
         filename = self._db.ambient(N, k, i)
         if self.N_k_i_in_files(N,k,i)<>None:
@@ -287,6 +284,7 @@ class WDBtoMongo(WDBtoMFDB):
         ## if present in ambient
         if ambient.__dict__.has_key('_HeckeModule_free_module__decomposition') or compute==True:
             self._db.compute_decompositions(N,k,i)
+
         # if fs.exists({"ambient-filename":fname}):
         #     return False # Record already exists
         # # Update record
@@ -310,26 +308,146 @@ class WDBtoMongo(WDBtoMFDB):
         else:
             s = {'N':N,'k':k}
         print "s=",s
-        #print "files=",files
         for f in files.find(s):
-            #print "f=",f
             self.convert_mongo_rec_ambient_to_file(f)
-        #print "Converted {0} records!"
         return True
 
-    def convert_all_records(self):
+    def convert_all_records_ambient(self):
         nrange = self._ms_collection.files.distinct('N')
-        self.convert_all_records_N(nrange)
+        return self.convert_all_records_N_ambient(nrange)
         
     @parallel(ncpus=8)
-    def convert_all_records_N(self,N):
-        #if N % 100 == 1:
-        print "Converting N={0}".format(N)
+    def convert_all_records_N_ambient(self,N):
+        if N % 100 == 1:
+            print "Converting N={0}".format(N)        
         files = self._ms_collection.files        
         for f in files.find({'N':int(N)}):
             self.convert_mongo_rec_ambient_to_file(f)
-            
+
+    def convert_files_to_mongodb_ambient(self):        
+        nrange = self._ms_collection.files.distinct('N')
+        return self.convert_all_records_N_ambient(nrange)
         
+    #    @parallel(ncpus=8)
+    def convert_to_mongo_all(self,par=0):
+        nrange1 = self._db.known_levels()
+        nrange2 = self._db2.known_levels()
+        print "nrange1=",nrange1
+        print "nrange2=",nrange2
+        nrange = list(set(nrange1+nrange2))
+        nrange.sort()
+        print "nrange=",nrange
+        if par==1:
+            return self.convert_to_mongo_N_par(nrange)
+        else:
+            for n in nrange:
+                self.convert_to_mongo_N_seq(n)
+            
+    @parallel(ncpus=2) 
+    def convert_to_mongo_N_par(self,N):
+        #if N % 100 == 1:
+        print "Converting N={0}".format(N)        
+        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
+            self.convert_to_mongo_one_space(N,k,i)     
+
+    def convert_to_mongo_N_seq(self,N):
+        #if N % 100 == 1:
+        print "Converting N={0}".format(N)        
+        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
+            self.convert_to_mongo_one_space(N,k,i)     
+
+            
+    def convert_to_mongo_one_space(self,N,k,i):
+        files = self._ms_collection.files
+        fs_ms = gridfs.GridFS(self._mongod, 'Modular_symbols')
+        fs_fact = gridfs.GridFS(self._mongod, 'Newform_factors')
+        try:
+            ambient = self._db.load_ambient_space(N,k,i)
+        except ValueError:
+            try: 
+                ambient = self._db2.load_ambient_space(N,k,i)
+            except ValueError:
+                ambient = None
+        if ambient==None:
+            print "Space {0},{1},{2} not computed".format(N,k,i)
+            return 
+        # If we are here then ambient space is computed
+        # So we see if it is in mongo database.
+        f = files.find({'N':int(N),'k':int(k),'chi':int(i)})
+        if f.count()>0: # Replace the old record if it is old
+            rec = f.next()
+            filename = rec.get('filename','')
+            if 'ambient' or 'orbit' in filename:
+                print "new record exists!"
+                return 
+            # else is an old record
+            id = rec['_id']
+            print "remove file",N,k,i
+            if fs_ms.exists(id):
+                print "f=",fs_ms.get(id)
+                t = fs_ms.delete(id)
+                if t==False:
+                    # print "Could not remove file {0}".format(rec)
+                    print "Could not remove file t=",t
+                    #return
+        fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
+        # Insert ambient modular symbols
+        m = self._db.number_of_known_factors(N, k, i)    
+        if m == 0:
+            m = self._db2.number_of_known_factors(N, k, i)
+        if m==0:
+            print  "No factors computed for this space!"
+            #return 
+        print "inserting! ambient!",N,k,i
+        fid = fs_ms.put(dumps(ambient),filename=fname,
+                        N=int(N),k=int(k),chi=int(i),orbits=int(m),
+                        sage_version = self._sage_version)
+        #print "inserted fid=",fid            
+        #factors.append(factor)
+        # Insert factors:
+        if m==0:
+            return 
+        fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
+        for d in range(m):
+            try: 
+                factor = self._db.load_factor(N,k,i,d,M=ambient)
+            except ValueError:
+                try:
+                    factor = self._db2._load_factor(N,k,i,d,M=ambient)
+                except ValueError:
+                    factor=None
+            if factor==None:
+                print "Factor {0},{1},{2},{3} not computed!",factor(N,k,i,d)
+                continue
+            fname1 = "{0}-{1:0>3}".format(fname,d)
+            facid = fs_fact.put(dumps(factor),filename=fname1,
+                             N=int(N),k=int(k),chi=int(i),
+                                 newform=int(d),
+                             sage_version = str(self._sage_version),
+                                  ambient_id=fid)
+            #print "insert ",facid
+        return True
+#            fs.put(dumps(g[-2]),
+#                   filename=filename1,
+#                   sage_version = str(self._sage_version)
+#                   N=N, k=i)
+        ##
+
+    def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
+        fid = rec['_id']
+        fs = gridfs.GridFS(self._mongod, 'Modular_symbols')
+        f = fs.get(fid)
+        ambient = loads(f.read())  # Ambient modular symbols space
+        N = rec['N']; k=rec['k']; i=rec['chi']        
+        filename = self._db.ambient(N, k, i)
+        if self.N_k_i_in_files(N,k,i)<>None:
+            return 
+        self._db.save_ambient_space(ambient,i)
+        ## We do not want to compute stuff so we only add orbits
+        ## if present in ambient
+        if ambient.__dict__.has_key('_HeckeModule_free_module__decomposition') or compute==True:
+            self._db.compute_decompositions(N,k,i)            
+            
     def insert_one_set(self,fs,N,k):
         """
         INPUT:
