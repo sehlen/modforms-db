@@ -317,7 +317,7 @@ class WDBtoMongo(WDBtoMFDB):
         #print "Converted {0} records!"
         return True
 
-    def convert_all_records_N(self):
+    def convert_all_records(self):
         nrange = self._ms_collection.files.distinct('N')
         self.convert_all_records_N(nrange)
         
