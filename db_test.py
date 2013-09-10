@@ -323,8 +323,8 @@ class WDBtoMongo(WDBtoMFDB):
         
     @parallel(ncpus=8)
     def convert_all_records_N(self,N):
-        if N % 100 == 1:
-            print "Converting N={0}".format(N)
+        #if N % 100 == 1:
+        print "Converting N={0}".format(N)
         files = self._ms_collection.files        
         for f in files.find({'N':int(N)}):
             self.convert_mongo_rec_ambient_to_file(f)
