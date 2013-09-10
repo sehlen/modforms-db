@@ -342,7 +342,7 @@ class WDBtoMongo(WDBtoMFDB):
             for n in nrange:
                 self.convert_to_mongo_N_seq(n)
             
-    @parallel(ncpus=2) 
+    @parallel(ncpus=8) 
     def convert_to_mongo_N_par(self,N,**kwds):
         #if N % 100 == 1:
         print "Converting N={0}".format(N)        
