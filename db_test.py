@@ -25,7 +25,7 @@ from mdb import schema
 from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
 from nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
 from conversions import extract_args_kwds
-
+import bson
 #from mdb import schema_sage 
 #from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
 #schema.setup_all() 
@@ -75,7 +75,7 @@ class WDBtoMFDB(WDB):
         """
         print "Target DB= {0}".format(self._dbb.metadata.bind)
 
-
+    
         
     def insert_spaces(self,q="N=1 and k=12"):
         r"""
@@ -263,14 +263,59 @@ class WDBtoMongo(WDBtoMFDB):
         
     def show_existing_mongo(self,db='fr'):
         if db=='fr':
-            files = self._collection_fr['Modular_symbols'].files
+            files = self._ms_collection_fr['Modular_symbols'].files
+            factors = self._ms_collection_fr['Newform_factors'].files
         else:
-            files = self._collection_to['Modular_symbols'].files
+            files = self._ms_collection_to['Modular_symbols'].files
+            factors = self._ms_collection_to['Newform_factors'].files
         levels = files.distinct('N')
         weights = files.distinct('k')
-        print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
-        
-        
+        print "Modular symbols: \n"
+        if levels<>[]:
+            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
+        print "Newforms: \n"
+        levels = factors.distinct('N')
+        weights = factors.distinct('k')
+        if levels<>[]:
+            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))        
+
+    def show_existing_files(self,dbn=0):
+        s=""
+        if dbn in [0,1]:
+            print "Directory:{0}".format(self._db._data)
+            s+=self.show_existing_files_db(self._db)
+        if dbn in [0,2]:
+            print "Directory:{0}".format(self._db2._data)
+            s+=self.show_existing_files_db(self._db2)
+        return s
+    def show_existing_files_db(self,db):        
+        self.update()
+        res = {}
+        for t in db.find_known():
+            N,k,i,newf,d = t
+            if N not in res:
+                res[N] = {}
+            if k not in res[N]:
+                res[N][k] = {}
+            res[N][k][i]=newf,d
+        Ns = res.keys(); Ns.sort()
+        s=""
+        for N in Ns:
+            #s="{0:0>4} \t : \n".format(N)
+            ks = res[N].keys(); ks.sort()
+            #print "ks=",ks
+            for k in ks:
+                s+="{0:0>3} {1:0>3} \t ".format(N,k)
+                i_s = res[N][k].keys(); i_s.sort()
+                for i in i_s:
+                    no,nap = res[N][k][i]
+                    s+="{0}\t{1} \t {2:0>3}\t".format(i,no,nap)
+                s+="\n"
+        return s
+    @cached_method
+    def _character(self,N,i):
+        return  mfdb.compute.character(N, i)
+    
     def N_k_i_in_files(self,N,k,i):
         s = "N={0} and k={1} and i={2}".format(N,k,i)
         q = self._db.known(s).fetchall()
@@ -358,6 +403,7 @@ class WDBtoMongo(WDBtoMFDB):
 
             
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
+        print "converting ",N,k,i
         files = self._ms_collection_to.files
         fs_ms = gridfs.GridFS(self._mongod_to, 'Modular_symbols')
         fs_fact = gridfs.GridFS(self._mongod_to, 'Newform_factors')
@@ -404,7 +450,8 @@ class WDBtoMongo(WDBtoMFDB):
                         #return
         fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
         # Insert ambient modular symbols
-        m,i = self.factors_in_dbs(N,k,i,[self._db,self._db2])
+        m,idb = self.factors_in_dbs(N,k,i,[self._db,self._db2])
+        print "m=",m
         if m==0:
             print  "No factors computed for this space!"
         if newrec == 0:
@@ -419,8 +466,11 @@ class WDBtoMongo(WDBtoMFDB):
             else:
                 # Compute and insert into the files.
                 #if rec_in==2:
-                self._computedb.compute_decompositions(N,k,i)
-
+                print "Computing factors! m=",m
+                m = self._computedb.compute_decompositions(N,k,i,verbose=1)
+                self.update() #_db.update_known_db()
+                #m = self.factors_in_dbs(N,k,i,[self._db,self._db2])
+        print "Inserting m=",m
         fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
         for d in range(m):
             try: 
@@ -439,14 +489,17 @@ class WDBtoMongo(WDBtoMFDB):
                                  newform=int(d),
                              sage_version = str(self._sage_version),
                                   ambient_id=fid)
-            #print "insert ",facid
+            print "inserted factor: ",facid
         return True
 
 
     def factors_in_dbs(self,N,k,i,db_list=[]):
         m = -1; i=-1
         for db in db_list:
-            mtmp = db.number_of_known_factors(N,k,i) 
+            try: 
+                mtmp = db.number_of_known_factors(N,k,i)
+            except OSError:
+                mtmp = 0
             if mtmp>m:
                 m = mtmp; i=db_list.index(db)
         return m,i
@@ -800,7 +853,7 @@ def ModularSymbols_newspace_factor_from_sage(N,**kwds):
 #         return NotImplementedError()
 
 
-def compare_mongo(fdb1,fdb2=None,mongodb=None):
+def compare_mongo(fdb1,fdb2=None,monongodb=None):
     r"""
     Compare data from two files databases and one mongo db.
     """
@@ -816,3 +869,8 @@ def compare_mongo(fdb1,fdb2=None,mongodb=None):
         if rec==None:
             missing.append(t)
     return missing
+def add_dimensions(DB):
+    modular_symbols = DB._mongo_db_to['Modular_Symbols']
+
+    dim_table = DB._mongo_conn.dimensions
+    
