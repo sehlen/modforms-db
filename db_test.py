@@ -259,6 +259,7 @@ class WDBtoMongo(WDBtoMFDB):
         self._ms_collection_to = self._mongod_to['Modular_symbols']
         self._sage_version = sage.version.version
         self._computedb = ComputeMFData(datadir)
+        self._do_compute = kwds.get('compute',False)
         
     def show_existing_mongo(self,db='fr'):
         if db=='fr':
@@ -361,6 +362,8 @@ class WDBtoMongo(WDBtoMFDB):
         fs_ms = gridfs.GridFS(self._mongod_to, 'Modular_symbols')
         fs_fact = gridfs.GridFS(self._mongod_to, 'Newform_factors')
         compute = kwds.get('compute',False)
+        if compute == False:
+            compute = self._do_compute
         rec_in = 0
         try:
             ambient = self._db.load_ambient_space(N,k,i)
@@ -380,40 +383,35 @@ class WDBtoMongo(WDBtoMFDB):
                 ambient = self._db.load_ambient_space(N,k,i)
         # If we are here then ambient space is computed
         # So we see if it is in mongo database.
-        f = files.find({'N':int(N),'k':int(k),'chi':int(i)})
-        if f.count()>0: # Replace the old record if it is old
-            rec = f.next()
-            filename = rec.get('filename','')
+        rec = files.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+        newrec=0
+        if rec<>None: # Replace the old record if it is old
+            filename = rec.get('filename','')            
             if 'ambient' or 'orbit' in filename:
                 print "new record exists!"
-                return 
-            # else is an old record
-            id = rec['_id']
-            print "remove file",N,k,i
-            if fs_ms.exists(id):
-                print "f=",fs_ms.get(id)
-                t = fs_ms.delete(id)
-                if t==False:
-                    # print "Could not remove file {0}".format(rec)
-                    print "Could not remove file t=",t
-                    #return
+                fid = rec.get('_id')
+                newrec=1
+            else:
+                # else is an old record
+                id = rec['_id']
+                print "remove file",N,k,i
+                if fs_ms.exists(id):
+                    print "f=",fs_ms.get(id)
+                    t = fs_ms.delete(id)
+                    if t==False:
+                        # print "Could not remove file {0}".format(rec)
+                        print "Could not remove file t=",t
+                        #return
         fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
         # Insert ambient modular symbols
-        m = self._db.number_of_known_factors(N, k, i)    
-        if m == 0:
-            try: 
-                m = self._db2.number_of_known_factors(N, k, i)
-            except OSError:
-                m = 0
+        m,i = self.factors_in_dbs(N,k,i,[self._db,self._db2])
         if m==0:
             print  "No factors computed for this space!"
-            #return 
-        print "inserting! ambient!",N,k,i
-        fid = fs_ms.put(dumps(ambient),filename=fname,
-                        N=int(N),k=int(k),chi=int(i),orbits=int(m),
-                        sage_version = self._sage_version)
-        #print "inserted fid=",fid            
-        #factors.append(factor)
+        if newrec == 0:
+            print "inserting! ambient!",N,k,i
+            fid = fs_ms.put(dumps(ambient),filename=fname,
+                            N=int(N),k=int(k),chi=int(i),orbits=int(m),
+                            sage_version = self._sage_version)
         # Insert factors:
         if m==0:
             if not compute:
@@ -422,17 +420,18 @@ class WDBtoMongo(WDBtoMFDB):
                 # Compute and insert into the files.
                 #if rec_in==2:
                 self._computedb.compute_decompositions(N,k,i)
+
         fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
         for d in range(m):
             try: 
                 factor = self._db.load_factor(N,k,i,d,M=ambient)
-            except ValueError:
+            except (ValueError,RuntimeError):
                 try:
-                    factor = self._db2._load_factor(N,k,i,d,M=ambient)
-                except ValueError:
+                    factor = self._db2.load_factor(N,k,i,d,M=ambient)
+                except (ValueError,RuntimeError):
                     factor=None
             if factor==None:
-                print "Factor {0},{1},{2},{3} not computed!",factor(N,k,i,d)
+                print "Factor {0},{1},{2},{3} not computed!".format(N,k,i,d)
                 continue
             fname1 = "{0}-{1:0>3}".format(fname,d)
             facid = fs_fact.put(dumps(factor),filename=fname1,
@@ -442,11 +441,16 @@ class WDBtoMongo(WDBtoMFDB):
                                   ambient_id=fid)
             #print "insert ",facid
         return True
-#            fs.put(dumps(g[-2]),
-#                   filename=filename1,
-#                   sage_version = str(self._sage_version)
-#                   N=N, k=i)
-        ##
+
+
+    def factors_in_dbs(self,N,k,i,db_list=[]):
+        m = -1; i=-1
+        for db in db_list:
+            mtmp = db.number_of_known_factors(N,k,i) 
+            if mtmp>m:
+                m = mtmp; i=db_list.index(db)
+        return m,i
+    
 
     def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
         fid = rec['_id']
@@ -525,6 +529,7 @@ class WDBtoMongo(WDBtoMFDB):
                 for N in v: #v[chunk*i:chunk*(i+Integer(1))]:
                     fs = gridfs.GridFS(connection.modularforms,'Modular_symbols')	
                     insert_one_set(fs,N,k)
+                    
 
 
 
@@ -538,10 +543,34 @@ class WDBtoMongo(WDBtoMFDB):
 
 
 
-
-
-
-
+def purge_zero_dim_spaces(db):
+    for Nki in db.listdir(db._data):
+        z = Nki.split('-')
+        if len(z) == 3:
+            N, k, i = mfdb.compute.parse_Nki(Nki)
+        if len(z) <> 3:
+            continue
+        N, k, i = mfdb.compute.parse_Nki(Nki)
+        path0 = db.make_path_name(db._data, Nki)
+        if i == 0:
+            d = dimension_modular_forms(N,k)
+        else:
+            chi = mfdb.compute.character(N, i)
+            d = dimension_modular_forms(chi, k)        
+        if d == 0:
+            for x in db.listdir(path0):
+                if not x.isdigit():
+                    continue
+                # Check if this is an empty directory, in which case we remove it.
+                path1 = "{0}/{1}".format(path0,x)
+                if len(db.listdir(path1))>0:
+                    continue
+                # Else have an empty directory
+                print "{0} is empty".format(path1)
+                print "Remove: ",path1
+                os.rmdir(path1)
+            
+    
 
 
 
@@ -771,3 +800,19 @@ def ModularSymbols_newspace_factor_from_sage(N,**kwds):
 #         return NotImplementedError()
 
 
+def compare_mongo(fdb1,fdb2=None,mongodb=None):
+    r"""
+    Compare data from two files databases and one mongo db.
+    """
+    if fdb2==None:
+        fdb2 = fdb1._db2
+        mongodb = fdb1._mongod_to
+        fdb1 = fdb1._db
+    ambient_files = mongodb.Modular_Symbols.files
+    missing = []
+    for t in fdb1.find_known():
+        N,k,i,newf,maxp = t
+        rec = ambient_files.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+        if rec==None:
+            missing.append(t)
+    return missing
