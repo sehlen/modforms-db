@@ -605,11 +605,14 @@ def purge_zero_dim_spaces(db):
             continue
         N, k, i = mfdb.compute.parse_Nki(Nki)
         path0 = db.make_path_name(db._data, Nki)
-        if i == 0:
-            d = dimension_modular_forms(N,k)
+        if k <> 1:            
+            if i == 0:
+                d = dimension_modular_forms(N,k)
+            else:
+                chi = mfdb.compute.character(N, i)
+                d = dimension_modular_forms(chi, k)
         else:
-            chi = mfdb.compute.character(N, i)
-            d = dimension_modular_forms(chi, k)        
+            d = 0
         if d == 0:
             for x in db.listdir(path0):
                 if not x.isdigit():
