@@ -263,11 +263,11 @@ class WDBtoMongo(WDBtoMFDB):
         
     def show_existing_mongo(self,db='fr'):
         if db=='fr':
-            files = self._ms_collection_fr['Modular_symbols'].files
-            factors = self._ms_collection_fr['Newform_factors'].files
+            files = self._ms_mongod_fr['Modular_symbols'].files
+            factors = self._ms_mongod_fr['Newform_factors'].files
         else:
-            files = self._ms_collection_to['Modular_symbols'].files
-            factors = self._ms_collection_to['Newform_factors'].files
+            files = self._ms_mongod_to['Modular_symbols'].files
+            factors = self._ms_mongod_to['Newform_factors'].files
         levels = files.distinct('N')
         weights = files.distinct('k')
         print "files=",files
