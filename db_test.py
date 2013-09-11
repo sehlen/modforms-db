@@ -270,6 +270,7 @@ class WDBtoMongo(WDBtoMFDB):
             factors = self._ms_collection_to['Newform_factors'].files
         levels = files.distinct('N')
         weights = files.distinct('k')
+        print "files=",files
         print "Modular symbols: \n"
         if levels<>[]:
             print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
