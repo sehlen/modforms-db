@@ -499,11 +499,11 @@ class WDBtoMongo(WDBtoMFDB):
     def factors_in_dbs(self,N,k,i,db_list=[]):
         m = -1; i=-1
         for db in db_list:
-            try: 
-                mtmp = db.number_of_known_factors(N,k,i)
+            try:  
                 print "db=",db
+                mtmp = db.number_of_known_factors(N,k,i)
             except OSError:
-                mtmp = 0
+                mtmp = m
             if mtmp>m:
                 m = mtmp; i=db_list.index(db)
         return m,i
