@@ -878,3 +878,67 @@ def add_dimensions(DB):
 
     dim_table = DB._mongo_conn.dimensions
     
+
+
+
+
+def generate_dimension_table_gamma0(DB,maxN=100, maxk=12,db='to'):
+    #C = pymongo.connection.Connection(port=dbport)
+    #C = pymongo.connection.Connection(port=dbport)
+    if db=='to':        
+        ms = DB._ms_collection_to.files # = C['modularforms']['Modular_symbols.files']
+    elif db=='fr':
+        ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
+    print ms
+    data = dict()
+    for N in range(1, maxN):
+        data[N] = dict()
+        for k in range(2, maxk):
+            dim = dimension_new_cusp_forms(N, k)
+            finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)})
+                #{'t': [int(N), int(k), int(0)]})
+            print finds.count()
+            in_db = finds.count() > 0
+            data[N][k] = {'dimension': dim, 'in_db': in_db}
+            # print N,k,data[N][k]
+    return ms, data
+
+
+def generate_dimension_table_gamma1(maxN=100, maxk=12, minN=3, mink=2):
+    C = pymongo.connection.Connection(port=dbport)
+    C = pymongo.connection.Connection(port=dbport)
+    ms = C['modularforms']['Modular_symbols.files']
+    print ms
+    data = dict()
+    for N in range(minN, maxN + 1):
+        data[N] = dict()
+        for k in range(mink, maxk + 1):
+            data[N][k] = dict()
+            if N > 2:
+                D = DirichletGroup(N)
+                G = D.galois_orbits(reps_only=True)
+                dimall = 0
+                in_db_all = True
+                for xi, x in enumerate(G):
+                    dim = dimension_new_cusp_forms(x, k)
+                    dimall += dim
+                    finds = ms.find({'N':int(N),'k':int(k),'chi':int(xi)})
+                    #finds = ms.find({'t': [int(N), int(k), int(xi)]})
+                    in_db = finds.count() > 0
+                    if not in_db:
+                        in_db_all = False
+                    data[N][k][xi] = {'dimension': dim, 'in_db': in_db}
+            else:
+                in_db_all = True
+                # we only have the trivial character
+                finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)}
+#                finds = ms.find({'t': [int(N), int(k), int(0)]})
+                in_db = finds.count() > 0
+                if not in_db:
+                    in_db_all = False
+                dimall = dimension_new_cusp_forms(N, k)
+                data[N][k][0] = {'dimension': dimall, 'in_db': in_db}
+            # print N,k,data[N][k]
+            data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
+        print "Computed data for level ", N
+    return ms, data
