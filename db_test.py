@@ -500,7 +500,7 @@ class WDBtoMongo(WDBtoMFDB):
         m = -1; i=-1
         for db in db_list:
             try:  
-                print "db=",db
+                print "db._data=",db._data
                 mtmp = db.number_of_known_factors(N,k,i)
             except OSError:
                 mtmp = m
