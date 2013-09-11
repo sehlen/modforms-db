@@ -405,7 +405,8 @@ class WDBtoMongo(WDBtoMFDB):
             
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
         print "converting ",N,k,i
-        files = self._ms_collection_to.files
+        files_ms = self._ms_collection_to.files
+        files_fact = self._mongod_to.Newform_factors.files
         fs_ms = gridfs.GridFS(self._mongod_to, 'Modular_symbols')
         fs_fact = gridfs.GridFS(self._mongod_to, 'Newform_factors')
         compute = kwds.get('compute',False)
@@ -430,11 +431,11 @@ class WDBtoMongo(WDBtoMFDB):
                 ambient = self._db.load_ambient_space(N,k,i)
         # If we are here then ambient space is computed
         # So we see if it is in mongo database.
-        rec = files.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+        rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
         newrec=0
-        if rec<>None: # Replace the old record if it is old
+        if rec<>None: 
             filename = rec.get('filename','')            
-            if 'ambient' or 'orbit' in filename:
+            if 'ambient' or 'orbit' in filename: # in this case it is one of the newly inserted records
                 print "new record exists!"
                 fid = rec.get('_id')
                 newrec=1
@@ -460,8 +461,9 @@ class WDBtoMongo(WDBtoMFDB):
             fid = fs_ms.put(dumps(ambient),filename=fname,
                             N=int(N),k=int(k),chi=int(i),orbits=int(m),
                             sage_version = self._sage_version)
-        # Insert factors:
-        if m==0:
+        rec = files_fact.find({'N':int(N),'k':int(k),'chi':int(i)})
+        print "Already have {0} factors in db!".format(rec.count())
+        if rec.count()<m:
             if not compute:
                 return
             else:
@@ -469,28 +471,28 @@ class WDBtoMongo(WDBtoMFDB):
                 #if rec_in==2:
                 print "Computing factors! m=",m
                 m = self._computedb.compute_decompositions(N,k,i,verbose=1)
-                self.update() #_db.update_known_db()
+                #self.update() #_db.update_known_db()
                 #m = self.factors_in_dbs(N,k,i,[self._db,self._db2])
-        print "Inserting m=",m
-        fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
-        for d in range(m):
-            try: 
-                factor = self._db.load_factor(N,k,i,d,M=ambient)
-            except (ValueError,RuntimeError):
-                try:
-                    factor = self._db2.load_factor(N,k,i,d,M=ambient)
+            print "Inserting m=",m
+            fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
+            for d in range(m):
+                try: 
+                    factor = self._db.load_factor(N,k,i,d,M=ambient)
                 except (ValueError,RuntimeError):
-                    factor=None
-            if factor==None:
-                print "Factor {0},{1},{2},{3} not computed!".format(N,k,i,d)
-                continue
-            fname1 = "{0}-{1:0>3}".format(fname,d)
-            facid = fs_fact.put(dumps(factor),filename=fname1,
-                             N=int(N),k=int(k),chi=int(i),
-                                 newform=int(d),
-                             sage_version = str(self._sage_version),
-                                  ambient_id=fid)
-            print "inserted factor: ",facid
+                    try:
+                        factor = self._db2.load_factor(N,k,i,d,M=ambient)
+                    except (ValueError,RuntimeError):
+                        factor=None
+                if factor==None:
+                    print "Factor {0},{1},{2},{3} not computed!".format(N,k,i,d)
+                    continue
+                fname1 = "{0}-{1:0>3}".format(fname,d)
+                facid = fs_fact.put(dumps(factor),filename=fname1,
+                                    N=int(N),k=int(k),chi=int(i),
+                                    newform=int(d),
+                                    sage_version = str(self._sage_version),
+                                    ambient_id=fid)
+                print "inserted factor: ",m,facid
         return True
 
 
