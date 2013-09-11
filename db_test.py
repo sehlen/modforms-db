@@ -931,7 +931,7 @@ def generate_dimension_table_gamma1(maxN=100, maxk=12, minN=3, mink=2):
             else:
                 in_db_all = True
                 # we only have the trivial character
-                finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)}
+                finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)})
 #                finds = ms.find({'t': [int(N), int(k), int(0)]})
                 in_db = finds.count() > 0
                 if not in_db:
