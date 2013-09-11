@@ -463,7 +463,7 @@ class WDBtoMongo(WDBtoMFDB):
                             sage_version = self._sage_version)
         rec = files_fact.find({'N':int(N),'k':int(k),'chi':int(i)})
         print "Already have {0} factors in db!".format(rec.count())
-        if rec.count()<m:
+        if rec.count()<m or m<=0:
             if not compute:
                 return
             else:
