@@ -911,18 +911,22 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
                 else:
                     is_even = 0
                 if (is_even == 0 and k % 2 == 0) or (is_even == 1 and k % 2 == 1):
-                    data[N][k][xi] = {'dimension': 0, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+                    data[N][k][xi] = (0,False) #f{'dimension': 0, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
                     continue
                 else:
-                    dim = data[N][k].get(xi,{}).get('dimension',dimension_new_cusp_forms(x, k))
+                    t = data[N][k].get(xi,[])
+                    if t == []: 
+                        dim = dimension_new_cusp_forms(x, k)
+                    else:
+                        dim = t[0]
                 dimall += dim
                 # Check existence in database. Should we check that dimensions match?
                 ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
                 facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
                 if not ambient_in_db and in_db_all:
                     in_db_all = False
-                data[N][k][xi] = {'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
-            data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
+                data[N][k][xi] = (dim,facts_in_db) #{'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+            data[N][k][-1] = (dimall,in_db_all) #{'dimension': dimall, 'in_db': in_db_all}
         print "Computed data for level ", N
     return ms, data
 
