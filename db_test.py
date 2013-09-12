@@ -941,6 +941,7 @@ def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db=''):
     """
     ## Get old tables if existing
     dimensions = DB._mongod_to.dimensions
+    d0 = {}; d1 = {}
     if dimensions.count()>=2:
         old0,old1 = DB._mongod_to.dimensions.find()
         d0 = loads(old0.get(['data'],'')); id0=old0.get('_id')
