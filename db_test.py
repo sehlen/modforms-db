@@ -895,14 +895,15 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
     data = old_dims
     maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
     print "maxN=",maxN
-    for N in range(minN, maxN + 1):
+    for N in range(1, maxN + 1):
         if N not in old_dims:
             data[N] = dict()
         if group=='gamma0': # Only trivial character
             G = [N]
         else:
             D = DirichletGroup(N)
-            G = D.galois_orbits(reps_only=True)
+            #G = D.galois_orbits(reps_only=True)
+            G = D.galois_orbits()
         maxK = max( [maxk] + data[N].keys())
         if (N>100 and group=='gamma1') or N>1000: # or group=='gamma1':
             maxK = max( [2] + data[N].keys())
@@ -912,6 +913,8 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
                 data[N][k] = dict()
             in_db_all = True
             for xi, x in enumerate(G):                
+                mult = len(x)
+                x = x[0]
                 if xi == 0 or is_even(x):
                     xis_even = 1
                 else:
@@ -925,7 +928,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
                         dim = dimension_new_cusp_forms(x, k)
                     else:
                         dim = t[0]
-                dimall += dim
+                dimall += dim*mult
                 # Check existence in database. Should we check that dimensions match?
                 ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
                 facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
