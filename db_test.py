@@ -941,12 +941,12 @@ def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db=''):
     """
     ## Get old tables if existing
     dimensions = DB._mongod_to.dimensions
-    if dimensions.count()==2:
+    if dimensions.count()>=2:
         old0,old1 = DB._mongod_to.dimensions.find()
         d0 = loads(old0.get(['data'],'')); id0=old0['_id']
         d1 = loads(old1.get(['data'],'')); id1=old1['_id']
-    dimensions.delete(id0)
-    dimensions.delete(id1)
+        dimensions.delete(id0)
+        dimensions.delete(id1)
     r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d0,group='gamma0')
     r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d1,group='gamma1')
     res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
