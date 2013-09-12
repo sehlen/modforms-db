@@ -890,8 +890,10 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
         facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
         #print ms
     data = old_dims
-    maxN = max(old_dims.keys(),maxN)
+    if old_dims.keys()<>[]:
+        maxN = max(max(old_dims.keys()),maxN)
     dimall = 0
+    print "maxN=",maxN
     for N in range(minN, maxN + 1):
         if N not in old_dims:
             data[N] = dict()
