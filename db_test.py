@@ -899,7 +899,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
         if N not in old_dims:
             data[N] = dict()
         if group=='gamma0': # Only trivial character
-            G = [N]
+            G = [[N]]
         else:
             D = DirichletGroup(N)
             #G = D.galois_orbits(reps_only=True)
