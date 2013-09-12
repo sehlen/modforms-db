@@ -904,9 +904,8 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
         for k in range(mink, maxK + 1):
             if k not in old_dims[N]:
                 data[N][k] = dict()
-        in_db_all = True
-        for xi, x in enumerate(G):
-            for k in range(mink, maxK + 1):                
+            in_db_all = True
+            for xi, x in enumerate(G):                
                 if xi == 0 or is_even(x):
                     is_even = 1
                 else:
@@ -923,7 +922,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
                 if not ambient_in_db and in_db_all:
                     in_db_all = False
                 data[N][k][xi] = {'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
-        data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
+            data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
         print "Computed data for level ", N
     return ms, data
 
