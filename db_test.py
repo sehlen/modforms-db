@@ -950,8 +950,8 @@ def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db=''):
             dimensions.delete(id0)
         if id1<>None:
             dimensions.delete(id1)
-    r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d0,group='gamma0')
-    r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d1,group='gamma1')
+    r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d0,group='gamma0')
+    r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d1,group='gamma1')
     res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
     print "inserting into: ",DB._mongod_to
     id1 = dimensions.insert(res)
