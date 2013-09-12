@@ -889,9 +889,10 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
         ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
         facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
         #print ms
+    else:
+        raise ValueError,"Need to specify 'to' or 'fr'!"
     data = old_dims
-    if old_dims.keys()<>[]:
-        maxN = max(max(old_dims.keys()),maxN)
+    maxN = max([maxN] + old_dims.keys())
     dimall = 0
     print "maxN=",maxN
     for N in range(minN, maxN + 1):
@@ -902,9 +903,9 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
         else:
             D = DirichletGroup(N)
             G = D.galois_orbits(reps_only=True)
-        maxK = max(maxk,data[N].keys())
+        maxK = max( [maxk] + data[N].keys())
         if (N>100 and group=='gamma1') or N>1000: # or group=='gamma1':
-            maxK = max(2, data[N].keys())
+            maxK = max( [2] + data[N].keys())
         for k in range(mink, maxK + 1):
             if k not in old_dims[N]:
                 data[N][k] = dict()
@@ -937,27 +938,27 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
 
 
 
-def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db=''):
+def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db='to'):
     r"""
     Upate old table of dimensions with data about availabity in the database and compute new data when necessary.
     """
     ## Get old tables if existing
     dimensions = DB._mongod_to.dimensions
-    d0 = {}; d1 = {}
+    d0 = {}; d1 = {}; id0 = None; id1 = None
     if dimensions.count()>=2:
         old0,old1 = DB._mongod_to.dimensions.find()
-        d0 = loads(old0.get(['data'],'')); id0=old0.get('_id')
-        d1 = loads(old1.get(['data'],'')); id1=old1.get('_id')
-        if id0<>None:
-            dimensions.delete(id0)
-        if id1<>None:
-            dimensions.delete(id1)
+        d0 = loads(old0.get('data','')); id0=old0.get('_id')
+        d1 = loads(old1.get('data','')); id1=old1.get('_id')
     r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d0,group='gamma0')
     r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d1,group='gamma1')
     res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
     print "inserting into: ",DB._mongod_to
+    if id0<>None:
+            dimensions.remove(id0)
     id1 = dimensions.insert(res)
     res = {'group':'gamma1','data':bson.binary.Binary(dumps(d1))}
+    if id1<>None:
+        dimensions.remove(id1)
     id2 = dimensions.insert(res)    
     return id1,id2
     
