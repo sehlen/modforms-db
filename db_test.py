@@ -38,8 +38,6 @@ from mdb.db import db
 #print DB.known(format='web')
 #def do_computations_ranges(
 from sage.all_cmdline import *   # import sage library
-if not os.path.exists('data'):
-    os.makedirs('data')
 import glob, os, os.path,re, sys
 import pymongo
 from pymongo import Connection
@@ -48,7 +46,7 @@ import gridfs
 
 class WDBtoMFDB(WDB):
     r"""
-    Class to pull records from database in William's format and insert in our database.
+    Class to pull records from database in William's format and insert in our sql database.
 
     
     """
@@ -955,9 +953,9 @@ def generate_dimension_table_gamma1(DB,maxN=100, maxk=12, minN=3, mink=2,db='to'
 def generate_dimension_table(DB):
     r0,d0 = generate_dimension_table_gamma0(DB)
     r1,d1 = generate_dimension_table_gamma1(DB)
-    res = {'group':'gamma0','data':bson.binary.Binary(d0)}
+    res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
     DB._mongod_to.dimensions.insert(res)
-    res = {'group':'gamma1','data':bson.binary.Binary(d1)}
+    res = {'group':'gamma1','data':bson.binary.Binary(dumps(d1))}
     DB._mongod_to.dimensions.insert(res)
     return 
     
