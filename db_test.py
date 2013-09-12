@@ -901,6 +901,8 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
             D = DirichletGroup(N)
             G = D.galois_orbits(reps_only=True)
         maxK = max(maxk,data[N].keys())
+        if (N>100 and group=='gamma1') or N>1000: # or group=='gamma1':
+            maxK = max(2, data[N].keys())
         for k in range(mink, maxK + 1):
             if k not in old_dims[N]:
                 data[N][k] = dict()
