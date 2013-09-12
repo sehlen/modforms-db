@@ -881,81 +881,73 @@ def add_dimensions(DB):
     dim_table = DB._mongo_conn.dimensions
     
 
-
-
-
-def generate_dimension_table_gamma0(DB,maxN=100, maxk=12,db='to'):
-    #C = pymongo.connection.Connection(port=dbport)
-    #C = pymongo.connection.Connection(port=dbport)
+def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='to',old_dims={},group='gamma1'):
     if db=='to':        
         ms = DB._ms_collection_to.files # = C['modularforms']['Modular_symbols.files']
+        facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
     elif db=='fr':
         ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
-    print ms
-    data = dict()
-    for N in range(1, maxN):
-        data[N] = dict()
-        for k in range(2, maxk):
-            dim = dimension_new_cusp_forms(N, k)
-            finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)})
-                #{'t': [int(N), int(k), int(0)]})
-            #print finds.count()
-            in_db = finds.count() > 0
-            data[N][k] = {'dimension': dim, 'in_db': in_db}
-            # print N,k,data[N][k]
-    return ms, data
-
-
-def generate_dimension_table_gamma1(DB,maxN=100, maxk=12, minN=3, mink=2,db='to'):
-    #C = pymongo.connection.Connection(port=dbport)
-    #C = pymongo.connection.Connection(port=dbport)
-    #ms = C['modularforms']['Modular_symbols.files']
-    if db=='to':        
-        ms = DB._ms_collection_to.files # = C['modularforms']['Modular_symbols.files']
-    elif db=='fr':
-        ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
-        print ms
-    data = dict()
+        facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
+        #print ms
+    data = old_dims
+    maxN = max(old_dims.keys(),maxN)
+    dimall = 0
     for N in range(minN, maxN + 1):
-        data[N] = dict()
-        for k in range(mink, maxk + 1):
-            data[N][k] = dict()
-            if N > 2:
-                D = DirichletGroup(N)
-                G = D.galois_orbits(reps_only=True)
-                dimall = 0
-                in_db_all = True
-                for xi, x in enumerate(G):
-                    dim = dimension_new_cusp_forms(x, k)
-                    dimall += dim
-                    finds = ms.find({'N':int(N),'k':int(k),'chi':int(xi)})
-                    #finds = ms.find({'t': [int(N), int(k), int(xi)]})
-                    in_db = finds.count() > 0
-                    if not in_db:
-                        in_db_all = False
-                    data[N][k][xi] = {'dimension': dim, 'in_db': in_db}
-            else:
-                in_db_all = True
-                # we only have the trivial character
-                finds = ms.find({'N':int(N),'k':int(k),'chi':int(0)})
-#                finds = ms.find({'t': [int(N), int(k), int(0)]})
-                in_db = finds.count() > 0
-                if not in_db:
+        if N not in old_dims:
+            data[N] = dict()
+        if group=='gamma0': # Only trivial character
+            G = [N]
+        else:
+            D = DirichletGroup(N)
+            G = D.galois_orbits(reps_only=True)
+        maxK = max(maxk,data[N].keys())
+        for k in range(mink, maxK + 1):
+            if k not in old_dims[N]:
+                data[N][k] = dict()
+        in_db_all = True
+        for xi, x in enumerate(G):
+            for k in range(mink, maxK + 1):                
+                if xi == 0 or is_even(x):
+                    is_even = 1
+                else:
+                    is_even = 0
+                if (is_even == 0 and k % 2 == 0) or (is_even == 1 and k % 2 == 1):
+                    data[N][k][xi] = {'dimension': 0, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+                    continue
+                else:
+                    dim = data[N][k].get(xi,{}).get('dimension',dimension_new_cusp_forms(x, k))
+                dimall += dim
+                # Check existence in database. Should we check that dimensions match?
+                ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
+                facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
+                if not ambient_in_db and in_db_all:
                     in_db_all = False
-                dimall = dimension_new_cusp_forms(N, k)
-                data[N][k][0] = {'dimension': dimall, 'in_db': in_db}
-            # print N,k,data[N][k]
-            data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
+                data[N][k][xi] = {'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+        data[N][k][-1] = {'dimension': dimall, 'in_db': in_db_all}
         print "Computed data for level ", N
     return ms, data
 
 
-def generate_dimension_table(DB):
-    r0,d0 = generate_dimension_table_gamma0(DB)
-    r1,d1 = generate_dimension_table_gamma1(DB)
+
+
+def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db=''):
+    r"""
+    Upate old table of dimensions with data about availabity in the database and compute new data when necessary.
+    """
+    ## Get old tables if existing
+    dimensions = DB._mongod_to.dimensions
+    if dimensions.count()==2:
+        old0,old1 = DB._mongod_to.dimensions.find()
+        d0 = loads(old0.get(['data'],'')); id0=old0['_id']
+        d1 = loads(old1.get(['data'],'')); id1=old1['_id']
+    dimensions.delete(id0)
+    dimensions.delete(id1)
+    r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d0,group='gamma0')
+    r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,olddims=d1,group='gamma1')
     res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
-    DB._mongod_to.dimensions.insert(res)
+    print "inserting into: ",DB._mongod_to
+    id1 = dimensions.insert(res)
     res = {'group':'gamma1','data':bson.binary.Binary(dumps(d1))}
-    DB._mongod_to.dimensions.insert(res)
-    return 
+    id2 = dimensions.insert(res)    
+    return id1,id2
     
