@@ -25,6 +25,7 @@ from mdb import schema
 from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
 from nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
 from conversions import extract_args_kwds
+from sage.all import is_even
 import bson
 #from mdb import schema_sage 
 #from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
@@ -912,10 +913,10 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
             in_db_all = True
             for xi, x in enumerate(G):                
                 if xi == 0 or is_even(x):
-                    is_even = 1
+                    xis_even = 1
                 else:
-                    is_even = 0
-                if (is_even == 0 and k % 2 == 0) or (is_even == 1 and k % 2 == 1):
+                    xis_even = 0
+                if (xis_even == 0 and k % 2 == 0) or (xis_even == 1 and k % 2 == 1):
                     data[N][k][xi] = (0,False) #f{'dimension': 0, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
                     continue
                 else:
