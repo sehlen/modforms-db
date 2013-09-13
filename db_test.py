@@ -1045,6 +1045,10 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
     args = []
     for rec in ambients.find():
         N=rec['N']; k=rec['k']; chi=rec['chi']; 
+        if k>kmax:
+            continue
+        if N>nmax:
+            continue
         no = rec['orbits']
         if no==0:
             continue
@@ -1066,6 +1070,6 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
 def insert_one_form(k,N,chi,label):
     import lmfdb
     from lmfdb.modular_forms import WebNewForm
-    F = WebNewForm(k,N,chi,label,compute=True)
+    F = WebNewForm(k,N,chi,label,compute='all')
     F.insert_into_db()    
     
