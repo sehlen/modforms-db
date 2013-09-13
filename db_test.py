@@ -893,7 +893,10 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
     else:
         raise ValueError,"Need to specify 'to' or 'fr'!"
     data = old_dims
-    maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
+    if maxN<0:
+        maxN = abs(maxN)
+    else:
+        maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
     #print "maxN=",maxN
     for N in range(1, maxN + 1):
         if N not in old_dims:
