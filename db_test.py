@@ -1044,6 +1044,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
     ambients = db.Modular_symbols.files
     factors = db.Newform_factors.files
     webnewforms = db.WebNewForms.files
+    args = []
     for rec in ambients.find():
         N=rec['N']; k=rec['k']; chi=rec['chi']; 
         no = rec['orbits']
@@ -1057,6 +1058,13 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
             f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
             if f.count()>0:
                 continue
-            F = WebNewForm(k,N,chi,labels[n],compute=True)
-            F.insert_into_db()
-        
+            args.append((k,N,chi,labels[n]))
+            #F = WebNewForm(k,N,chi,labels[n],compute=True)
+            #F.insert_into_db()
+    return list(insert_one_form(args))
+@parallel(ncpus=4)
+def insert_one_form(args):
+    k,N,chi,label = args
+    F = WebNewForm(k,N,chi,labels[n],compute=True)
+    F.insert_into_db()    
+    
