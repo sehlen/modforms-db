@@ -1054,7 +1054,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         facts = factors.find({'ambient_id':id})
         for f in facts:
             n = f['newform']
-            f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),label=labels[n]})
+            f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
             if f.count()>0:
                 continue
             F = WebNewForm(k,N,chi,labels[n],compute=True)
