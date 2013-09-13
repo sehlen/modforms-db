@@ -1059,13 +1059,14 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
             args.append((k,N,chi,labels[n]))
             #F = WebNewForm(k,N,chi,labels[n],compute=True)
             #F.insert_into_db()
+    print "args=",args
     return list(insert_one_form(args))
 
 @parallel(ncpus=4)
-def insert_one_form(args):
+def insert_one_form(k,N,chi,label):
     import lmfdb
     from lmfdb.modular_forms import WebNewForm
     k,N,chi,label = args
-    F = WebNewForm(k,N,chi,labels[n],compute=True)
+    F = WebNewForm(k,N,chi,label,compute=True)
     F.insert_into_db()    
     
