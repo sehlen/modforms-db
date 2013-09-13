@@ -1047,7 +1047,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         N=rec['N']; k=rec['k']; chi=rec['chi']; 
         if k>kmax:
             continue
-        if N>nmax:
+        if N>Nmax:
             continue
         no = rec['orbits']
         if no==0:
