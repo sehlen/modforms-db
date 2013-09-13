@@ -1039,8 +1039,6 @@ def galois_labels(L):
     return res
 
 def get_all_web_newforms(db,kmax=12,Nmax=100):
-    import lmfdb
-    from lmfdb.modular_forms import WebNewForm
     ambients = db.Modular_symbols.files
     factors = db.Newform_factors.files
     webnewforms = db.WebNewForms.files
@@ -1062,8 +1060,11 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
             #F = WebNewForm(k,N,chi,labels[n],compute=True)
             #F.insert_into_db()
     return list(insert_one_form(args))
+
 @parallel(ncpus=4)
 def insert_one_form(args):
+    import lmfdb
+    from lmfdb.modular_forms import WebNewForm
     k,N,chi,label = args
     F = WebNewForm(k,N,chi,labels[n],compute=True)
     F.insert_into_db()    
