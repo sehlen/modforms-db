@@ -936,6 +936,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
                 ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
                 facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
                 if not ambient_in_db and in_db_all:
+                    print "Not in db:",N,k,i
                     in_db_all = False
                 data[N][k][xi] = (dim,facts_in_db) #{'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
             data[N][k][-1] = (dimall,in_db_all) #{'dimension': dimall, 'in_db': in_db_all}
