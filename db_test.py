@@ -935,7 +935,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
                 # Check existence in database. Should we check that dimensions match?
                 ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
                 facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
-                if not ambient_in_db and in_db_all:
+                if not facts_in_db and in_db_all:
                     print "Not in db:",N,k,xi
                     in_db_all = False
                 data[N][k][xi] = (dim,facts_in_db) #{'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
@@ -1023,5 +1023,40 @@ def generate_full_dimension_table(db):
                 dimension_table.insert(new_rec)
     return True
 
+@cached_function
+def galois_labels(L):
+    res = []
+    x = AlphabeticStrings().gens()
+    for j in range(L):
+        if(j < 26):
+            label = str(x[j]).lower()
+        else:
+            j1 = j % 26
+            j2 = floor(QQ(j) / QQ(26))
+            label = str(x[j1]).lower()
+            label = label + str(j2)
+        res.append(label)
+    return res
 
-
+def get_all_web_newforms(db):
+    import lmfdb
+    from lmfdb.modular_forms import WebNewForm
+    ambients = db.Modular_symbols.files
+    factors = db.Newform_factors.files
+    webnewforms = db.WebNewForms.files
+    for rec in ambients.find():
+        N=rec['N']; k=rec['k']; chi=rec['chi']; 
+        no = rec['orbits']
+        if no==0:
+            continue
+        id = rec['_id']
+        labels = galois_labels(no)
+        facts = factors.find({'ambient_id':id})
+        for f in facts:
+            n = f['newform']
+            f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),label=labels[n]})
+            if f.count()>0:
+                continue
+            F = WebNewForm(k,N,chi,labels[n],compute=True)
+            F.insert_into_db()
+        
