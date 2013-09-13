@@ -882,7 +882,7 @@ def add_dimensions(DB):
     dim_table = DB._mongo_conn.dimensions
     
 
-def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='to',old_dims={},group='gamma1'):
+def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_dims={},group='gamma1'):
     if db=='to':        
         ms = DB._ms_collection_to.files # = C['modularforms']['Modular_symbols.files']
         facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
@@ -893,7 +893,8 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, minN=3, mink=2,db='t
     else:
         raise ValueError,"Need to specify 'to' or 'fr'!"
     data = old_dims
-    maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
+    #maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
+    maxN=3
     print "maxN=",maxN
     for N in range(1, maxN + 1):
         if N not in old_dims:
@@ -959,10 +960,65 @@ def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db='to'):
     print "inserting into: ",DB._mongod_to
     if id0<>None:
             dimensions.remove(id0)
-    id1 = dimensions.insert(res)
+            id0 = dimensions.insert(res)
     res = {'group':'gamma1','data':bson.binary.Binary(dumps(d1))}
     if id1<>None:
         dimensions.remove(id1)
-    id2 = dimensions.insert(res)    
-    return id1,id2
-    
+        id1 = dimensions.insert(res)    
+    return id0,id1
+
+def get_dim_table(db):
+    dimensions = db.dimensions
+    old0,old1 = dimensions.find({})
+    d0 = loads(old0.get('data','')); id0=old0.get('_id')
+    d1 = loads(old1.get('data','')); id1=old1.get('_id')
+    return d0,d1
+def character_conversion(db,maxN=1000):
+    r"""
+    """
+    pass
+
+def generate_full_dimension_table(db):
+    r"""
+    Upate old table of dimensions with data about availabity in the database and compute new data when necessary.
+    """
+    ## Get old table if existing
+    dimensions = db.dimensions
+    dimension_table = db.dimension_table
+    character_conversion = db.character_conversion
+    d0 = {}; d1 = {}; id0 = None; id1 = None
+    if dimensions.count()>=2:
+        old0,old1 = dimensions.find({})
+        d0 = loads(old0.get('data','')); id0=old0.get('_id')
+        d1 = loads(old1.get('data','')); id1=old1.get('_id')
+    for N in d1.keys():
+        Ni = int(N)
+        #GC = DirichletGroup_conrey(N)        
+        for k in d1[N].keys():
+            ki = int(k)
+            for i in d1[N][k].keys():
+                if i < 0:
+                    continue
+                ii = int(i)
+                s = {'N':Ni,'k':ki,'i_S':ii}
+                q = dimension_table.find(s)
+                if q.count()>0: # already in table
+                    continue
+                s = {'N':Ni,'k':ki,'chi':ii}
+                q = db.Newform_factors.files.find_one(s)
+                print "s=",s
+                print "q=",q
+                dim,t = d1[N][k][i]
+                if q and dim>0:
+                    id = q.get('ambient_id',None)
+                else:
+                    id = None
+                #x = mfdb.compute.character(N, i)
+                indb = int(id <> None)
+                new_rec = {'N':Ni,'k':ki,'i':ii,'d':int(dim),
+                           'id':id,'t':(Ni,ki,ii),'in':indb}
+                dimension_table.insert(new_rec)
+    return True
+
+
+
