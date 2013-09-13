@@ -1038,7 +1038,7 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(db):
+def get_all_web_newforms(db,kmax=12,Nmax=100):
     import lmfdb
     from lmfdb.modular_forms import WebNewForm
     ambients = db.Modular_symbols.files
