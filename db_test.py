@@ -250,7 +250,7 @@ class WDBtoMongo(WDBtoMFDB):
         """
         super(WDBtoMongo,self).__init__(datadir,**kwds)
         self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
-        
+        assert str(db_from).isalnum() and str(db_to).isalnum()
         self._mongod_fr = pymongo.Connection('{0}:{1}'.format(host,port))[db_from]
         self._mongod_to = pymongo.Connection('{0}:{1}'.format(host,port))[db_to]
         # Old collection
@@ -885,10 +885,10 @@ def add_dimensions(DB):
 def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_dims={},group='gamma1'):
     if db=='to':        
         ms = DB._ms_collection_to.files # = C['modularforms']['Modular_symbols.files']
-        facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
+        facts = DB._mongod_to.Newform_factors.files # = C['modularforms']['Modular_symbols.files']
     elif db=='fr':
         ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
-        facts = DB._mongod_to.Neforms_factors.files # = C['modularforms']['Modular_symbols.files']
+        facts = DB._mongod_to.Newform_factors.files # = C['modularforms']['Modular_symbols.files']
         #print ms
     else:
         raise ValueError,"Need to specify 'to' or 'fr'!"
