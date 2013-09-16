@@ -1055,6 +1055,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         id = rec['_id']
         labels = galois_labels(no)
         facts = factors.find({'ambient_id':id})
+        print "rec=",rec
         print "labels=",labels
         for f in facts:
             n = f['newform']
