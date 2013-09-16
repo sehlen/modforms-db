@@ -1055,8 +1055,10 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         id = rec['_id']
         labels = galois_labels(no)
         facts = factors.find({'ambient_id':id})
+        print "labels=",labels
         for f in facts:
             n = f['newform']
+            print "n=",n
             f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
             if f.count()>0:
                 continue
@@ -1073,3 +1075,49 @@ def insert_one_form(k,N,chi,label):
     F = WebNewForm(k,N,chi,label,compute='all')
     F.insert_into_db()    
     
+
+def number_field_to_dict(F):
+
+    r"""
+    INPUT:
+    - 'K' -- Number Field
+    - 't' -- (p,gens) where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
+
+    OUTPUT:
+
+    - 'F' -- Number field extending K with relative minimal polynomial p.
+    """
+    if F.base_ring().absolute_degree()==1:
+        K = 'QQ'
+    else:
+        K = number_field_to_dict(F.base_ring())
+    if F.absolute_degree() == 1:
+        p = 'x'
+        g = ('x',)
+    else:
+        p = str(F.relative_polynomial())
+        g = tuple(map(str,F.gen()))
+    return {'base':K,'relative polynomial':p,'gens':g}
+
+
+def number_field_from_dict(d):
+    r"""
+    INPUT:
+
+    - 'd' -- {'base':F,'p':p,'g':g } where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
+
+    OUTPUT:
+
+    - 'F' -- Number field extending K with relative minimal polynomial p.
+    """
+    K = d['base']; p=d['relative polynomial']; g=d['gens']
+    if K=='QQ':
+        K = QQ
+    elif isinstance(K,dict):
+        K = number_field_from_dict(K)
+    else:
+        raise ValueError,"Could not construct number field!"
+    F = NumberField(K[g](p),names=g)
+    if F.degree()==1:
+        F = QQ
+    return F
