@@ -1075,6 +1075,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
 def insert_one_form(k,N,chi,label):
     import lmfdb
     from lmfdb.modular_forms import WebNewForm
+    print k,N,chi,label
     F = WebNewForm(k,N,chi,label,compute='all')
     if F<>0:
         F.insert_into_db()    
