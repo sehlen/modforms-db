@@ -1126,3 +1126,43 @@ def number_field_from_dict(d):
     if F.degree()==1:
         F = QQ
     return F
+def get_Modsymb(db,s_in):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongod_to.Modular_symbols.files.find(s):
+        print r
+        id=r['_id']
+        fs = gridfs.GridFS(DB._mongod_to, 'Modular_symbols')
+        f = loads(fs.get(id).read())
+        res.append(f)
+    return res
+
+
+def get_Facts(db,s_in):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongod_to.Newform_factors.files.find(s):
+        print r
+        id=r['_id']
+        fs = gridfs.GridFS(DB._mongod_to, 'Newform_factors')
+        f = loads(fs.get(id).read())
+        res.append(f)
+    return res
+
+def get_WebNF(db,s_in):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongod_to.WebNewForms.files.find(s):
+        print r
+        id=r['_id']
+        fs = gridfs.GridFS(DB._mongod_to, 'WebNewForms')
+        f = loads(fs.get(id).read())
+        res.append(f)
+    return res
+
