@@ -1167,3 +1167,6 @@ def get_WebNF(db,s_in):
         res.append(f)
     return res
 
+def drop_WebNewF(db):
+    DB._mongod_to.drop_collection('WebNewForms.files')
+    DB._mongod_to.drop_collection('WebNewForms.chunks')
