@@ -1076,7 +1076,8 @@ def insert_one_form(k,N,chi,label):
     import lmfdb
     from lmfdb.modular_forms import WebNewForm
     F = WebNewForm(k,N,chi,label,compute='all')
-    F.insert_into_db()    
+    if F<>0:
+        F.insert_into_db()    
     
 
 def number_field_to_dict(F):
