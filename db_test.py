@@ -1060,7 +1060,7 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         for f in facts:
             n = f['newform']
             #print "n=",n
-            if n>len(labels):
+            if n>=len(labels):
                 continue
             f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
             if f.count()>0:
