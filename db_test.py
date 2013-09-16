@@ -1159,8 +1159,9 @@ def get_WebNF(db,s_in):
         s[k]=int(s_in[k])
     res = []
     for r in db._mongod_to.WebNewForms.files.find(s):
-        print r
         id=r['_id']
+        print r
+        print id
         fs = gridfs.GridFS(DB._mongod_to, 'WebNewForms')
         f = loads(fs.get(id).read())
         res.append(f)
