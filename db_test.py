@@ -25,7 +25,7 @@ from mdb import schema
 from schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
 from nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
 from conversions import extract_args_kwds
-from sage.all import is_even
+from sage.all import is_even,next_prime,ceil,RR
 import bson
 #from mdb import schema_sage 
 #from schema_sage import ModularSymbols_ambient,ModularSymbols_newspace_factor,ModularSymbols_oldspace_factor,Coefficient,NumberField,ModularSymbols_base_field, CoefficientField,AlgebraicNumber
@@ -237,39 +237,34 @@ class WDBtoMFDB(WDB):
 
 class WDBtoMongo(WDBtoMFDB):
     r"""
-
+    Class for connecting between a file-system database and a Mongo database.
     """
-    def __init__(self,datadir,host='localhost',port=37010,verbose=0,db_from='modularforms',db_to='modularforms2',**kwds):
+    def __init__(self,datadir,host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
         r"""
 
         INPUT:
 
-        db_from -- mongo database to read from
-        db_from -- mongo database to insert into
+        mongo_db -- mongo database to read from and insert into
+
         
         """
         super(WDBtoMongo,self).__init__(datadir,**kwds)
         self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
-        assert str(db_from).isalnum() and str(db_to).isalnum()
-        self._mongod_fr = pymongo.Connection('{0}:{1}'.format(host,port))[db_from]
-        self._mongod_to = pymongo.Connection('{0}:{1}'.format(host,port))[db_to]
-        # Old collection
-        self._ms_collection_fr = self._mongod_fr['Modular_symbols']
-        self._ms_collection_to = self._mongod_to['Modular_symbols']
+        assert str(db).isalnum()
+        self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
+        self._modular_symbols = self._mongodb['Modular_symbols.files']
+        self._factors = self._mongodb['Newform_factors.files']
+        self._aps = self._mongodb['ap.files']
+        self._webnewforms = self._mongodb['WebNewForms.files']
         self._sage_version = sage.version.version
         self._computedb = ComputeMFData(datadir)
         self._do_compute = kwds.get('compute',False)
         
     def show_existing_mongo(self,db='fr'):
-        if db=='fr':
-            files = self._mongod_fr['Modular_symbols'].files
-            factors = self._mongod_fr['Newform_factors'].files
-        else:
-            files = self._mongod_to['Modular_symbols'].files
-            factors = self._mongod_to['Newform_factors'].files
+        files = self._modular_symbols
+        factors = self._factors 
         levels = files.distinct('N')
         weights = files.distinct('k')
-        print "files=",files
         print "Modular symbols: \n"
         if levels<>[]:
             print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
@@ -279,15 +274,15 @@ class WDBtoMongo(WDBtoMFDB):
         if levels<>[]:
             print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))        
 
-    def show_existing_files(self,dbn=0):
+    def GridFS(self,col='Modular_symbols'):
+        return gridfs.GridFS(self._mongodb,col)
+            
+    def show_existing_files(self):
         s=""
-        if dbn in [0,1]:
-            print "Directory:{0}".format(self._db._data)
-            s+=self.show_existing_files_db(self._db)
-        if dbn in [0,2]:
-            print "Directory:{0}".format(self._db2._data)
-            s+=self.show_existing_files_db(self._db2)
+        print "Directory:{0}".format(self._db._data)
+        s+=self.show_existing_files_db(self._db)
         return s
+    
     def show_existing_files_db(self,db):        
         self.update()
         res = {}
@@ -312,6 +307,7 @@ class WDBtoMongo(WDBtoMFDB):
                     s+="{0}\t{1} \t {2:0>3}\t".format(i,no,nap)
                 s+="\n"
         return s
+
     @cached_method
     def _character(self,N,i):
         return  mfdb.compute.character(N, i)
@@ -320,19 +316,19 @@ class WDBtoMongo(WDBtoMFDB):
         s = "N={0} and k={1} and i={2}".format(N,k,i)
         q = self._db.known(s).fetchall()
         # if we have more than one file database
-        if self._db2<>None:
-            q2 = self._db2.known(s).fetchall()
-        q = q + q2
         if len(q)==0:
             return None
         else:
             N,k,i,o,nap=q[0]
             return nap
         return
-    
-    def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
+    ### Conversion of records between the two datbase types    
+    def convert_record_mongo_to_file_ambient(self,rec,compute=False):
+        r"""
+        Convert one MongoDB record to files 
+        """
         fid = rec['_id']
-        fs = gridfs.GridFS(self._mongod_fr, 'Modular_symbols')
+        fs = gridfs.GridFS(self._mongod, 'Modular_symbols')
         f = fs.get(fid)
         ambient = loads(f.read())  # Ambient modular symbols space
         N = rec['N']; k=rec['k']; i=rec['chi']        
@@ -344,42 +340,53 @@ class WDBtoMongo(WDBtoMFDB):
         ## if present in ambient
         if ambient.__dict__.has_key('_HeckeModule_free_module__decomposition') or compute==True:
             self._computedb.compute_decompositions(N,k,i)
+        
 
-
-    def convert_records(self,N,k='all'):
-        files = self._ms_collection_fr.files
-        i=0
-        v = [(N,k) for N in rangify(N) for k in rangify(krange)]
-        print v
-        if k=='all':
-            s = {'N':int(N)}
+    def convert_records_from_mongo_to_file_ambient(self,N,k='all',search_pattern={}):
+        r"""
+        Convert many records from mongo to files.
+        """
+        files = self._modular_symbols
+        s = {}
+        if search_pattern <> {}:
+            for k in search_pattern:
+                val = search_pattern[k]
+                s[k] = int(search_pattern[k])
         else:
-            s = {'N':N,'k':k}
+            if k=='all':
+                s = {'N':int(N)}
+            else:
+                s = {'N':N,'k':k}
         print "s=",s
         for f in files.find(s):
-            self.convert_mongo_rec_ambient_to_file(f)
+            self.convert_record_mongo_to_file_ambient(f)
         return True
 
-    def convert_all_records_ambient(self):
-        nrange = self._ms_collection_fr.files.distinct('N')
-        return self.convert_all_records_N_ambient(nrange)
+    def convert_all_from_mongo_oi_file_ambient(self):
+        r"""
+        Convert all records of ambient spaces.
+        """
+        nrange = self._modular_symbols.distinct('N')
+        return self.convert_one_N_ambient(nrange)
         
     @parallel(ncpus=8)
-    def convert_all_records_N_ambient(self,N):
+    def convert_one_N_ambient(self,N):
+        r"""
+        COnvert records for one level from mongo to files.
+        """
         if N % 100 == 1:
             print "Converting N={0}".format(N)        
-        files = self._ms_collection_fr.files        
+        files = self._modular_symbols
         for f in files.find({'N':int(N)}):
-            self.convert_mongo_rec_ambient_to_file(f)
-
+            self.convert_record_mongo_to_file_ambient(f)
         
-    #    @parallel(ncpus=8)
+    ## Converting to mongo from files.
+    
     def convert_to_mongo_all(self,par=0):
-        nrange1 = self._db.known_levels()
-        nrange2 = self._db2.known_levels()
-        print "nrange1=",nrange1
-        print "nrange2=",nrange2
-        nrange = list(set(nrange1+nrange2))
+        r"""
+        COnvert all files to MongoDB
+        """
+        nrange = self._db.known_levels()
         nrange.sort()
         print "nrange=",nrange
         if par==1:
@@ -390,12 +397,18 @@ class WDBtoMongo(WDBtoMFDB):
             
     @parallel(ncpus=8) 
     def convert_to_mongo_N_par(self,N,**kwds):
+        r"""
+        Parallel routine for converting files with one N to MongoDB.
+        """
         #if N % 100 == 1:
         print "Converting N={0}".format(N)        
         for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
             self.convert_to_mongo_one_space(N,k,i,**kwds)     
 
     def convert_to_mongo_N_seq(self,N,**kwds):
+        r"""
+        Sequential routine for converting files with one N to MongoDB.
+        """
         #if N % 100 == 1:
         print "Converting N={0}".format(N)        
         for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
@@ -403,11 +416,17 @@ class WDBtoMongo(WDBtoMFDB):
 
             
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
+        r"""
+        Converting one record from file format to MongoDB.
+        """
         print "converting ",N,k,i
-        files_ms = self._ms_collection_to.files
-        files_fact = self._mongod_to.Newform_factors.files
-        fs_ms = gridfs.GridFS(self._mongod_to, 'Modular_symbols')
-        fs_fact = gridfs.GridFS(self._mongod_to, 'Newform_factors')
+        files_ms = self._modular_symbols
+        files_fact = self._factors
+        files_ap = self._aps
+        fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
+        fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
+        fs_ap = gridfs.GridFS(self._mongodb, 'ap')
+        fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
         compute = kwds.get('compute',False)
         if compute == False:
             compute = self._do_compute
@@ -451,20 +470,27 @@ class WDBtoMongo(WDBtoMFDB):
                         #return
         fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
         # Insert ambient modular symbols
-        m,idb = self.factors_in_dbs(N,k,i,[self._db,self._db2])
+        m = self.factors_in_file_db(N,k,i)
         print "m=",m
         if m==0:
             print  "No factors computed for this space!"
         if newrec == 0:
             print "inserting! ambient!",N,k,i
+            metaname = self.space(N,k,i,False)+"ambient-meta.sobj"
+            try:
+                meta = loads(metaname)
+            except OSError:
+                meta={}
             fid = fs_ms.put(dumps(ambient),filename=fname,
                             N=int(N),k=int(k),chi=int(i),orbits=int(m),
-                            sage_version = self._sage_version)
+                            cputime = meta.get("cputime",""),
+                            sage_version = meta.get("version",""))
+
         rec = files_fact.find({'N':int(N),'k':int(k),'chi':int(i)})
         print "Already have {0} factors in db!".format(rec.count())
         if rec.count()<m or m<=0:
             if not compute:
-                return
+                return 
             else:
                 # Compute and insert into the files.
                 #if rec_in==2:
@@ -475,13 +501,12 @@ class WDBtoMongo(WDBtoMFDB):
             print "Inserting m=",m
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
             for d in range(m):
-                try: 
-                    factor = self._db.load_factor(N,k,i,d,M=ambient)
-                except (ValueError,RuntimeError):
-                    try:
-                        factor = self._db2.load_factor(N,k,i,d,M=ambient)
-                    except (ValueError,RuntimeError):
-                        factor=None
+                factor = self._db.load_factor(N,k,i,d,M=ambient)
+                metaname = self.space(N,k,i,False)+"decomp-meta.sobj"
+                try:
+                    meta = loads(metaname)
+                except OSError:
+                    meta={}
                 if factor==None:
                     print "Factor {0},{1},{2},{3} not computed!".format(N,k,i,d)
                     continue
@@ -489,24 +514,75 @@ class WDBtoMongo(WDBtoMFDB):
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=int(i),
                                     newform=int(d),
-                                    sage_version = str(self._sage_version),
+                                    cputime = meta.get("cputime",""),
+                                    sage_version = meta.get("version",""),
                                     ambient_id=fid)
                 print "inserted factor: ",m,facid
+                # Also insert the corresponding v separately (to protect agains changes in sage)
+                fnamev = "gamma0-ambient-v-{0}".format(self._db.space_name(N,k,i))
+            fid = fs_ms.put(dumps(v),filename=fnamev,
+                            N=int(N),k=int(k),chi=int(i),orbits=int(m),           
+
+        # Necessary for L-function computations.
+        pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
+        pprec = ceil(RR(pprec).sqrt())+1
+        ## Get even hundreds of primes to look nicer.
+        pprec = ceil(RR(pprec)/RR(100))*100
+        key = {'N':int(N),'k':int(k),'chi':int(i)}
+        key['prec'] = {"$gt": int(pprec -1) }
+        print "key=",key
+        rec = files_ap.find(key)
+        print "Already have {0} ap lists in db! Need {1}".format(rec.count(),m)
+        if rec.count()<m or m<=0:
+            if not compute:
+                return 
+            else:
+                # Compute and insert into the files.
+                #if rec_in==2:
+                print "Computing aplist! m=",m
+                self._computedb.compute_aplists(N,k,i,pprec)
+            print "Inserting {0} coefficients for orbit nr. {1}".format(pprec,m)
+            fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
+            for d in range(m):
+                #aps = load(self._db.factor_aplist(N,k,i,d,False,prec))
+                aps = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
+                if aps == None or len(aps)<2:
+                    print "APS: {0},{1},{2},{3} not computed!".format(N,k,i,d)
+                    # Try a shorter list
+                    #aps = load(self._db.factor_aplist(N,k,i,d,False,100))
+                    continue
+                E,v,meta = aps
+                print "E=",E
+                print "v=",v
+                print "meta=",meta
+                #aps = E*v
+                fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
+                apid = fs_ap.put(dumps(E),filename=fname1,
+                                 N=int(N),k=int(k),chi=int(i),
+                                 newform=int(d),
+                                 prec = int(pprec),
+                                 cputime = meta.get("cputime",""),
+                                 sage_version = meta.get("version",""),
+                                 ambient_id=fid)
+                print "inserted aps : ",m,apid
+
         return True
 
 
-    def factors_in_dbs(self,N,k,i,db_list=[]):
-        m = -1; j=-1
-        for db in db_list:
-            try:  
-                #print "db._data=",db._data,N,k,i
-                mtmp = db.number_of_known_factors(N,k,i)
-                #print "mtmp=",mtmp
-            except OSError:
-                mtmp = m
-            if mtmp>m:
-                m = mtmp; j=db_list.index(db)
-        return m,i
+    def factors_in_file_db(self,N,k,i):
+        r"""
+        Return the number of factors we have in the space (N,k,i)
+        """
+        m = -1
+        try:  
+            #print "db._data=",db._data,N,k,i
+            mtmp = self._db.number_of_known_factors(N,k,i)
+            #print "mtmp=",mtmp
+        except OSError:
+            mtmp = m
+        if mtmp>m:
+            m = mtmp
+        return m
     
 
     def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
@@ -1133,10 +1209,10 @@ def get_Modsymb(db,s_in):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongod_to.Modular_symbols.files.find(s):
+    for r in db._mongodb.Modular_symbols.files.find(s):
         print r
         id=r['_id']
-        fs = gridfs.GridFS(DB._mongod_to, 'Modular_symbols')
+        fs = gridfs.GridFS(DB._mongodb, 'Modular_symbols')
         f = loads(fs.get(id).read())
         res.append(f)
     return res
@@ -1147,28 +1223,45 @@ def get_Facts(db,s_in):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongod_to.Newform_factors.files.find(s):
+    for r in db._mongodb.Newform_factors.files.find(s):
         print r
         id=r['_id']
-        fs = gridfs.GridFS(DB._mongod_to, 'Newform_factors')
+        fs = gridfs.GridFS(DB._mongodb, 'Newform_factors')
         f = loads(fs.get(id).read())
         res.append(f)
     return res
+
+
+def get_aps(db,s_in):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongodb.ap.files.find(s):
+        print r
+        id=r['_id']
+        fs = gridfs.GridFS(DB._mongodb, 'ap')
+        f = loads(fs.get(id).read())
+        res.append(f)
+    return res
+
 
 def get_WebNF(db,s_in):
     s={}
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongod_to.WebNewForms.files.find(s):
+    for r in db._mongodb.WebNewForms.files.find(s):
         id=r['_id']
         print r
         print id
-        fs = gridfs.GridFS(DB._mongod_to, 'WebNewForms')
+        fs = gridfs.GridFS(DB._mongodb, 'WebNewForms')
         f = loads(fs.get(id).read())
         res.append(f)
     return res
 
-def drop_WebNewF(db):
+def drop_WebNewF(db,really=False):
+    if not really:
+        return 
     DB._mongod_to.drop_collection('WebNewForms.files')
     DB._mongod_to.drop_collection('WebNewForms.chunks')
