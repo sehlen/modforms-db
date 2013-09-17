@@ -470,9 +470,9 @@ class WDBtoMongo(WDBtoMFDB):
                         #return
         fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
         # Insert ambient modular symbols
-        m = self.factors_in_file_db(N,k,i)
-        print "m=",m
-        if m==0:
+        num_factors = self.factors_in_file_db(N,k,i)
+        print "num_factors=",num_factors
+        if num_factors==0:
             print  "No factors computed for this space!"
         if newrec == 0:
             print "inserting! ambient!",N,k,i
@@ -482,25 +482,25 @@ class WDBtoMongo(WDBtoMFDB):
             except OSError:
                 meta={}
             fid = fs_ms.put(dumps(ambient),filename=fname,
-                            N=int(N),k=int(k),chi=int(i),orbits=int(m),
+                            N=int(N),k=int(k),chi=int(i),orbits=int(num_factors),
                             cputime = meta.get("cputime",""),
                             sage_version = meta.get("version",""))
 
         rec = files_fact.find({'N':int(N),'k':int(k),'chi':int(i)})
         print "Already have {0} factors in db!".format(rec.count())
-        if rec.count()<m or m<=0:
+        if rec.count()<num_factors or num_factors<=0:
             if not compute:
                 return 
             else:
                 # Compute and insert into the files.
                 #if rec_in==2:
-                print "Computing factors! m=",m
+                print "Computing factors! m=",num_factors
                 m = self._computedb.compute_decompositions(N,k,i,verbose=1)
                 #self.update() #_db.update_known_db()
                 #m = self.factors_in_dbs(N,k,i,[self._db,self._db2])
-            print "Inserting m=",m
+            print "Inserting !"
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
-            for d in range(m):
+            for d in range(num_factors):
                 factor = self._db.load_factor(N,k,i,d,M=ambient)
                 metaname = self.space(N,k,i,False)+"decomp-meta.sobj"
                 try:
@@ -516,13 +516,9 @@ class WDBtoMongo(WDBtoMFDB):
                                     newform=int(d),
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),
-                                    ambient_id=fid)
-                print "inserted factor: ",m,facid
-                # Also insert the corresponding v separately (to protect agains changes in sage)
-                fnamev = "gamma0-ambient-v-{0}".format(self._db.space_name(N,k,i))
-            fid = fs_ms.put(dumps(v),filename=fnamev,
-                            N=int(N),k=int(k),chi=int(i),orbits=int(m),           
-
+                                    ambient_id=fid,
+                                    v=int(1))
+                print "inserted factor: ",d,facid
         # Necessary for L-function computations.
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
         pprec = ceil(RR(pprec).sqrt())+1
@@ -532,18 +528,18 @@ class WDBtoMongo(WDBtoMFDB):
         key['prec'] = {"$gt": int(pprec -1) }
         print "key=",key
         rec = files_ap.find(key)
-        print "Already have {0} ap lists in db! Need {1}".format(rec.count(),m)
-        if rec.count()<m or m<=0:
+        print "Already have {0} ap lists in db! Need {1}".format(rec.count(),num_factors)
+        if rec.count()<num_factors or num_factors<=0:
             if not compute:
                 return 
             else:
                 # Compute and insert into the files.
                 #if rec_in==2:
-                print "Computing aplist! m=",m
+                print "Computing aplist! m=",num_factors
                 self._computedb.compute_aplists(N,k,i,pprec)
-            print "Inserting {0} coefficients for orbit nr. {1}".format(pprec,m)
+            print "Inserting {0} coefficients for orbit nr. {1}".format(pprec,num_factors)
             fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
-            for d in range(m):
+            for d in range(num_factors):
                 #aps = load(self._db.factor_aplist(N,k,i,d,False,prec))
                 aps = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
                 if aps == None or len(aps)<2:
@@ -557,14 +553,21 @@ class WDBtoMongo(WDBtoMFDB):
                 print "meta=",meta
                 #aps = E*v
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
-                apid = fs_ap.put(dumps(E),filename=fname1,
+                apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),
                                  newform=int(d),
                                  prec = int(pprec),
                                  cputime = meta.get("cputime",""),
                                  sage_version = meta.get("version",""),
                                  ambient_id=fid)
-                print "inserted aps : ",m,apid
+                print "inserted aps : ",num_factors,apid
+                # Also insert the corresponding v separately (to protect agains changes in sage)
+                fnamev = "gamma0-ambient-v-{0}-{1:0>3}".format(self._db.space_name(N,k,i),d)
+                print "fnamev=",fnamev
+
+                vid = fs_ms.put(dumps(v),filename=fnamev,
+                                newform=int(d),
+                                N=int(N),k=int(k),chi=int(i))
 
         return True
 
@@ -1265,3 +1268,33 @@ def drop_WebNewF(db,really=False):
         return 
     DB._mongod_to.drop_collection('WebNewForms.files')
     DB._mongod_to.drop_collection('WebNewForms.chunks')
+
+def collect_polynomials(db):
+    res = {}
+    fs = db.GridFS('Newform_factors')
+    for F in db._factors.find({'chi':{"$gt" : int(0)}}):
+        id = F['_id']
+        N = F['N']        
+        chi = F['chi']
+        k = F['k']
+        f = fs.get(id)
+        if f <> None:
+            try:
+                g = loads(f.read())
+                pset = 1
+                for p in prime_range(N):
+                    if N % p <>  0:
+                        pset = p  
+                        break
+                ev = g.eigenvalue(pset,name='x')                        
+                K = ev.parent()
+                if K.degree()==1:
+                    continue
+                if K.base_ring().degree()==1:
+                    continue
+                res[(N,k,chi)] = K
+            except:
+                pass
+        break
+    return res
+
