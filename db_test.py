@@ -283,10 +283,10 @@ class WDBtoMongo(WDBtoMFDB):
         s+=self.show_existing_files_db(self._db)
         return s
     
-    def show_existing_files_db(self,db):        
+    def show_existing_files_db(self):        
         self.update()
         res = {}
-        for t in db.find_known():
+        for t in self._db.find_known():
             N,k,i,newf,d = t
             if N not in res:
                 res[N] = {}
@@ -382,7 +382,7 @@ class WDBtoMongo(WDBtoMFDB):
         
     ## Converting to mongo from files.
     
-    def convert_to_mongo_all(self,par=0):
+    def convert_to_mongo_all(self,par=0,**kwds):
         r"""
         COnvert all files to MongoDB
         """
@@ -393,7 +393,7 @@ class WDBtoMongo(WDBtoMFDB):
             return self.convert_to_mongo_N_par(nrange)
         else:
             for n in nrange:
-                self.convert_to_mongo_N_seq(n)
+                self.convert_to_mongo_N_seq(n,**kwds)
             
     @parallel(ncpus=8) 
     def convert_to_mongo_N_par(self,N,**kwds):
@@ -412,7 +412,7 @@ class WDBtoMongo(WDBtoMFDB):
         #if N % 100 == 1:
         print "Converting N={0}".format(N)        
         for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
-            self.convert_to_mongo_one_space(N,k,i)     
+            self.convert_to_mongo_one_space(N,k,i,**kwds)     
 
             
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
@@ -501,13 +501,17 @@ class WDBtoMongo(WDBtoMFDB):
             else:
                 print "Already have {0} factors in db!".format(nf)
         if nf<num_factors or num_factors<=0:
-            if not compute:
+            if num_factors==0 and not compute:
                 return 
-            else:
-                # Compute and insert into the files.
+            try:
+                B = load(self._db.factor_basis_matrix(N, k, i, 0))
+            except IOError:
+                if not compute:
+                    return 
+                # Else compute and insert into the files.
                 if verbose > 0:
                     print "Computing factors! m=",num_factors
-                m = self._computedb.compute_decompositions(N,k,i,verbose=1)
+                num_factors = self._computedb.compute_decompositions(N,k,i,verbose=1)
             if verbose>0:
                 print "Inserting !"
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
@@ -536,7 +540,7 @@ class WDBtoMongo(WDBtoMFDB):
                     print "inserted factor: ",d,facid
         # Necessary for L-function computations.
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
-        pprec = ceil(RR(pprec).sqrt())+1
+        #pprec = ceil(RR(pprec).sqrt())+1
         ## Get even hundreds of primes to look nicer.
         pprec = ceil(RR(pprec)/RR(100))*100
         key = {'N':int(N),'k':int(k),'chi':int(i)}
@@ -966,7 +970,7 @@ def compare_mongo(fdb1,fdb2=None,monongodb=None):
     """
     if fdb2==None:
         fdb2 = fdb1._db2
-        mongodb = fdb1._mongod_to
+        mongodb = fdb1._mongodb
         fdb1 = fdb1._db
     ambient_files = mongodb.Modular_Symbols.files
     missing = []
@@ -977,7 +981,7 @@ def compare_mongo(fdb1,fdb2=None,monongodb=None):
             missing.append(t)
     return missing
 def add_dimensions(DB):
-    modular_symbols = DB._mongo_db_to['Modular_Symbols']
+    modular_symbols = DB._mongodb['Modular_Symbols']
 
     dim_table = DB._mongo_conn.dimensions
     
@@ -1034,13 +1038,15 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
                 dimall += dim*mult
                 # Check existence in database. Should we check that dimensions match?
                 ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
-                facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}) > 0
+                facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
                 if not facts_in_db and in_db_all:
                     print "Not in db:",N,k,xi
                     in_db_all = False
                 data[N][k][xi] = (dim,facts_in_db) #{'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
             data[N][k][-1] = (dimall,in_db_all) #{'dimension': dimall, 'in_db': in_db_all}
         print "Computed data for level ", N
+        # We now add all data which is in the database but outside the covered range:
+        
     return ms, data
 
 
@@ -1051,23 +1057,23 @@ def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db='to'):
     Upate old table of dimensions with data about availabity in the database and compute new data when necessary.
     """
     ## Get old tables if existing
-    dimensions = DB._mongod_to.dimensions
+    dimensions = DB._mongodb.dimensions
     d0 = {}; d1 = {}; id0 = None; id1 = None
     if dimensions.count()>=2:
-        old0,old1 = DB._mongod_to.dimensions.find()
+        old0,old1 = DB._mongodb.dimensions.find()
         d0 = loads(old0.get('data','')); id0=old0.get('_id')
         d1 = loads(old1.get('data','')); id1=old1.get('_id')
     r0,d0 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d0,group='gamma0')
     r1,d1 = generate_dimension_table_gamma_01(DB,maxN=maxN,maxk=maxk,db=db,old_dims=d1,group='gamma1')
     res = {'group':'gamma0','data':bson.binary.Binary(dumps(d0))}
-    print "inserting into: ",DB._mongod_to
+    print "inserting into: ",DB._mongodb
     if id0<>None:
-            dimensions.remove(id0)
-            id0 = dimensions.insert(res)
+        dimensions.remove(id0)
+    id0 = dimensions.insert(res)
     res = {'group':'gamma1','data':bson.binary.Binary(dumps(d1))}
     if id1<>None:
         dimensions.remove(id1)
-        id1 = dimensions.insert(res)    
+    id1 = dimensions.insert(res)    
     return id0,id1
 
 def get_dim_table(db):
@@ -1138,7 +1144,7 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(db,kmax=12,Nmax=100):
+def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
     ambients = db.Modular_symbols.files
     factors = db.Newform_factors.files
     webnewforms = db.WebNewforms.files
@@ -1156,8 +1162,8 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
         id = rec['_id']
         labels = galois_labels(no)
         facts = factors.find({'ambient_id':id})
-        #print "rec=",rec
-        #print "labels=",labels
+        print "rec=",rec
+        print "facts=",facts.count()
         for f in facts:
             n = f['newform']
             #print "n=",n
@@ -1168,11 +1174,13 @@ def get_all_web_newforms(db,kmax=12,Nmax=100):
                 continue
             args.append((N,k,chi,labels[n]))
             #F = WebNewForm(k,N,chi,labels[n],compute=True)
+            #if do_one and len(args)>=4:
+            #    break
             #F.insert_into_db()
     print "args=",args
     return list(insert_one_form(args))
 
-@parallel(ncpus=4)
+@parallel(ncpus=8)
 def insert_one_form(N,k,chi,label):
     import lmfdb
     from sage.all import RR
@@ -1180,6 +1188,7 @@ def insert_one_form(N,k,chi,label):
     print N,k,chi,label
     prec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
     F = WebNewForm(N=N,k=k,chi=chi,label=label,compute='all',prec=prec)
+    F.q_expansion_embeddings(prec=prec)
     if F<>0:
         F.insert_into_db()    
     
@@ -1384,3 +1393,32 @@ def collect_polynomials(db):
         break
     return res
 
+def ap_power(M,C,p,l):
+    r"""
+    Computes a Fourier coefficient c(p^k).
+    C is a list of c(p) for p prime. 
+    """
+    if l==0:
+        return 1
+    ps = primes_first_n(len(C))
+    if p not in ps:
+        raise ValueError,"Can not computer power of prime not in the range!"
+    pi = ps.index(p)
+    cp = C[pi]
+    if l==1:
+        return cp
+    cplm2 = ap_power(M,C,p,l-2)    
+    cplm1 = ap_power(M,C,p,l-1)
+    return cp*cplm1 - M.character()(p)*p**(M.weight()-1)*cplm2
+
+def an(M,C,n):
+    cn = 1
+    for p,l in n.factor():
+        cn = cn*ap_power(M,C,p,l)
+    return cn
+
+def test_coefficients_computations(DB):
+    r"""
+
+    """
+    pass
