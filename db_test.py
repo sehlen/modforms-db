@@ -1422,3 +1422,39 @@ def test_coefficients_computations(DB):
 
     """
     pass
+
+def reformat_records_of_ap(DB):
+    fs = gridfs.GridFS(DB._mongodb, 'ap')
+    i = 0
+    for r in DB._mongodb['ap.files'].find({'newform':{"$exists": False}}):
+        print "r=",r
+        id=r['_id']
+        f = loads(fs.get(id).read())
+        i = i+1
+        params = r['filename'].split('-')[2:]
+        if len(params)==3:
+            N,k,n=map(int,params)
+            chi=0
+        elif len(params)==4:
+            N,k,chi,n=map(int,params)
+        print "params=",N,k,chi,n
+        for d in range(len(f)):
+            E,v=f[d]
+            fname = "gamma0-aplists-{0}-{1}-{2}-{3}-{4}".format(N,k,chi,d,n)
+            ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
+            ambientid = ambient.get('_id',None)
+            if ambientid == None:
+               raise ValueError,"No ambient space for r={0}".format(r) 
+            newid = fs.put(dumps( (E,v)),filename=fname,
+                N=int(N),k=int(k),chi=int(chi),
+                newform=int(d),
+                prec = int(n),
+                cputime = r.get('_cputime',u''),
+                sage_version = r.get("version",u''),
+                ambient_id=ambientid)
+            #print "inserted newid:{0}".format(newid)
+        fs.delete(id)
+        #if i>0:
+        #    break
+    print "Reformatted {0} records!".format(i)    
+    return 
