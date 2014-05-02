@@ -272,7 +272,7 @@ class WDBtoMongo(WDBtoMFDB):
         levels = factors.distinct('N')
         weights = factors.distinct('k')
         if levels<>[]:
-            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))        
+            print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))        
 
     def GridFS(self,col='Modular_symbols'):
         return gridfs.GridFS(self._mongodb,col)
@@ -280,7 +280,7 @@ class WDBtoMongo(WDBtoMFDB):
     def show_existing_files(self):
         s=""
         print "Directory:{0}".format(self._db._data)
-        s+=self.show_existing_files_db(self._db)
+        s+=self.show_existing_files_db()
         return s
     
     def show_existing_files_db(self):        
