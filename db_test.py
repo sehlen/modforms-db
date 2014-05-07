@@ -362,7 +362,7 @@ class WDBtoMongo(WDBtoMFDB):
             self.convert_record_mongo_to_file_ambient(f)
         return True
 
-    def convert_all_from_mongo_oi_file_ambient(self):
+    def convert_all_from_mongo_to_file_ambient(self):
         r"""
         Convert all records of ambient spaces.
         """
