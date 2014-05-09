@@ -439,7 +439,7 @@ class WDBtoMongo(WDBtoMFDB):
         return convert_to_mongo_one_space(self,N,k,i,**kwds)        
     @parallel(ncpus=8)
     def convert_to_mongo_one_space8(self,N,k,i,**kwds):
-
+        return convert_to_mongo_one_space(self,N,k,i,**kwds)        
         
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
         r"""
