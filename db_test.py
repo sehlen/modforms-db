@@ -52,7 +52,7 @@ class WDBtoMFDB(WDB):
     def __init__(self,datadir,verbose=0,**kwds):
         self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir,**kwds)
-        self._dbb = mdb.db.db 
+        self._dbb = db 
         if verbose>0:
             self._dbb.session.bind.echo = True
         else:
