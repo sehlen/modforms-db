@@ -22,8 +22,8 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 import mfdb
 import mdb
 #from mdb import schema
-from mdb.schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
-from mdb.nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
+from mdb.schema import ModularSymbols_ambient_class,Coefficient_class,NumberField_class,ModularSymbols_base_field_class,CoefficientField_class,ModularSymbols_oldspace_factor_class,ModularSymbols_newspace_factor_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
+from mdb.nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_class
 from mdb.conversions import extract_args_kwds
 from sage.all import is_even,next_prime,ceil,RR
 import bson
@@ -34,16 +34,14 @@ import bson
 #DB=mfdb.WDB('git/mfdb/data/')
 from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
-
-from mdb.db import db
+from mdb import db
 #print DB.known(format='web')
 #def do_computations_ranges(
-from sage.all_cmdline import *   # import sage library
+#from sage.all_cmdline import *   # import sage library
 import glob, os, os.path,re, sys
 import pymongo
 from pymongo import Connection
 import gridfs
-
 
 class WDBtoMFDB(WDB):
     r"""
@@ -807,9 +805,9 @@ def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObjec
 
     """
     data = get_input(M,**kwds)
-    s = create_query(ModularSymbols_ambient_DB_class,data,**kwds)     
+    s = create_query(ModularSymbols_ambient_class,data,**kwds)     
     if s.count()>0:
-        return s    
+        return s.all()    
     # Else insert a new instance.
     if isinstance(M,sage.modular.modsym.ambient.ModularSymbolsAmbient):
         if M.sign()==0:
@@ -841,7 +839,7 @@ def ModularSymbols_ambient_from_dict(data={},**kwds):
         raise ValueError,"Need to call this with a ModularSymbolsAmbient!"
         # From sage object
 #    print "data=",data
-    new_rec = ModularSymbols_ambient_DB_class()
+    new_rec = ModularSymbols_ambient_class()
     new_rec.level=data['space'][0]
     new_rec.weight=data['space'][1]
     new_rec.character=data['space'][2]
@@ -915,7 +913,7 @@ def ModularSymbols_newspace_factor(N,**kwds):
 def ModularSymbols_newspace_factor_from_sage(N,**kwds):
     names = kwds.get('names','a')
     d=factor_to_dict_sage(N)
-    factor = ModularSymbols_newspace_factor_DB_class()
+    factor = ModularSymbols_newspace_factor_class()
     factor.B  =d['B']
     factor.Bd = d['Bd']
     factor.v =d['v']

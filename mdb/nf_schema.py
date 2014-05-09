@@ -10,34 +10,29 @@ from flask import ext
 AssociationProxy = ext.sqlalchemy.sqlalchemy.ext.associationproxy.AssociationProxy
 hybrid_property = ext.sqlalchemy.sqlalchemy.ext.hybrid.hybrid_property 
 #from flask.ext.sqlalchemy.declarative import declarative_base
-from db import db
+from mdb import db
 
-Text = db.Text
-String = db.String
-Boolean = db.Boolean
-Binary = db.Binary
-# Note: We keep the namespace for db.Integer to avoid confusion with Sage's Integer.
 
 compress = True
 prefix = ''
 
 #
 extensions = db.Table('extensions',
-    db.Column('extension_id', db.Integer, db.ForeignKey('NumberField_DB.id'),primary_key=True),
-    db.Column('base_field_id', db.Integer, db.ForeignKey('NumberField_DB.id'),primary_key=True),
+    db.Column('extension_id', db.Integer, db.ForeignKey('NumberField_class.id'),primary_key=True),
+    db.Column('base_field_id', db.Integer, db.ForeignKey('NumberField_class.id'),primary_key=True),
                       info={'useexisting':True})
 
 
 
-class NumberField_DB_class(db.Model):
+class NumberField_class(db.Model):
     r"""
     A relative number field, represented by the minimal polynomial
     of a generator over its base field.
     """
-    __tablename__ = 'NumberField_DB'
+    __tablename__ = 'NumberField_class'
     __table_args__ = {'useexisting': True}
     id = db.Column(db.Integer,primary_key=True)
-    extensions = db.relationship('NumberField_DB_class',
+    extensions = db.relationship('NumberField_class',
                                  secondary = extensions,
                                  backref = db.backref('base_field',lazy='joined'),  #remote_side=[id,base_field_id]) #,
                                  primaryjoin=id==extensions.c.extension_id,
@@ -45,29 +40,30 @@ class NumberField_DB_class(db.Model):
     extensions_list = AssociationProxy('extensions_list','relative_polynomial',
                                     creator= lambda x:
                                         NumberField_DB(x))
-    name = db.Column(String)
-    relative_polynomial = db.Column(String,unique=True) #, primary_key=True)  # relative to the base field
-    power_basis = db.Column(String) 
+    name = db.Column(db.String)
+    relative_polynomial = db.Column(db.String,unique=True) #, primary_key=True)  # relative to the base field
+    power_basis = db.Column(db.String) 
     degree = db.Column(db.Integer) # relative to the base field
-    is_cyclotomic = db.Column(Boolean)
-    algebraic_numbers = db.relationship('AlgebraicNumber_DB_class',backref='number_field',
+    is_cyclotomic = db.Column(db.Boolean)
+    algebraic_numbers = db.relationship('AlgebraicNumber_class',backref='number_field',
                                        cascade = "all, delete-orphan")
     
     def __repr__(self):
         return 'Number field with minimal polynomial {0} over its base field.'.format(self.relative_polynomial)
 
 
-class AlgebraicNumber_DB_class(db.Model):
+class AlgebraicNumber_class(db.Model):
     r"""
     An algebraic number is represented by a vector of coefficients
     in terms of a power basis of the number_field it is contained in.
     """
-    __tablename__ = 'AlgebraicNumber_DB_class'
+    __tablename__ = 'AlgebraicNumber_class'
     __table_args__ = {'useexisting': True}
     id = db.Column("id", db.Integer, primary_key=True)
-    value = db.Column(String)
-    coefficient_id = db.Column(db.Integer, db.ForeignKey('Coefficient_DB_class.id'))
-    number_field_id = db.Column(db.Integer, db.ForeignKey('NumberField_DB.id'))
+    value = db.Column(db.String)
+    #coefficient_id = db.Column(db.Integer, db.ForeignKey('Coefficient_class.id'))
+    #number_field = db.relationship('NumberField_class')
+    number_field_id = db.Column(db.Integer, db.ForeignKey('NumberField_class.id'))
     #algebraic_number = db.relationship('AlgebraicNumber_DB_class',backref='algebraic_number')
     # _value is the coefficient vector in terms of a power basis
     # of the number field (with specified minimal polynomial)
@@ -78,10 +74,10 @@ class AlgebraicNumber_DB_class(db.Model):
         
     # __bfields = ['_value']
     # if compress:
-    #     _value = db.Column(Binary, name='value')
+    #     _value = db.Column(db.Binary, name='value')
     #     _COMPRESSED = __bfields
     # else:
-    #     _value = db.Column(Text, name='value')
+    #     _value = db.Column(db.Text, name='value')
     #     _READ_WRITE = __bfields
     # @hybrid_property
     # def value(self):
@@ -108,7 +104,7 @@ def NumberField_DB(F,**kwds): #NumberField_DB_class, SageObject_DB_class):
     r"""
     Return a number field.
     """
-    return get_number_field(NumberField_DB_class,F,**kwds)
+    return get_number_field(NumberField_class,F,**kwds)
 
 def nf_dict_from_obj(obj,**kwds):
     try:
@@ -140,8 +136,8 @@ def get_number_field(cls,data={},**kwds):
     r"""
     Returns a number field of class cls if in the database, otherwise creates and inserts it.
     """
-    if not issubclass(cls,NumberField_DB_class):
-        raise ValueError,"Expected a subclass of NumberField_DB_class! Got: {0}".format(cls)
+    if not issubclass(cls,NumberField_class):
+        raise ValueError,"Expected a subclass of NumberField_class! Got: {0}".format(cls)
     d = nf_dict_from_obj(data)
     print "d=",d
     d.update(kwds)
@@ -208,11 +204,11 @@ def AlgebraicNumber_DB(data={},**kwds):
     print "NF=",NF,
     print "id=",NF.id
     print "value=",value
-    q = AlgebraicNumber_DB_class.query.filter_by(number_field_id=NF.id,value=value)
+    q = AlgebraicNumber_class.query.filter_by(number_field_id=NF.id,value=value)
     if q.count()>0:
         return q.first()
     else:
-        newnumber = AlgebraicNumber_DB_class(value=value)
+        newnumber = AlgebraicNumber_class(value=value)
         db.session.add(newnumber)
         NF.algebraic_numbers.append(newnumber)
     if kwds.get('do_commit',1)==1:
