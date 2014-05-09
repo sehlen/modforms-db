@@ -408,20 +408,22 @@ class WDBtoMongo(WDBtoMFDB):
     #             self.convert_to_mongo_one_space(N,k,i,**kwds)     
             
             
-    def convert_to_mongo_N_par(self,N,ncpus=1,**kwds):
+    def convert_to_mongo_N_par(self,N=None,k=None,ncpus=1,**kwds):
         r"""
         Sequential routine for converting files with one N to MongoDB.
         """
         #if N % 100 == 1:
         k0 = kwds.get('k',None)
         print "Converting N={0} and k={1}".format(N,k)
+        s = ""
+        if N<>None:
+            s = "N={0}".format(N)
+        if k<>None:
+            s+= " k={0}".format(k)            
+        
         args = []
-        if k0<>None:
-            for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
-                args.append((N,k,i))
-        else:
-            for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
-                args.append((N,k,i))
+        for (N,k,i,newforms,nap) in self._db.known(s):
+            args.append((N,k,i))
         if ncpus==8:
             return list(self.convert_to_mongo_one_space8(args,**kwds))
         elif ncpus==16:
