@@ -393,26 +393,54 @@ class WDBtoMongo(WDBtoMFDB):
             for n in nrange:
                 self.convert_to_mongo_N_seq(n,**kwds)
             
-    @parallel(ncpus=8) 
-    def convert_to_mongo_N_par(self,N,**kwds):
-        r"""
-        Parallel routine for converting files with one N to MongoDB.
-        """
-        #if N % 100 == 1:
-        print "Converting N={0}".format(N)        
-        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
-            self.convert_to_mongo_one_space(N,k,i,**kwds)     
-
-    def convert_to_mongo_N_seq(self,N,**kwds):
+    # def convert_to_mongo_N_par(self,N,**kwds):
+    #     r"""
+    #     Parallel routine for converting files with one N to MongoDB.
+    #     """
+    #     #if N % 100 == 1:
+    #     k0 = kwds.get('k',None)        
+    #     print "Converting N={0}".format(N)        
+    #     if k0<>None:
+    #         for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
+    #             self.convert_to_mongo_one_space(N,k,i,**kwds)     
+    #     else:
+    #         for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
+    #             self.convert_to_mongo_one_space(N,k,i,**kwds)     
+            
+            
+    def convert_to_mongo_N_par(self,N,ncpus=1,**kwds):
         r"""
         Sequential routine for converting files with one N to MongoDB.
         """
         #if N % 100 == 1:
-        print "Converting N={0}".format(N)        
-        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
-            self.convert_to_mongo_one_space(N,k,i,**kwds)     
+        k0 = kwds.get('k',None)
+        print "Converting N={0} and k={1}".format(N,k)
+        args = []
+        if k0<>None:
+            for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
+                args.append((N,k,i))
+        else:
+            for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
+                args.append((N,k,i))
+        if ncpus==8:
+            return list(self.convert_to_mongo_one_space8(args,**kwds))
+        elif ncpus==16:
+            return list(self.convert_to_mongo_one_space16(args,**kwds))            
+        elif ncpus==32:
+            return list(self.convert_to_mongo_one_space32(args,**kwds))                        
+        else:
+            return [self.convert_to_mongo_one_space(args,**kwds)]
 
-            
+    @parallel(ncpus=16)
+    def convert_to_mongo_one_space16(self,N,k,i,**kwds):
+        return convert_to_mongo_one_space(self,N,k,i,**kwds)
+    @parallel(ncpus=32)
+    def convert_to_mongo_one_space32(self,N,k,i,**kwds):
+        return convert_to_mongo_one_space(self,N,k,i,**kwds)        
+    @parallel(ncpus=8)
+    def convert_to_mongo_one_space8(self,N,k,i,**kwds):
+
+        
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
         r"""
         Converting one record from file format to MongoDB.
