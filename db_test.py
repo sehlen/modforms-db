@@ -1172,7 +1172,9 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
+def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0,Nmin=1,kmin=2,verbose=0):
+    import lmfdb
+    from lmfdb.modular_forms import emf_version
     ambients = db.Modular_symbols.files
     factors = db.Newform_factors.files
     webnewforms = db.WebNewforms.files
@@ -1180,7 +1182,9 @@ def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
     for rec in ambients.find():
         #print "rec=",rec        
         N=rec['N']; k=rec['k']; chi=rec['chi']; 
-        if k>kmax:
+        if k>kmax or k<kmin:
+            continue
+        if N<Nmin:
             continue
         if N>Nmax:
             continue
@@ -1190,22 +1194,25 @@ def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
         id = rec['_id']
         labels = galois_labels(no)
         facts = factors.find({'ambient_id':id})
-        print "rec=",rec
-        print "facts=",facts.count()
+        if verbose>0:
+            print "rec=",rec
+            print "facts=",facts.count()
         for f in facts:
             n = f['newform']
-            #print "n=",n
+            #print "f=",f
             if n>=len(labels):
                 continue
-            f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
-            if f.count()>0:
+            f1 = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n],'version':{"$gte":float(emf_version)}})
+            if f1.count()>0:
                 continue
             args.append((N,k,chi,labels[n]))
+            
             #F = WebNewForm(k,N,chi,labels[n],compute=True)
             #if do_one and len(args)>=4:
             #    break
             #F.insert_into_db()
-    print "args=",args
+    if verbose>0:
+        print "args=",args
     return list(insert_one_form(args))
 
 @parallel(ncpus=8)
