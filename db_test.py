@@ -1465,9 +1465,27 @@ def test_for_zeros(DB):
         E,v = loads(fs.get(id).read())
         if E.is_zero():
             t= (r['N'],r['k'],r['chi'])
+            print t
             problems.append(t)
     return problems
-        
+
+def test_for_nonambient(DB):
+    r"""
+    Test is we have coeffiients which are all zero.
+    """
+    fs = gridfs.GridFS(DB._mongodb, 'ap')
+    i = 0
+    problems = []
+    for r in DB._mongodb['ap.files'].find():
+        id=r['_id']
+        ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
+        if ambient == None:
+            t= (r['N'],r['k'],r['chi'])
+            print t
+            problems.append(t)
+    return problems
+
+            
 def reformat_records_of_ap(DB):
     fs = gridfs.GridFS(DB._mongodb, 'ap')
     i = 0
