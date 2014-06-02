@@ -478,6 +478,7 @@ class WDBtoMongo(WDBtoMFDB):
             #     aps_in_mongo.append(r['prec'])
             if verbose>0:
                 print "Have ambient space!"
+                print "ambient_in_mongo=",rec
                 print "Have factors: ",facts_in_mongo
                 #print "Have aps:",aps_in_mongo
         # We assume that if it is here then  
@@ -488,15 +489,21 @@ class WDBtoMongo(WDBtoMFDB):
         except ValueError:
             pass
         if ambient_in_mongo == 0 and ambient_in_file == 0 and not compute:
-            print "Space {0},{1},{2} not computed".format(N,k,i)
+            print "Space {0},{1},{2} not computed at all!".format(N,k,i)
             return
         elif ambient_in_mongo == 0 and ambient_in_file == 0:
             self._computedb.compute_ambient_space(N,k,i)
             ambient_in_file = 1
         elif ambient_in_mongo <> 0 and ambient_in_file == 0:
-            ambient = fs_ms.get(ambient_in_mongo)
+            ambient = loads(fs_ms.get(ambient_in_mongo).read())
+            if verbose>0:
+                print "Space {0},{1},{2} is in mongo but not in file!"
+                print "ambient=",ambient
             if save_in_file:
-                self._computedb.compute_ambient_space(N,k,i,Modym=ambient,tm=rec.get('cputime'))
+                if verbose>0:
+                    print "Save in file!"
+                self._computedb.compute_ambient_space(N,k,i,M=ambient,tm=rec.get('cputime'))
+                ambient_in_file = 1
         if ambient_in_file == 1:
             ambient = self._db.load_ambient_space(N,k,i)
         fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
@@ -571,6 +578,8 @@ class WDBtoMongo(WDBtoMFDB):
         #pprec = ceil(RR(pprec).sqrt())+1
         ## Get even hundreds of primes to look nicer.
         pprec = ceil(RR(pprec)/RR(100))*100
+        if kwds.get('pprec',0)>pprec:
+            pprec = kwds['pprec']
         key = {'N':int(N),'k':int(k),'chi':int(i)}
         key['prec'] = {"$gt": int(pprec -1) }
         if verbose>0:
@@ -1459,9 +1468,9 @@ def test_for_zeros(DB):
     fs = gridfs.GridFS(DB._mongodb, 'ap')
     i = 0
     problems = []
-    for r in DB._mongodb['ap.files'].find({'newform':{"$exists": True}}):
+    for r in DB._mongodb['ap.files'].find().sort('N',int(1)): #({'newform':{"$exists": True}}):
         id=r['_id']
-        
+        #print r['N'],r['k'],r['chi']
         E,v = loads(fs.get(id).read())
         if E.is_zero():
             t= (r['N'],r['k'],r['chi'])
