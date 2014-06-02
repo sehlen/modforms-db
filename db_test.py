@@ -1478,7 +1478,11 @@ def test_for_nonambient(DB):
     problems = []
     for r in DB._mongodb['ap.files'].find():
         id=r['_id']
-        ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
+        try: 
+            ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
+        except KeyError as e:
+            print "r=",r
+            raise e
         if ambient == None:
             t= (r['N'],r['k'],r['chi'])
             print t
