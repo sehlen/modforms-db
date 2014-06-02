@@ -19,7 +19,7 @@ class SageObject_DB_class(object):
         """
         return NotImplementedError()
 
-class ModularSymbols_ambient(ModularSymbols_ambient_DB_class, SageObject_DB_class):
+class ModularSymbols_ambient(ModularSymbols_ambient_class, SageObject_DB_class):
     def sage_object(self):
         d=self.as_dict()
         return dict_to_ambient_sage(d)
@@ -53,11 +53,11 @@ class ModularSymbols_ambient(ModularSymbols_ambient_DB_class, SageObject_DB_clas
             self.newspace_factors.append(NN)
             NN.from_sage(N)
 
-class ModularSymbols_oldspace_factor(ModularSymbols_oldspace_factor_DB_class, SageObject_DB_class):
+class ModularSymbols_oldspace_factor(ModularSymbols_oldspace_factor_class, SageObject_DB_class):
     def sage_object():
         return NotImplementedError()
     
-class ModularSymbols_newspace_factor(ModularSymbols_newspace_factor_DB_class, SageObject_DB_class):
+class ModularSymbols_newspace_factor(ModularSymbols_newspace_factor_class, SageObject_DB_class):
     def sage_object(self):
         d['B'] = self.get_B()
         d['Bd'] = self.get_Bd()
@@ -100,24 +100,24 @@ class ModularSymbols_newspace_factor(ModularSymbols_newspace_factor_DB_class, Sa
                 cc.value = a
                 self.coefficients.append(cc)
 
-class Coefficient(Coefficient_DB_class, SageObject_DB_class):
+class Coefficient(Coefficient_class, SageObject_class):
     def sage_object():
         return NotImplementedError()
 
-class NumberField(NumberField_DB_class, SageObject_DB_class):
+class NumberField(NumberField_class, SageObject_DB_class):
     def sage_object(self):
         minpoly = self.minimal_polynomial
         
 
-class ModularSymbols_base_field(ModularSymbols_base_field_DB_class, SageObject_DB_class):
+class ModularSymbols_base_field(ModularSymbols_base_field_class, SageObject_DB_class):
     def sage_object():
         return NotImplementedError()
 
-class CoefficientField(CoefficientField_DB_class, SageObject_DB_class):
+class CoefficientField(CoefficientField_class, SageObject_DB_class):
     def sage_object():
         return NotImplementedError()
 
-class AlgebraicNumber(AlgebraicNumber_DB_class, SageObject_DB_class):
+class AlgebraicNumber(AlgebraicNumber_class, SageObject_class):
     
     def as_vector(self):
         return sage_eval(self.get_value())

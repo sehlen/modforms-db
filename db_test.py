@@ -22,8 +22,8 @@ os.sys.path.append("{0}/mdb/".format(basedir))
 import mfdb
 import mdb
 #from mdb import schema
-from mdb.schema import ModularSymbols_ambient_DB_class,Coefficient_DB_class,NumberField_DB_class,ModularSymbols_base_field_DB_class,CoefficientField_DB_class,ModularSymbols_oldspace_factor_DB_class,ModularSymbols_newspace_factor_DB_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
-from mdb.nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_DB_class
+from mdb.schema import ModularSymbols_ambient_class,Coefficient_class,NumberField_class,ModularSymbols_base_field_class,CoefficientField_class,ModularSymbols_oldspace_factor_class,ModularSymbols_newspace_factor_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
+from mdb.nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_class
 from mdb.conversions import extract_args_kwds
 from sage.all import is_even,next_prime,ceil,RR
 import bson
@@ -34,16 +34,14 @@ import bson
 #DB=mfdb.WDB('git/mfdb/data/')
 from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
-
-from mdb.db import db
+from mdb import db
 #print DB.known(format='web')
 #def do_computations_ranges(
-from sage.all_cmdline import *   # import sage library
+#from sage.all_cmdline import *   # import sage library
 import glob, os, os.path,re, sys
 import pymongo
 from pymongo import Connection
 import gridfs
-
 
 class WDBtoMFDB(WDB):
     r"""
@@ -54,7 +52,7 @@ class WDBtoMFDB(WDB):
     def __init__(self,datadir,verbose=0,**kwds):
         self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir,**kwds)
-        self._dbb = mdb.db.db 
+        self._dbb = db 
         if verbose>0:
             self._dbb.session.bind.echo = True
         else:
@@ -272,7 +270,7 @@ class WDBtoMongo(WDBtoMFDB):
         levels = factors.distinct('N')
         weights = factors.distinct('k')
         if levels<>[]:
-            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))        
+            print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))        
 
     def GridFS(self,col='Modular_symbols'):
         return gridfs.GridFS(self._mongodb,col)
@@ -280,7 +278,7 @@ class WDBtoMongo(WDBtoMFDB):
     def show_existing_files(self):
         s=""
         print "Directory:{0}".format(self._db._data)
-        s+=self.show_existing_files_db(self._db)
+        s+=self.show_existing_files_db()
         return s
     
     def show_existing_files_db(self):        
@@ -362,7 +360,7 @@ class WDBtoMongo(WDBtoMFDB):
             self.convert_record_mongo_to_file_ambient(f)
         return True
 
-    def convert_all_from_mongo_oi_file_ambient(self):
+    def convert_all_from_mongo_to_file_ambient(self):
         r"""
         Convert all records of ambient spaces.
         """
@@ -395,26 +393,56 @@ class WDBtoMongo(WDBtoMFDB):
             for n in nrange:
                 self.convert_to_mongo_N_seq(n,**kwds)
             
-    @parallel(ncpus=8) 
-    def convert_to_mongo_N_par(self,N,**kwds):
-        r"""
-        Parallel routine for converting files with one N to MongoDB.
-        """
-        #if N % 100 == 1:
-        print "Converting N={0}".format(N)        
-        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
-            self.convert_to_mongo_one_space(N,k,i,**kwds)     
-
-    def convert_to_mongo_N_seq(self,N,**kwds):
+    # def convert_to_mongo_N_par(self,N,**kwds):
+    #     r"""
+    #     Parallel routine for converting files with one N to MongoDB.
+    #     """
+    #     #if N % 100 == 1:
+    #     k0 = kwds.get('k',None)        
+    #     print "Converting N={0}".format(N)        
+    #     if k0<>None:
+    #         for (N,k,i,newforms,nap) in self._db.known("N={0} and k={1}".format(N,k0)):
+    #             self.convert_to_mongo_one_space(N,k,i,**kwds)     
+    #     else:
+    #         for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
+    #             self.convert_to_mongo_one_space(N,k,i,**kwds)     
+            
+            
+    def convert_to_mongo_N_par(self,N=None,k=None,ncpus=1,**kwds):
         r"""
         Sequential routine for converting files with one N to MongoDB.
         """
         #if N % 100 == 1:
-        print "Converting N={0}".format(N)        
-        for (N,k,i,newforms,nap) in self._db.known("N={0}".format(N)):
-            self.convert_to_mongo_one_space(N,k,i,**kwds)     
+        k0 = kwds.get('k',None)
+        print "Converting N={0} and k={1}".format(N,k)
+        s = ""
+        if N<>None:
+            s = "N={0}".format(N)
+        if k<>None:
+            s+= " k={0}".format(k)            
+        
+        args = []
+        for (N,k,i,newforms,nap) in self._db.known(s):
+            args.append((N,k,i))
+        if ncpus==8:
+            return list(self.convert_to_mongo_one_space8(args,**kwds))
+        elif ncpus==16:
+            return list(self.convert_to_mongo_one_space16(args,**kwds))            
+        elif ncpus==32:
+            return list(self.convert_to_mongo_one_space32(args,**kwds))                        
+        else:
+            return [self.convert_to_mongo_one_space(args,**kwds)]
 
-            
+    @parallel(ncpus=16)
+    def convert_to_mongo_one_space16(self,N,k,i,**kwds):
+        return self.convert_to_mongo_one_space(N,k,i,**kwds)
+    @parallel(ncpus=32)
+    def convert_to_mongo_one_space32(self,N,k,i,**kwds):
+        return self.convert_to_mongo_one_space(N,k,i,**kwds)        
+    @parallel(ncpus=8)
+    def convert_to_mongo_one_space8(self,N,k,i,**kwds):
+        return self.convert_to_mongo_one_space(N,k,i,**kwds)        
+        
     def convert_to_mongo_one_space(self,N,k,i,**kwds):
         r"""
         Converting one record from file format to MongoDB.
@@ -807,9 +835,9 @@ def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObjec
 
     """
     data = get_input(M,**kwds)
-    s = create_query(ModularSymbols_ambient_DB_class,data,**kwds)     
+    s = create_query(ModularSymbols_ambient_class,data,**kwds)     
     if s.count()>0:
-        return s    
+        return s.all()    
     # Else insert a new instance.
     if isinstance(M,sage.modular.modsym.ambient.ModularSymbolsAmbient):
         if M.sign()==0:
@@ -841,7 +869,7 @@ def ModularSymbols_ambient_from_dict(data={},**kwds):
         raise ValueError,"Need to call this with a ModularSymbolsAmbient!"
         # From sage object
 #    print "data=",data
-    new_rec = ModularSymbols_ambient_DB_class()
+    new_rec = ModularSymbols_ambient_class()
     new_rec.level=data['space'][0]
     new_rec.weight=data['space'][1]
     new_rec.character=data['space'][2]
@@ -915,7 +943,7 @@ def ModularSymbols_newspace_factor(N,**kwds):
 def ModularSymbols_newspace_factor_from_sage(N,**kwds):
     names = kwds.get('names','a')
     d=factor_to_dict_sage(N)
-    factor = ModularSymbols_newspace_factor_DB_class()
+    factor = ModularSymbols_newspace_factor_class()
     factor.B  =d['B']
     factor.Bd = d['Bd']
     factor.v =d['v']
@@ -1144,7 +1172,9 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
+def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0,Nmin=1,kmin=2,verbose=0):
+    import lmfdb
+    from lmfdb.modular_forms import emf_version
     ambients = db.Modular_symbols.files
     factors = db.Newform_factors.files
     webnewforms = db.WebNewforms.files
@@ -1152,7 +1182,9 @@ def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
     for rec in ambients.find():
         #print "rec=",rec        
         N=rec['N']; k=rec['k']; chi=rec['chi']; 
-        if k>kmax:
+        if k>kmax or k<kmin:
+            continue
+        if N<Nmin:
             continue
         if N>Nmax:
             continue
@@ -1162,22 +1194,25 @@ def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0):
         id = rec['_id']
         labels = galois_labels(no)
         facts = factors.find({'ambient_id':id})
-        print "rec=",rec
-        print "facts=",facts.count()
+        if verbose>0:
+            print "rec=",rec
+            print "facts=",facts.count()
         for f in facts:
             n = f['newform']
-            #print "n=",n
+            #print "f=",f
             if n>=len(labels):
                 continue
-            f = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n]})
-            if f.count()>0:
+            f1 = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n],'version':{"$gte":float(emf_version)}})
+            if f1.count()>0:
                 continue
             args.append((N,k,chi,labels[n]))
+            
             #F = WebNewForm(k,N,chi,labels[n],compute=True)
             #if do_one and len(args)>=4:
             #    break
             #F.insert_into_db()
-    print "args=",args
+    if verbose>0:
+        print "args=",args
     return list(insert_one_form(args))
 
 @parallel(ncpus=8)
