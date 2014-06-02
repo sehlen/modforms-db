@@ -1546,7 +1546,9 @@ def reformat_records_of_ap(DB):
 
 import dirichlet_conrey
 from dirichlet_conrey import *
-@cached_method
+
+from sage.all import cached_function
+@cached_function
 def dirichlet_group_conrey(n):
     return DirichletGroup_conrey(n)
 
@@ -1557,6 +1559,7 @@ def conrey_from_sage_character(n,x):
 
 def add_conrey_character_numbers(DB):
     fs = gridfs.GridFS(DB._mongodb, 'ap')
+    
     for r in DB._mongodb['ap.files'].find({'cchi':{'$exists':False}}):
         rid = r['_id']
         N = r['N']
