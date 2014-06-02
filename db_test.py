@@ -1551,8 +1551,13 @@ from sage.all import cached_function
 @cached_function
 def dirichlet_group_conrey(n):
     return DirichletGroup_conrey(n)
-
-def conrey_from_sage_character(n,x):
+@cached_function
+def dirichlet_group_sage(n):
+    return DirichletGroup(n)
+    
+def conrey_from_sage_character(n,i):
+    D = dirichlet_group_sage(n)
+    x = D[i]
     for c in dirichlet_group_conrey(n):
         if c.sage_character() == x:
             return c
