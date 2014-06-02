@@ -1417,12 +1417,22 @@ def an(M,C,n):
         cn = cn*ap_power(M,C,p,l)
     return cn
 
-def test_coefficients_computations(DB):
+def test_for_zeros(DB):
     r"""
-
+    Test is we have coeffiients which are all zero.
     """
-    pass
-
+    fs = gridfs.GridFS(DB._mongodb, 'ap')
+    i = 0
+    problems = []
+    for r in DB._mongodb['ap.files'].find({'newform':{"$exists": True}}):
+        id=r['_id']
+        
+        E,v = loads(fs.get(id).read())
+        if E.is_zero():
+            t= (r['N'],r['k'],r['chi'])
+            problems.append(t)
+    return problems
+        
 def reformat_records_of_ap(DB):
     fs = gridfs.GridFS(DB._mongodb, 'ap')
     i = 0
@@ -1442,7 +1452,9 @@ def reformat_records_of_ap(DB):
             E,v=f[d]
             fname = "gamma0-aplists-{0}-{1}-{2}-{3}-{4}".format(N,k,chi,d,n)
             ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
-            ambientid = ambient.get('_id',None)
+            if ambient == None:
+                raise ValueError,"No ambient space for r={0}".format(r)
+                ambientid = ambient.get('_id',None)
             if ambientid == None:
                raise ValueError,"No ambient space for r={0}".format(r) 
             newid = fs.put(dumps( (E,v)),filename=fname,
