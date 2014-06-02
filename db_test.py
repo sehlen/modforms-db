@@ -1324,7 +1324,7 @@ def get_aps(db,s_in):
     return res
 
 
-def get_WebNF(db,s_in):
+def get_WebNF(db,s_in,remove=False):
     s={}
     for k in s_in:
         s[k]=int(s_in[k])
@@ -1336,6 +1336,9 @@ def get_WebNF(db,s_in):
         fs = gridfs.GridFS(DB._mongodb, 'WebNewforms')
         f = loads(fs.get(id).read())
         res.append(f)
+        if remove==True:
+            fs.delete(id)
+            print "Removed record: {0}".format(s)
     return res
 
 def delete_defective(db,s_in,dry_run=True):
@@ -1540,3 +1543,25 @@ def reformat_records_of_ap(DB):
         #    break
     print "Reformatted {0} records!".format(i)    
     return 
+
+import dirichlet_conrey
+from dirichlet_conrey import *
+@cached_method
+def dirichlet_group_conrey(n):
+    return DirichletGroup_conrey(n)
+
+def conrey_from_sage_character(n,x):
+    for c in dirichlet_group_conrey(n):
+        if c.sage_character() == x:
+            return c
+
+def add_conrey_character_numbers(DB):
+    fs = gridfs.GridFS(DB._mongodb, 'ap')
+    for r in DB._mongodb['ap.files'].find({'cchi':{'$exists':False}}):
+        rid = r['_id']
+        N = r['N']
+        k = r['k']
+        chi = r['chi']
+        x = conrey_from_sage_character(N,chi)
+        DB._mongodb['ap.files'].update({'_id':rid},{"$set":{'cchi':x.number()}})
+        
