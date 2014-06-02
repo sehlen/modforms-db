@@ -1479,9 +1479,10 @@ def test_for_nonambient(DB):
     for r in DB._mongodb['ap.files'].find():
         id=r['_id']
         try:
-            s = {'N':r[u'N'],'k':r['k'],'chi':r['chi']}
+            s = {'N':r['N'],'k':r['k'],'chi':r['chi']}
         except KeyError as e:
             print "r=",r
+            print "keys=",r.keys()
             raise e
         ambient = DB._mongodb['Modular_symbols.files'].find_one(s)
 
