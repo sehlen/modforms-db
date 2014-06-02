@@ -1515,7 +1515,7 @@ def reformat_records_of_ap(DB):
             ambient = DB._mongodb['Modular_symbols.files'].find_one({'N':r['N'],'k':r['k'],'chi':r['chi']})
             if ambient == None:
                 raise ValueError,"No ambient space for r={0}".format(r)
-                ambientid = ambient.get('_id',None)
+            ambientid = ambient.get('_id',None)
             if ambientid == None:
                raise ValueError,"No ambient space for r={0}".format(r) 
             newid = fs.put(dumps( (E,v)),filename=fname,
