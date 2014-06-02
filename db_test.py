@@ -1483,7 +1483,8 @@ def test_for_nonambient(DB):
         except KeyError as e:
             print "r=",r
             print "keys=",r.keys()
-            raise e
+            continue
+            #raise e
         ambient = DB._mongodb['Modular_symbols.files'].find_one(s)
 
         if ambient == None:
