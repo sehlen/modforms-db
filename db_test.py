@@ -1562,10 +1562,10 @@ def conrey_from_sage_character(n,i):
         if c.sage_character() == x:
             return c
 
-def add_conrey_character_numbers(DB):
-    fs = gridfs.GridFS(DB._mongodb, 'ap')
+def add_conrey_character_numbers(DB,collection='ap.files'):
+    #fs = gridfs.GridFS(DB._mongodb, 'ap')
     
-    for r in DB._mongodb['ap.files'].find({'cchi':{'$exists':False}}):
+    for r in DB._mongodb[collection].find({'cchi':{'$exists':False}}):
         rid = r['_id']
         N = r['N']
         k = r['k']
