@@ -1571,5 +1571,5 @@ def add_conrey_character_numbers(DB,collection='ap.files'):
         k = r['k']
         chi = r['chi']
         x = conrey_from_sage_character(N,chi)
-        DB._mongodb['ap.files'].update({'_id':rid},{"$set":{'cchi':x.number()}})
+        DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':x.number()}})
         
