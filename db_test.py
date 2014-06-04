@@ -644,11 +644,17 @@ class WDBtoMongo(WDBtoMFDB):
         r"""
         Converting one record from file format to MongoDB.
         """
-        print "converting ",N,k,i
-        ambient_fid = self.compute_ambient_ms(N,k,i,**kwds)
+        verbose = kwds.get('verbose')
+        if verbose>0:
+            print "converting ",N,k,i
+            print "Computing ambient modular symbols"
+        ambient_fid = self.compute_ambient(N,k,i,**kwds)
         # Insert ambient modular symbols
-        factors_ids = self.compute_factors(N,k,i,**kwds)
-           
+        kwds['ambient_id']=ambient_fid
+        if verbose>0:
+            print "Getting factors!"
+        factor_ids = self.compute_factors(N,k,i,**kwds)
+        kwds['factor_ids']=factor_ids 
         # Necessary for L-function computations.
 
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
@@ -656,8 +662,11 @@ class WDBtoMongo(WDBtoMFDB):
         #pprec = ceil(RR(pprec).sqrt())+1
         ## Get even hundreds of primes to look nicer.
         pprec = ceil(RR(pprec)/RR(100))*100
-        
+        if verbose>0:
+            print "Computing aps to prec {0}".format(pprec)
         aps = self.compute_aps(N,k,i,pprec,**kwds)
+        if verbose>0:
+            print "Computing atkin lehner to prec {0}".format(pprec)
         atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
         return True    
 
@@ -675,7 +684,8 @@ class WDBtoMongo(WDBtoMFDB):
             m = self._computedb._db.number_of_known_factors(N,k,i)
             for d in range(m):
                 atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,False)
-                atkin_lehner = load(atkin_lehner_file)
+                #atkin_lehner = load(atkin_lehner_file)
+                atkin_lehner = open(atkin_lehner_file,'r').read()
                 meta = load(self._db.meta(atkin_lehner_file))
                 fname = 'atkin_lehner_evs-{0:>5}-{1:>3}-{2:>3}-{3:>3}'.format(N,k,i,d)
                 fid = fs.put(dumps(atkin_lehner),filename=fname,
@@ -686,13 +696,13 @@ class WDBtoMongo(WDBtoMFDB):
         return al_in_mongo
         
         
-    def compute_ambient_ms(self,N,k,i,**kwds):
+    def compute_ambient(self,N,k,i,**kwds):
         r"""
         Compute the ambient space with the given parameters and insert it in mongo if it is not there 
         """
         files_ms = self._modular_symbols
         fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
-        compute = kwds.get('compute',False)
+        compute = kwds.get('compute',True)
         verbose = kwds.get('verbose',0)
         ci = conrey_from_sage_character(N,i).number()
         save_in_file = kwds.get('save_in_file',True)
@@ -714,7 +724,6 @@ class WDBtoMongo(WDBtoMFDB):
         try:
             ambient = self._db.load_ambient_space(N,k,i)
             ambient_in_file = 1
-            print "ambient=",ambient
         except ValueError:
             pass
         if ambient_in_mongo <> 0 and ambient_in_file==0:
@@ -757,7 +766,10 @@ class WDBtoMongo(WDBtoMFDB):
         Compute / store newform factors of parameters N,k,i
         """
         verbose = kwds.get('verbose',0)
-        ambient_id = kwds.get('ambient_id',self.compute_ambient_ms(N,k,i,**kwds))
+        ambient_id = kwds.get('ambient_id',None)
+        if ambient_id is None:
+            ambient_id = self.compute_ambient(N,k,i,**kwds)
+        compute = kwds.get('compute',True)
         ci = conrey_from_sage_character(N,i).number()
         if ambient_id is None:
             if verbose>0:
@@ -766,26 +778,28 @@ class WDBtoMongo(WDBtoMFDB):
         files_fact = self._factors
         files_ms = self._modular_symbols
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
-
         factors_in_file = self.factors_in_file_db(N,k,i)
         factors_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
-        if factors_in_file ==0 and  len(factors_in_mongo)==0:
+        if verbose>0:
+            print "factors_in_file=",factors_in_file
+            print "factors_in_mongo=",factors_in_mongo
+        if factors_in_file == 0 and  len(factors_in_mongo)==0:
             if not compute:
                 print "No factors exist and we do not compute anything!"
                 return None
-            try:
-                B = load(self._db.factor_basis_matrix(N, k, i, 0))
-            except IOError:
-                if not compute:
-                    return 
                 # Else compute and insert into the files.
-                if verbose > 0:
-                    print "Computing factors! m=",num_factors
-                factors_in_file = self._computedb.compute_decompositions(N,k,i,verbose=verbose)
-            if verbose>0:
-                print "Inserting !"
+            factors_in_file = self._computedb.compute_decompositions(N,k,i)
+            if verbose > 0:
+                print "Computing factors! m=",factors_in_file
+
+        if len(factors_in_mongo)==0:
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
-            for d in range(num_factors):
+            if verbose>0:
+                print "Inserting factors into mongo! fname={0}".format(fname)
+            num_factors_in_file = self.factors_in_file_db(N,k,i)
+            ambient = self.get_ambient(N,k,i,ambient_id=ambient_id)
+            for d in range(num_factors_in_file):
+
                 factor = self._db.load_factor(N,k,i,d,M=ambient)
                 metaname = self._db.space(N,k,i,False)+"/decomp-meta.sobj"
                 if verbose>0:
@@ -811,10 +825,13 @@ class WDBtoMongo(WDBtoMFDB):
                     factors_in_mongo.append(facid)
                 if verbose>0:
                     print "inserted factor: ",d,facid
-            ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(factors_in_mongo)}})
-            if factors_in_file == 0:
-                for fid in factors_in_mongo:
-                    fact = loads(fs_fact.get(fid).read())
+        ambient_files = self._modular_symbols
+        ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(factors_in_mongo)}})
+        if factors_in_file == 0:
+            D = []
+            for fid in factors_in_mongo:
+                D.append(loads(fs_fact.get(fid).read()))
+                self._computedb.compute_decompositions(N,k,i,D=D)
                     
                                
 #        if factors_in_file == 0 and factors_in_mongo<>[]:
@@ -825,8 +842,9 @@ class WDBtoMongo(WDBtoMFDB):
         Return the ambient space M(N,k,i)
 
         """
-        
-        ambient_id = kwds.get('ambient_id',self.compute_ambient_ms(N,k,i,**kwds))
+        ambient_id = kwds.get('ambient_id',None)
+        if ambient_id is None:
+            ambient_id = self.compute_ambient(N,k,i,**kwds)
         return loads(gridfs.GridFS(self._mongodb, 'Modular_symbols').get(ambient_id).read())
        
     def number_of_factors(self,N,k,i,**kwds):
@@ -840,9 +858,14 @@ class WDBtoMongo(WDBtoMFDB):
         r"""
         Compute / store aps
         """
-        num_factors = len(self.compute_factors(N,k,i,**kwds))
-        ambient_id = self.compute_ambient_ms(N,k,i,**kwds)
+        
+        num_factors = len(kwds.get('factors_ids',self.compute_factors(N,k,i,**kwds)))
+        ambient_id = kwds.get('ambient_id',None)
+        if ambient_id is None:
+            ambient_id = self.compute_ambient(N,k,i,**kwds)
         ambient = self.get_ambient(N,k,i,ambient_id=ambient_id,verbose=0)
+        compute = kwds.get('compute',True)
+        verbose = kwds.get('verbose')
         ci = conrey_from_sage_character(N,i).number()
         files_ap = self._aps
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
@@ -885,7 +908,7 @@ class WDBtoMongo(WDBtoMFDB):
                                  prec = int(pprec),
                                  cputime = meta.get("cputime",""),
                                  sage_version = meta.get("version",""),
-                                 ambient_id=fid)
+                                 ambient_id=ambient_id)
                 aps_in_mongo.append(apid)
                 if verbose > 0:
                     print "inserted aps : ",num_factors,apid
@@ -899,22 +922,28 @@ class WDBtoMongo(WDBtoMFDB):
                                N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                prec = int(pprec),
                                sage_version = meta.get("version",""),
-                               ambient_id=fid)
+                               ambient_id=ambient_id)
         if aps_in_file == 0:
+            if verbose>0:
+                print "No ap's in file.! num_Factors=",num_factors
             for d in range(num_factors):
                 aps_in_file = 0
                 try:
                     aps = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
-                    aps_in_file = 1
-
+                    if aps <> None:
+                        aps_in_file = 1
                 except (ValueError,RuntimeError):
                     aps = None
                 if aps <> None:
+                    if verbose>0:
+                        print "aps=",aps
                     nump = aps[0].nrows()
                     needed_p = prime_pi(pprec)
                     if needed_p > nump:
                         aps_in_file = 0
                 if aps_in_file == 0:
+                    if verbose>0:
+                        print "still no aps in file!"
                     ap_id = aps_in_mongo[d]
                     r = files_ap.find_one({'_id':ap_id})
                     print "r=",r

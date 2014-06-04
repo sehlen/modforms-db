@@ -51,8 +51,9 @@ def WebModFormSpace(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None,
     #    #raise IndexError,"We are very sorry. The sought space could not be found in the database."
     return F
 
+from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
 
-class WebModFormSpace_class(object):
+class WebModFormSpace_computing_class(WebModFormSpace_class):
     r"""
     Space of cuspforms to be presented on the web.
         G  = NS.
@@ -73,50 +74,14 @@ class WebModFormSpace_class(object):
         - 'chi' -- character
         - 'cuspidal' -- 1 if space of cuspforms, 0 if all modforms
         """
-        if data is None: data = {}
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (k,N,chi)))
-        d = {
-            '_N': int(N),
-            '_k': int(k),
-            '_chi':int(chi),
-            '_cuspidal' : int(cuspidal),
-            '_prec' : int(prec),
-            '_ap' : {}, '_group' : None,
-            '_character' : None,
-            '_character_orbit_rep' : None,
-            '_modular_symbols' : None,
-            '_sturm_bound' : None,
-            '_newspace' : None,
-            '_newforms' : {},
-            '_new_modular_symbols' : None,
-            '_galois_decomposition' : [],
-            '_galois_orbits_labels' : [],
-            '_oldspace_decomposition' : [],
-            '_newform_factors' : None,
-            '_verbose' : int(verbose),
-            '_bitprec' : int(bitprec),
-            '_dimension_newspace' : None,
-            '_dimension_cusp_forms' : None,
-            '_dimension_modular_forms' : None,
-            '_dimension_new_cusp_forms' : None,
-            '_dimension_new_modular_symbols' : None,
-            '_galois_decomposition' : [],
-            '_newspace' : None,
-            '_name' : "{0}.{1}.{2}".format(N,k,chi),
-            '_got_ap_from_db' : False ,
-            '_version': float(emf_version),
-            '_galois_orbit_poly_info':{}
-            }
-        self.__dict__.update(d)
-        #data.update(d)
-        wmf_logger.debug("Incoming data:{0} ".format(data))
-        if get_from_db:            
-            d = self.get_from_db()
-            wmf_logger.debug("Got data:{0} from db".format(d))
-        if data is None:
-            data = {}
-        data.update(d)        
-        self.__dict__.update(data)
+        self.compute_additional_properties()
+        self.insert_into_db()
+        
+    def compute_additional_properties(self):
+        r"""
+        Compute additional properties. 
+        """
         ### Compute / fetch everything
         if self._group is None:
             self._group = Gamma0(N)
@@ -141,47 +106,8 @@ class WebModFormSpace_class(object):
         self.insert_into_db()
 
 
-    ### Elementary properties of self.
-    def weight(self):
-        r"""
-        The weight of self.
-        """
-        return self._k
-
-    def level(self):
-        r"""
-        The level of self.
-        """
-        return self._N
-
-    def chi(self):
-        r"""
-        Return the character number (chi) of self.
-        """
-        return self._chi
-    def character(self):
-        r"""
-        Return the character of self.
-        """
-        if self._character is None:
-            self._character = WebChar(self.level(),self.chi())
-        return self._character
-    def group(self):
-        r"""
-        The group of self.
-        """
-        return self._group
 
     ## More complicated properties (might need computation or database calls)
-    def modular_symbols(self):
-        r"""
-        Return the modular symbols of self.
-        
-        """
-        if self._modular_symbols is None:
-            self._modular_symbols = self._get_modular_symbols()
-        return self._modular_symbols
-
     def aps(self,prec=-1):
         r"""
         Return a list of aps, that is, Hecke eigenvalues of prime indices, for self.

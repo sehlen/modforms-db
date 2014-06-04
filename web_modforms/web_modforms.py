@@ -67,9 +67,9 @@ def WebNewForm(N=1, k=2, chi=1, label='', prec=10, bitprec=53, display_bprec=26,
     return F
 
 
+from lmfdb.modular_forms.elliptic_modular_forms.backend import WebNewForm_class
 
-
-class WebNewForm_class(object):
+class WebNewForm_computing_class(WebNewForm_class):
     r"""
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
@@ -81,168 +81,33 @@ class WebNewForm_class(object):
         wmf_logger.debug("WebNewForm with N,k,chi,label={0}".format( (N,k,chi,label)))
         # Set defaults.
         wmf_logger.debug("incoming data in construction : {0},{1},{2},{3}".format(data.get('N'),data.get('k'),data.get('chi'),data.get('label')))
-        if data is None: data = {}
-        d  = {
-            '_chi' : int(chi),'_k' : int(k),'_N' : int(N),
-            '_label' : str(label), '_fi':None,
-            '_prec' : int(prec), '_bitprec' : int(bitprec),
-            '_display_bprec':int(display_bprec),
-            '_verbose' : int(verbose),
-            '_satake' : {},
-            '_ap' : {},    # List of Hecke eigenvalues (can be long)
-            '_coefficients' : dict(),  # list of Fourier coefficients (should not be long)
-            '_atkin_lehner_eigenvalues' : {},
-            '_parent' : parent,
-            '_f' : None,
-            '_q_expansion' : None,
-            '_q_expansion_str' : '',
-            '_embeddings' :
-                {
-                'prec':0,
-                'bitprec':bitprec,
-                'values':[],
-                'latex':[]},
-            '_base_ring': None,
-            '_base_ring_as_dict' : {},
-            '_coefficient_field': None,
-            '_coefficient_field_as_dict': {},
-            '_as_polynomial_in_E4_and_E6' : None,
-            '_twist_info' : [],
-            '_is_CM' : [],
-            '_cm_values' : {},
-            '_satake' : {},
-            '_dimension' : None,
-            '_is_rational' : None,
-            '_degree' : None,
-            '_absolute_degree' : None,
-            '_relative_degree' : None,
-            '_character' : None,
-            '_character_naming_scheme' : 'Conrey', # To make it clear in case someone simply looks at a dictionary.
-            '_name' : "{0}.{1}.{2}{3}".format(N,k,chi,label),
-            '_version': float(emf_version)            
-            }
-        self.__dict__.update(d)
-        wmf_logger.debug("label = {0}".format(label))
-        wmf_logger.debug("label = {0}".format(self._label))
-        insert_in_db = False
-        if data <> {}: # Check if we add something which was not in the database
-            insert_in_db = True
-        if self._label<>'' and get_from_db:            
-            d = self.get_from_db(self._N,self._k,self._chi,self._label)
-            wmf_logger.debug("Got data:{0} from db".format(d))
-            data.update(d)
-        #wmf_logger.debug("data: {0}".format(data))
-        self.__dict__.update(data)
-        if not isinstance(self._parent,WebModFormSpace_class):
-            if self._verbose > 0:
-                wmf_logger.debug("compute parent! label={0}".format(label))
-            self._parent = WebModFormSpace(N, k,chi, data=self._parent)
-            wmf_logger.debug("finished computing parent")
-        if self._parent.dimension_newspace()==0:
-            self._dimension=0
-            return 
-        self._check_consistency_of_labels()
-        wmf_logger.debug("name={0}".format(self._name))
-        if compute: ## Compute all data we want.
-            wmf_logger.debug("compute")
-            t0 = self._update_aps(insert_in_db=False)
-            wmf_logger.debug("compute q-expansion")
-            self.q_expansion_embeddings(prec, bitprec,insert_in_db=False)
-            wmf_logger.debug("as polynomial")
-            if self._N == 1:
-                self.as_polynomial_in_E4_and_E6(insert_in_db=False)
-            wmf_logger.debug("compute twist info")
-            self.twist_info(prec,insert_in_db=False)
-            wmf_logger.debug("compute CM-values")
-            self.cm_values(insert_in_db=False)
-            wmf_logger.debug("check  CM of self")
-            self.is_CM(insert_in_db=False)
-            wmf_logger.debug("compute Satake parameters")
-            self.satake_parameters(insert_in_db=False)
-            self._dimension = self.as_factor().dimension()  # 1 # None
-            #c = self.coefficients(self.prec(),insert_in_db=False)
-        wmf_logger.debug("before end of __init__ f={0}".format(self.as_factor()))
-        wmf_logger.debug("before end of __init__ type(f)={0}".format(type(self.as_factor())))
-        wmf_logger.debug("done __init__")
+
+        self.compute_additional_proerties()
+        self.insert_in_db()
+        
+    def compute_additional_proerties(self):
+        r"""
+        Compute everything we need.
+        """
+        t0 = self._update_aps()
+        wmf_logger.debug("compute q-expansion")
+        self.q_expansion_embeddings(prec, bitprec)
+        wmf_logger.debug("as polynomial")
+        if self._N == 1:
+            self.as_polynomial_in_E4_and_E6()
+        wmf_logger.debug("compute twist info")
+        self.twist_info()
+        wmf_logger.debug("compute CM-values")
+        self.cm_values()
+
+        wmf_logger.debug("check  CM of self")
+        self.is_CM()
+        wmf_logger.debug("compute Satake parameters")
+        self.satake_parameters()
+        self._dimension = self.as_factor().dimension()  # 1 # None
+        #c = self.coefficients(self.prec(),insert_in_db=False)
         self.insert_into_db()
 
-### Get basic properties of self
-    def level(self):
-        r"""
-        The level of self (assuming it is on a congruence subgroup).
-        """
-        return self._N
-
-    def ambient_space(self):
-        r"""
-        The group on which self is defined.
-        """
-        return self.parent().group()
-
-    def group(self):
-        r"""
-        The group on which self is defined.
-        """
-        return self.parent().group()
-
-    def label(self):
-        r"""
-        The label of self.
-        """
-        return self._label
-
-    def chi(self):
-        r"""
-        Return the number of the character of self (in the Conrey ordering/naming scheme)
-        """
-        return self._chi
-        
-    def weight(self):
-        r"""
-        The weight of self.
-        """
-        return self._k
-
-    def name(self):
-        r"""
-        The name, or *complete* label, of self.
-        """
-        return self._name
-
-    def as_factor(self):
-        r"""
-        Return the simple factor of the ambient space corresponding to self. 
-        """
-        if self._f is None:
-            self._f = self.parent().galois_decomposition()[self.fi()]
-        return self._f
-
-    def character(self):
-        r"""
-        Return the character of self.
-        """
-        if self._character is None:
-            self._character = WebChar(modulus=self.level(),number=self.chi())
-        return self._character
-
-    def fi(self):
-        r"""
-        The number of self in the Galois orbits of self.parent()
-        """
-        if self._fi is None:
-            if self._label not in self.parent().labels():
-                raise ValueError,"Self (with label {0}) is not in the set of Galois orbits of self.parent()!".format(self._label)
-            self._fi = self.parent().labels().index(self._label)
-        return self._fi
-
-    def prec(self):
-        r"""
-        Return the precision of self.
-        """
-        return self._prec
-         
-
-            
 ## Functions related to storing / fetching data from database
 ##  
     def to_dict(self):
@@ -262,43 +127,6 @@ class WebNewForm_class(object):
         data['_parent']=self._parent.to_dict()
         return data
 
-    def _from_dict(self, data):
-        self.__dict__.update(data)
-        if isinstance(self._parent,dict):
-            self._parent = WebModFormSpace(self._k,self._N,self._chi,1,self._prec,self._bitprec,data = self._parent)
-
-    def to_yaml(self,for_yaml=False):
-        r"""
-        Export self in yaml format
-        """
-        d = self.to_dict()
-        return yaml.dump(d)
-    
-    def from_yaml(self,s):        
-        r"""
-        Import data from a yaml formatted string
-        """
-
-        d = yaml.load(s)
-        return yaml.load(d)    
-    
-    def get_from_db(self,N,k,chi,label):
-        r"""
-        Fetch dictionary from the database
-        """
-        C = connect_to_modularforms_db()
-        s = {'name':self.name(),'version':float(emf_version)}
-        wmf_logger.debug("Looking in DB for rec={0}".format(s))
-        f = C.WebNewforms.files.find_one(s)
-        wmf_logger.debug("Found rec={0}".format(f))
-        if f<>None:
-            id = f.get('_id')
-            fs = get_files_from_gridfs('WebNewforms')
-            f = fs.get(id)
-            wmf_logger.debug("Getting rec={0}".format(f))
-            d = loads(f.read())
-            return d
-        return {}
     
     def insert_into_db(self):
         r"""
@@ -328,38 +156,10 @@ class WebNewForm_class(object):
 #            wmf_logger.critical("DB insertion failed: {0}".format(e.message))
         wmf_logger.debug("inserted :{0}".format(id))
     
-    
-
             
 
 ##  Internal functions
 ##        
-    def _check_consistency_of_labels(self):
-        if self._label not in self.parent().labels():
-            raise ValueError,"There does not exist a newform orbit of the given label: {0}!".format(self._label)
-        return True
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-        return self._name == other._name
-
-
-    def __repr__(self):
-        r""" String representation f self.
-        """
-        if self.dimension()==0:
-            return "0"
-        return str(self.q_expansion())
-
-    def __reduce__(self):
-        r"""
-        Reduce self for pickling.
-        """
-        data = self.to_dict()
-        return(unpickle_wnf_v1, (self._N, self._k, self._chi, self._label,
-                                 self._prec, self._bitprec, self._display_bprec,self._parent,data))
-
 
     def base_ring(self):
         r"""
