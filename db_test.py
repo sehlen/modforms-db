@@ -52,7 +52,7 @@ class WDBtoMFDB(WDB):
     def __init__(self,datadir,verbose=0,**kwds):
         self._dir = datadir
         super(WDBtoMFDB,self).__init__(dir=datadir,**kwds)
-        self._dbb = db 
+        self._dbb = mdb.db 
         if verbose>0:
             self._dbb.session.bind.echo = True
         else:
@@ -253,6 +253,7 @@ class WDBtoMongo(WDBtoMFDB):
         self._modular_symbols = self._mongodb['Modular_symbols.files']
         self._factors = self._mongodb['Newform_factors.files']
         self._aps = self._mongodb['ap.files']
+        self._atkin_lehner = self._mongodb['Atkin_Lehner.files']
         self._webnewforms = self._mongodb['WebNewforms.files']
         self._sage_version = sage.version.version
         self._computedb = ComputeMFData(datadir)
@@ -443,7 +444,7 @@ class WDBtoMongo(WDBtoMFDB):
     def convert_to_mongo_one_space8(self,N,k,i,**kwds):
         return self.convert_to_mongo_one_space(N,k,i,**kwds)        
         
-    def convert_to_mongo_one_space(self,N,k,i,**kwds):
+    def convert_to_mongo_one_space_old(self,N,k,i,**kwds):
         r"""
         Converting one record from file format to MongoDB.
         """
@@ -634,11 +635,303 @@ class WDBtoMongo(WDBtoMFDB):
         return True
 
 
+    def convert_to_mongo_one_space(self,N,k,i,**kwds):
+        r"""
+        Converting one record from file format to MongoDB.
+        """
+        print "converting ",N,k,i
+        ambient_fid = self.compute_ambient_ms(N,k,i,**kwds)
+        # Insert ambient modular symbols
+        factors_ids = self.compute_factors(N,k,i,**kwds)
+           
+        # Necessary for L-function computations.
+
+        pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
+        pprec = max(pprec,kwds.get('pprec',100))
+        #pprec = ceil(RR(pprec).sqrt())+1
+        ## Get even hundreds of primes to look nicer.
+        pprec = ceil(RR(pprec)/RR(100))*100
+        
+        aps = self.compute_aps(N,k,i,pprec,**kwds)
+        atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
+        return True    
+
+    def compute_atkin_lehner(self,N,k,i,**kwds):
+        r"""
+        Compute the Atkin-Lehner eigenvalues of space (N,k,i).
+        """
+        ci = conrey_from_sage_character(N,i).number()
+        al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
+        fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
+        if len(al_in_mongo)==0:
+            ambient = self.get_ambient(N,k,i,**kwds)
+            number_of_factors = self.number_of_factors(N,k,i)
+            self._computedb.compute_atkin_lehner(N,k,i,M=ambient,m=number_of_factors)
+            m = self._computedb._db.number_of_known_factors(N,k,i)
+            for d in range(m):
+                atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,False)
+                atkin_lehner = load(atkin_lehner_file)
+                meta = load(self._db.meta(atkin_lehner_file))
+                fname = 'atkin_lehner_evs-{0:>5}-{1:>3}-{2:>3}-{3:>3}'.format(N,k,i,d)
+                fid = fs.put(dumps(atkin_lehner),filename=fname,
+                             N=int(N),k=int(k),chi=int(i),newform=int(d),cchi=int(ci),
+                             cputime = meta.get("cputime",""),
+                             sage_version = meta.get("version",""))
+                al_in_mongo.append(fid)
+        return al_in_mongo
+        
+        
+    def compute_ambient_ms(self,N,k,i,**kwds):
+        r"""
+        Compute the ambient space with the given parameters and insert it in mongo if it is not there 
+        """
+        files_ms = self._modular_symbols
+        fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
+        compute = kwds.get('compute',False)
+        verbose = kwds.get('verbose',0)
+        ci = conrey_from_sage_character(N,i).number()
+        save_in_file = kwds.get('save_in_file',True)
+        if compute == False:
+            compute = self._do_compute
+        # We first see if this space is already in the mongo database.
+        rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+        ambient_in_mongo = 0
+        ambient_in_file = 0
+        ambient = None
+        cputime = None
+        if rec<>None:
+            ambient_in_mongo = rec['_id']
+            # Check factors 
+            if verbose>0:
+                print "Have ambient space!"
+                print "ambient_in_mongo=",rec
+        # Next see if we have it in the files database
+        try:
+            ambient = self._db.load_ambient_space(N,k,i)
+            ambient_in_file = 1
+            print "ambient=",ambient
+        except ValueError:
+            pass
+        if ambient_in_mongo <> 0 and ambient_in_file==0:
+            ambient = loads(fs_ms.get(ambient_in_mongo).read())
+            cputime = rec.get('cputime')
+
+            if verbose>0:
+                print "Space {0},{1},{2} is in mongo but not in file!".format(N,k,i)
+                print "ambient=",ambient
+        if ambient_in_file == 0: 
+            if not compute:
+                print "Space {0},{1},{2} not computed at all!".format(N,k,i)
+                return None
+            if verbose>0:
+                print "Compute and/or save to file!"
+            self._computedb.compute_ambient_space(N,k,i,M=ambient,tm=cputime)
+            ambient_in_file = 1
+#        num_factors = len(self.compute_factors(N,k,i,**kwds))
+        if ambient_in_mongo == 0 and not ambient is None:
+            metaname = self._db.space(N,k,i,False)+"/ambient-meta.sobj"
+            if verbose>0:
+                print "metaname=",metaname
+            try:
+                meta = load(metaname)
+            except (OSError,IOError):
+                meta={}
+            fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
+            ## Note that we have to update the number of orbits.
+            fid = fs_ms.put(dumps(ambient),filename=fname,
+                            N=int(N),k=int(k),chi=int(i),orbits=0,
+                            cchi=int(ci),
+                            cputime = meta.get("cputime",""),
+                            sage_version = meta.get("version",""))
+        else:
+            fid = ambient_in_mongo
+        return fid
+
+    def compute_factors(self,N,k,i,**kwds):
+        r"""
+        Compute / store newform factors of parameters N,k,i
+        """
+        verbose = kwds.get('verbose',0)
+        ambient_id = kwds.get('ambient_id',self.compute_ambient_ms(N,k,i,**kwds))
+        ci = conrey_from_sage_character(N,i).number()
+        if ambient_id is None:
+            if verbose>0:
+                print "No ambient space!"
+            return None
+        files_fact = self._factors
+        files_ms = self._modular_symbols
+        fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
+
+        factors_in_file = self.factors_in_file_db(N,k,i)
+        factors_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        if factors_in_file ==0 and  len(factors_in_mongo)==0:
+            if not compute:
+                print "No factors exist and we do not compute anything!"
+                return None
+            try:
+                B = load(self._db.factor_basis_matrix(N, k, i, 0))
+            except IOError:
+                if not compute:
+                    return 
+                # Else compute and insert into the files.
+                if verbose > 0:
+                    print "Computing factors! m=",num_factors
+                factors_in_file = self._computedb.compute_decompositions(N,k,i,verbose=verbose)
+            if verbose>0:
+                print "Inserting !"
+            fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,i))
+            for d in range(num_factors):
+                factor = self._db.load_factor(N,k,i,d,M=ambient)
+                metaname = self._db.space(N,k,i,False)+"/decomp-meta.sobj"
+                if verbose>0:
+                    print "metaname=",metaname
+                try:
+                    meta = load(metaname)
+                except OSError:
+                    meta={}
+                if factor==None:
+                    if verbose>=0:
+                        print "Factor {0},{1},{2},{3} not computed!".format(N,k,i,d)
+                    continue
+                fname1 = "{0}-{1:0>3}".format(fname,d)
+                facid = fs_fact.put(dumps(factor),filename=fname1,
+                                    N=int(N),k=int(k),chi=int(i),
+                                    cchi=int(ci),
+                                    newform=int(d),
+                                    cputime = meta.get("cputime",""),
+                                    sage_version = meta.get("version",""),
+                                    ambient_id=ambient_id,
+                                    v=int(1))
+                if not facid is None:
+                    factors_in_mongo.append(facid)
+                if verbose>0:
+                    print "inserted factor: ",d,facid
+            ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(factors_in_mongo)}})
+            if factors_in_file == 0:
+                for fid in factors_in_mongo:
+                    fact = loads(fs_fact.get(fid).read())
+                    
+                               
+#        if factors_in_file == 0 and factors_in_mongo<>[]:
+        return factors_in_mongo
+
+    def get_ambient(self,N,k,i,**kwds):
+        r"""
+        Return the ambient space M(N,k,i)
+
+        """
+        
+        ambient_id = kwds.get('ambient_id',self.compute_ambient_ms(N,k,i,**kwds))
+        return loads(gridfs.GridFS(self._mongodb, 'Modular_symbols').get(ambient_id).read())
+       
+    def number_of_factors(self,N,k,i,**kwds):
+        r"""
+        Return the number of factors. 
+        """
+        return self._mongodb['Newform_factors.files'].find({'N':int(N),'k':int(k),'chi':int(i)}).count()
+    
+        
+    def compute_aps(self,N,k,i,pprec,**kwds):
+        r"""
+        Compute / store aps
+        """
+        num_factors = len(self.compute_factors(N,k,i,**kwds))
+        ambient_id = self.compute_ambient_ms(N,k,i,**kwds)
+        ambient = self.get_ambient(N,k,i,ambient_id=ambient_id,verbose=0)
+        ci = conrey_from_sage_character(N,i).number()
+        files_ap = self._aps
+        fs_ap = gridfs.GridFS(self._mongodb, 'ap')
+        fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')        
+       
+        key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
+        if verbose>0:
+            print "key=",key
+        aps_in_mongo = files_ap.find(key).distinct('_id')
+        aps_in_file = 0 
+        if verbose > 0:
+            print "Already have {0} ap lists in db! Need {1}".format(len(aps_in_mongo),num_factors)
+        if len(aps_in_mongo) < num_factors:
+            if not compute:
+                return 
+            else:
+                if verbose>0:
+                    print "Computing aplist! m=",num_factors
+                self._computedb.compute_aplists(N,k,i,pprec)
+                aps_in_file = 1
+            if verbose>0:
+                print "Inserting {0} coefficients for orbit nr. {1}".format(pprec,num_factors)
+            fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
+            for d in range(num_factors):
+                aps = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
+                if aps == None or len(aps)<2:
+                    print "APS: {0},{1},{2},{3} not computed!".format(N,k,i,d)
+                    # Try a shorter list
+                    continue
+                E,v,meta = aps
+                if verbose>0:
+                    print "E=",E
+                    print "v=",v
+                    print "meta=",meta
+                #aps = E*v
+                fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
+                apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                                 N=int(N),k=int(k),chi=int(i),cchi=int(ci),
+                                 newform=int(d),
+                                 prec = int(pprec),
+                                 cputime = meta.get("cputime",""),
+                                 sage_version = meta.get("version",""),
+                                 ambient_id=fid)
+                aps_in_mongo.append(apid)
+                if verbose > 0:
+                    print "inserted aps : ",num_factors,apid
+                # Also insert the corresponding v separately (to protect against changes in sage)
+                fnamev = "gamma0-ambient-v-{0}-{1:0>3}".format(self._db.space_name(N,k,i),d)
+                if verbose > 0:
+                    print "fnamev=",fnamev
+
+                vid = fs_v.put(dumps(v),filename=fnamev,
+                               newform=int(d),
+                               N=int(N),k=int(k),chi=int(i),cchi=int(ci),
+                               prec = int(pprec),
+                               sage_version = meta.get("version",""),
+                               ambient_id=fid)
+        if aps_in_file == 0:
+            for d in range(num_factors):
+                aps_in_file = 0
+                try:
+                    aps = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
+                    aps_in_file = 1
+
+                except (ValueError,RuntimeError):
+                    aps = None
+                if aps <> None:
+                    nump = aps[0].nrows()
+                    needed_p = prime_pi(pprec)
+                    if needed_p > nump:
+                        aps_in_file = 0
+                if aps_in_file == 0:
+                    ap_id = aps_in_mongo[d]
+                    r = files_ap.find_one({'_id':ap_id})
+                    print "r=",r
+                    mongo_aplist = loads(fs_ap.get(ap_id).read())
+                    aplist_file = self._computedb._db.factor_aplist(N, k, i, d, False, pprec)
+                    apdir = join(aplist_file.split("/")[0:-1],"/")
+                    if not self._db.isdir(apdir):
+                        self._db.makedirs(apdir)
+                    print "aplist_file=",aplist_file
+                    
+                    save(mongo_aplist, aplist_file)
+                    meta = {'cputime':r['cputime'], 'version':r['sage_version']}
+                    save(meta, self._computedb._db.meta(aplist_file))
+                    
+        return aps_in_mongo
+
+        
     def factors_in_file_db(self,N,k,i):
         r"""
         Return the number of factors we have in the space (N,k,i)
         """
-        m = -1
+        m = 0
         try:  
             #print "db._data=",db._data,N,k,i
             mtmp = self._db.number_of_known_factors(N,k,i)
@@ -648,7 +941,9 @@ class WDBtoMongo(WDBtoMFDB):
         if mtmp>m:
             m = mtmp
         return m
-    
+
+
+   
 
     def convert_mongo_rec_ambient_to_file(self,rec,compute=False):
         fid = rec['_id']
@@ -1089,6 +1384,72 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
 
 
 
+def generate_dimension_table_gamma_01_conrey(DB,maxN=100, maxk=12, mink=2,db='to',old_dims={},group='gamma1'):
+#    if db=='to':        
+    ms = DB._mongodb.Modular_Symbols.files # = C['modularforms']['Modular_symbols.files']
+    facts = DB._mongodb.Newform_factors.files # = C['modularforms']['Modular_symbols.files']
+#    elif db=='fr':
+#        ms = DB._ms_collection_fr.files # = C['modularforms']['Modular_symbols.files']
+#        facts = DB._mongodb.Newform_factors.files # = C['modularforms']['Modular_symbols.files']
+#        #print ms
+#    else:
+#        raise ValueError,"Need to specify 'to' or 'fr'!"
+    data = old_dims
+    if maxN<0:
+        maxN = abs(maxN)
+    else:
+        maxN = max([maxN] + old_dims.keys() + facts.distinct('N'))
+    #print "maxN=",maxN
+    for N in range(1, maxN + 1):
+        if N not in old_dims:
+            data[N] = dict()
+        if group=='gamma0': # Only trivial character
+            G = [[N]]
+        else:
+            D = DirichletGroup(N)
+            #G = D.galois_orbits(reps_only=True)
+            G = D.galois_orbits()
+        maxK = max( [maxk] + data[N].keys())
+        if (N>100 and group=='gamma1') or N>1000: # or group=='gamma1':
+            maxK = max( [2] + data[N].keys())
+        for k in range(mink, maxK + 1):
+            dimall = 0
+            if k not in old_dims[N]:
+                data[N][k] = dict()
+            in_db_all = True
+            for xi, x in enumerate(G):                
+                mult = len(x)
+                x = x[0]
+                if xi == 0 or is_even(x):
+                    xis_even = 1
+                else:
+                    xis_even = 0
+                if (xis_even == 0 and k % 2 == 0) or (xis_even == 1 and k % 2 == 1):
+                    data[N][k][xi] = (0,False) #f{'dimension': 0, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+                    continue
+                else:
+                    t = data[N][k].get(xi,[])
+                    if t == []: 
+                        dim = dimension_new_cusp_forms(x, k)
+                    else:
+                        dim = t[0]
+                dimall += dim*mult
+                # Check existence in database. Should we check that dimensions match?
+                ambient_in_db = ms.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
+                facts_in_db   = facts.find({'N':int(N),'k':int(k),'chi':int(xi)}).count() > 0
+                if not facts_in_db and in_db_all:
+                    print "Not in db:",N,k,xi
+                    in_db_all = False
+                data[N][k][xi] = (dim,facts_in_db) #{'dimension': dim, 'ambient_in_db': ambient_in_db,'facts_in_db':facts_in_db}
+            data[N][k][-1] = (dimall,in_db_all) #{'dimension': dimall, 'in_db': in_db_all}
+        print "Computed data for level ", N
+        # We now add all data which is in the database but outside the covered range:
+        
+    return ms, data
+
+
+
+
 def generate_dimension_table(DB,maxN=100, maxk=12, minN=3, db='to'):
     r"""
     Upate old table of dimensions with data about availabity in the database and compute new data when necessary.
@@ -1228,7 +1589,8 @@ def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0,Nmin=1,kmin=2,verbose=0):
 def insert_one_form(N,k,chi,label):
     import lmfdb
     from sage.all import RR
-    from lmfdb.modular_forms import WebNewForm
+#    from web_modforms import WebNewForm
+    #from lmfdb.modular_forms.elliptic_modular_forms.backend import WebNewForm
     print N,k,chi,label
     prec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
     F = WebNewForm(N=N,k=k,chi=chi,label=label,compute='all',prec=prec)
@@ -1573,3 +1935,17 @@ def add_conrey_character_numbers(DB,collection='ap.files'):
         x = conrey_from_sage_character(N,chi)
         DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':x.number()}})
         
+
+
+def existing_data(DB):
+    ms = DB._modular_symbols
+    factors = DB._factors 
+    aps = DB._aps
+    res = {'ms':[],'aps':[],'factors':[]}
+    for r in ms.find().sort('N',1):
+        res['ms'].append((r['N'],r['k']))
+    for r in factors.find().sort('N',1):
+        res['factors'].append((r['N'],r['k']))
+    for r in aps.find().sort('N',1):
+        res['aps'].append((r['N'],r['k']))
+    return res
