@@ -685,8 +685,14 @@ class WDBtoMongo(WDBtoMFDB):
             for d in range(m):
                 atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,False)
                 #atkin_lehner = load(atkin_lehner_file)
-                atkin_lehner = open(atkin_lehner_file,'r').read()
-                meta = load(self._db.meta(atkin_lehner_file))
+                try:
+                    atkin_lehner = open(atkin_lehner_file,'r').read()
+                except IOError:
+                    raise ArithmeticError,"Error with computing Aki-Lehner!"
+                try:
+                    meta = load(self._db.meta(atkin_lehner_file))
+                except IOError:
+                    meta = {}
                 fname = 'atkin_lehner_evs-{0:>5}-{1:>3}-{2:>3}-{3:>3}'.format(N,k,i,d)
                 fid = fs.put(dumps(atkin_lehner),filename=fname,
                              N=int(N),k=int(k),chi=int(i),newform=int(d),cchi=int(ci),
