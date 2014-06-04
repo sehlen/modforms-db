@@ -676,7 +676,7 @@ class WDBtoMongo(WDBtoMFDB):
         """
         c = conrey_from_sage_character(N,i)
         ci = c.number()
-        if not c.is_quadratic():
+        if not c.multiplicative_order()==2:
             return 
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
