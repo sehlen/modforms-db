@@ -812,7 +812,7 @@ class WDBtoMongo(WDBtoMFDB):
                     print "metaname=",metaname
                 try:
                     meta = load(metaname)
-                except OSError:
+                except (OSError,IOError):
                     meta={}
                 if factor==None:
                     if verbose>=0:
