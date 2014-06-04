@@ -423,8 +423,13 @@ class WDBtoMongo(WDBtoMFDB):
             s+= " k={0}".format(k)            
         
         args = []
-        for (N,k,i,newforms,nap) in self._db.known(s):
-            args.append((N,k,i))
+        if kwds.get('trivial'):
+            for (N,k,i,newforms,nap) in self._db.known(s):
+                if i==0:
+                    args.append((N,k,i))
+        else:
+            for (N,k,i,newforms,nap) in self._db.known(s):
+                args.append((N,k,i))
         if ncpus==8:
             return list(self.convert_to_mongo_one_space8(args,**kwds))
         elif ncpus==16:
