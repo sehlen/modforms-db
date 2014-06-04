@@ -496,7 +496,7 @@ class WDBtoMongo(WDBtoMFDB):
             pass
         if ambient_in_mongo == 0 and ambient_in_file == 0 and not compute:
             print "Space {0},{1},{2} not computed at all!".format(N,k,i)
-            return
+            return None
         elif ambient_in_mongo == 0 and ambient_in_file == 0:
             self._computedb.compute_ambient_space(N,k,i)
             ambient_in_file = 1
@@ -674,7 +674,10 @@ class WDBtoMongo(WDBtoMFDB):
         r"""
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
         """
-        ci = conrey_from_sage_character(N,i).number()
+        c = conrey_from_sage_character(N,i)
+        ci = c.number()
+        if not c.is_quadratic():
+            return 
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
         if len(al_in_mongo)==0:
@@ -688,7 +691,7 @@ class WDBtoMongo(WDBtoMFDB):
                 try:
                     atkin_lehner = open(atkin_lehner_file,'r').read()
                 except IOError:
-                    raise ArithmeticError,"Error with computing Aki-Lehner!"
+                    raise ArithmeticError,"Error with opening the Aki-Lehner file!"
                 try:
                     meta = load(self._db.meta(atkin_lehner_file))
                 except IOError:
@@ -765,6 +768,8 @@ class WDBtoMongo(WDBtoMFDB):
                             sage_version = meta.get("version",""))
         else:
             fid = ambient_in_mongo
+        if fid == 0:
+            fid = None
         return fid
 
     def compute_factors(self,N,k,i,**kwds):
