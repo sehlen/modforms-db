@@ -692,7 +692,7 @@ class WDBtoMongo(WDBtoMFDB):
                 try:
                     atkin_lehner = open(atkin_lehner_file,'r').read()
                 except IOError:
-                    raise ArithmeticError,"Error with opening the Aki-Lehner file! chi order={0}".format(c.multiplicative_order())
+                    raise ArithmeticError,"Error with opening the Atkin-Lehner file {0}! chi order={1}".format(atkin_lehner_file,c.multiplicative_order())
                 try:
                     meta = load(self._db.meta(atkin_lehner_file))
                 except IOError:
