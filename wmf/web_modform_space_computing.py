@@ -22,21 +22,21 @@ AUTHORS:
  - Stephan Ehlen
 """
 
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,AlphabeticStrings
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy
 import re
 import yaml
 from flask import url_for
 
-from web_modforms import wmf_logger
+from wmf import wmf_logger
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version
 
 from sage.rings.number_field.number_field_base import NumberField as NumberField_class
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
-from web_character import WebChar
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace_class
 
-def WebModFormSpace(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,**kwds):
+def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,**kwds):
     r"""
     Constructor for WebNewForms with added 'nicer' error message.
     """
@@ -75,6 +75,14 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         - 'cuspidal' -- 1 if space of cuspforms, 0 if all modforms
         """
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (k,N,chi)))
+        super(WebModFormSpace_computing_class,self).__init__(N,k,chi,cuspidal,prec,bitprec,data, verbose,get_from_db=False)
+        ## In this subclass we add properties which are not
+        ## supposed to be used on the web or stored in the database
+        self._dimension = None
+        self._dimension_oldspace = None
+        self._newforms = None
+        self._modular_symbols = None
+        
         self.compute_additional_properties()
         self.insert_into_db()
         
@@ -82,39 +90,27 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         r"""
         Compute additional properties. 
         """
-        ### Compute / fetch everything
+        ### Set / Compute / fetch everything we need
         if self._group is None:
-            self._group = Gamma0(N)
-        if self._modular_symbols is None:
-            self._modular_symbols = self._get_modular_symbols()
-        if self._modular_symbols is None:
-            raise ValueError("The space (N,k,chi)={0} is not in the database!".format((self._k,self._N,self._chi)))
-            self._dimension = 0
-            return 
-        if self._newspace is None:
-            self._newspace = self._modular_symbols.cuspidal_submodule().new_submodule()
+            self._group = Gamma0(self._N)
+        self.get_modular_symbols()
+        self._newspace = self._modular_symbols.cuspidal_submodule().new_submodule()
+        self.get_newform_factors()
         if self._newforms == {} and self._newspace.dimension()>0:
             for i in self.labels():
                 self._newforms[i]=None
         if len(self._ap) == 0:
-            self._ap = self._get_aps(prec=prec)                
-        ### If we can we set these dimensions using formulas
+            self._ap = self._get_aps(prec=self._prec)                
+        self.set_dimensions()
         if self.dimension() == self.dimension_newspace():
             self._is_new = True
         else:
             self._is_new = False
+        self.set_sturm_bound()
+        self.set_oldspace_decomposition()
+            
         self.insert_into_db()
 
-
-
-    ## More complicated properties (might need computation or database calls)
-    def aps(self,prec=-1):
-        r"""
-        Return a list of aps, that is, Hecke eigenvalues of prime indices, for self.
-        """
-        if self._ap is None or self._ap == {}:
-            self._ap = self._get_aps(prec)
-        return self._ap
 
     def newform_factors(self):
         r"""
@@ -155,7 +151,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         fname = "webmodformspace-{0:0>5}-{1:0>3}-{2:0>3}".format(self._N,self._k,self._chi) 
         d = self.to_dict()
         d.pop('_ap',None) # Since the ap's are already in the database we don't need them here
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name)
+        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name,version=emf_version)
         wmf_logger.debug("inserted :{0}".format(id))
         
     def get_from_db(self):
@@ -205,10 +201,12 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
                 return aplist
         return aplist
 
-    def _get_modular_symbols(self):
+    def get_modular_symbols(self):
         r"""
         Get Modular Symbols from database they exist.
         """
+        if not self._modular_symbols is None:
+            return 
         modular_symbols = connect_to_modularforms_db('Modular_symbols.files')
         key = {'k': int(self._k), 'N': int(self._N), 'cchi': int(self._chi)}
         modular_symbols_from_db  = modular_symbols.find_one(key)
@@ -220,27 +218,33 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             fs = get_files_from_gridfs('Modular_symbols')
             ms = loads(fs.get(id).read())
             self._id = id
-        return ms
+        self._modular_symbols = ms
 
   
             
-    def _get_newform_factors(self):
+    def get_newform_factors(self):
         r"""
         Get New form factors from database they exist.
         """
+        if not self._newforms is None and self._newforms == []:
+            return 
         factors = connect_to_modularforms_db('Newform_factors.files')
         key = {'k': int(self._k), 'N': int(self._N), 'cchi': int(self._chi),}
-        factors_from_db  = factors.find(key)
+        factors_from_db  = factors.find(key).sort('newform',int(1))
         wmf_logger.debug("found factors={0}".format(factors_from_db))
-        if factors_from_db.count() == 0:
-            facts = []
+        self._newforms = {}
+        if factors_from_db.count()==0:
+            raise ValueError,"Space is not in database!"
         else:
             facts = []
+            self._labels = []
             fs = get_files_from_gridfs('Newform_factors')
             for rec in factors_from_db:
-                facts.append(loads(fs.get(rec['_id']).read()))
-        return facts
-    
+                factor = loads(fs.get(rec['_id']).read())
+                label = orbit_label(rec['newform'])
+                self._galois_orbits_labels.append(label)
+                self._newforms[label] = factor
+                
  
     def __reduce__(self):
         r"""
@@ -249,25 +253,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         data = self.to_dict()
         return(unpickle_wmfs_v1, (self._k, self._N, self._chi, self._cuspidal, self._prec, self._bitprec, data))
             
-    def to_dict(self):
-        r"""
-        Makes a dictionary of the serializable properties of self.
-        """
-        problematic_keys = ['_galois_decomposition',
-                            '_newforms','_newspace',
-                            '_modular_symbols',
-                            '_new_modular_symbols',
-                            '_newform_factors',
-                            '_galois_decomposition',
-                            '_oldspace_decomposition',
-                            '_conrey_character',
-                            '_character',
-                            '_group']
-        data = {}
-        data.update(self.__dict__)
-        for k in problematic_keys:
-            data.pop(k,None)
-        return data
 
     def _repr_(self):
         r"""
@@ -339,123 +324,62 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         return self._galois_orbits_labels[j]
 
     ###  Dimension formulas, calculates dimensions of subspaces of self.
-    def dimension_newspace(self):
+    def set_dimensions(self):
         r"""
         The dimension of the subspace of newforms in self.
         """
+        if self._chi != 1:
+            x = self.character().sage_character()
+        else:
+            x = self.level()
+        k = self.weight()
+        # Ambient modular formsspace
+        if self._dimension_modular_forms is None:
+            self._dimension_modular_forms = int(dimension_modular_forms(x,k))
+        # Cuspidal subspace
+        if self._dimension_cusp_forms is None:
+            self._dimension_cusp_forms = int(dimension_cusp_forms(x,k))
+        # New cuspidal subspace 
+        if self._dimension_new_cusp_forms is None:
+            self._dimension_new_cusp_forms = int(dimension_new_cusp_forms(x,k))
+        # New subspace of ambient space
         if self._dimension_newspace is None:
             if self._cuspidal == 1:
                 self._dimension_newspace = self.dimension_new_cusp_forms()
             else:
                 self._dimension_newspace = self._newspace.dimension()
-        return self._dimension_newspace
 
-    def dimension_oldspace(self):
-        r"""
-        The dimension of the subspace of oldforms in self.
-        """
-        if self._cuspidal == 1:
-            return self.dimension_cusp_forms() - self.dimension_new_cusp_forms()
-        return self.dimension_modular_forms() - self.dimension_newspace()
-
-    def dimension_cusp_forms(self):
-        r"""
-        The dimension of the subspace of cuspforms in self.
-        """
-        if self._dimension_cusp_forms is None:
-            if self._chi != 1:
-                self._dimension_cusp_forms = int(dimension_cusp_forms(self.character().sage_character(), self._k))
+        # Old subspace of self.
+        if self._dimension_oldspace is None:
+            if self._cuspidal == 1:
+                self._dimension_oldspace = self.dimension_cusp_forms() - self.dimension_new_cusp_forms()
             else:
-                self._dimension_cusp_forms = int(dimension_cusp_forms(self.level(), self._k))
-            # self._modular_symbols.cuspidal_submodule().dimension()
-        return self._dimension_cusp_forms
+                self._dimension_oldspace = self.dimension_modular_forms() - self.dimension_newforms()
+                
+        if self._dimension is None:
+            if self._cuspidal == 1:
+                self._dimension = self.dimension_cusp_forms()
+            elif self._cuspidal == 0:
+                self._dimension = self.dimension_modular_forms()
 
-    def dimension_modular_forms(self):
-        r"""
-        The dimension of the space of modular forms.
-        """
-        if self._dimension_modular_forms is None:
-            if self._chi != 1:
-                self._dimension_modular_forms = int(dimension_modular_forms(self.character().sage_character(), self._k))
-            else:
-                self._dimension_modular_forms = int(dimension_modular_forms(self._N, self._k))
-            # self._dimension_modular_forms=self._modular_symbols.dimension()
-        return self._dimension_modular_forms
-
-    def dimension_new_cusp_forms(self):
-        r"""
-        The dimension of the subspace of new cusp forms.
-        """
-        if self._dimension_new_cusp_forms is None:
-            if self._chi != 1:
-                self._dimension_new_cusp_forms = int(dimension_new_cusp_forms(self.character().sage_character(), self._k))
-            else:
-                self._dimension_new_cusp_forms = int(dimension_new_cusp_forms(self._N, self._k))
-        return self._dimension_new_cusp_forms
-
-    def dimension(self):
-        r"""
-        The dimension of the space of modular forms or cusp forms, depending of self is cuspidal or not.
-        """
-        if self._cuspidal == 1:
-            return self.dimension_cusp_forms()
-        elif self._cuspidal == 0:
-            return self.dimension_modular_forms()
-        else:
-            raise ValueError("Do not know the dimension of space of type {0}".format(self._cuspidal))
 
 
   
-    def sturm_bound(self):
+    def set_sturm_bound(self):
         r""" Return the Sturm bound of S_k(N,xi), i.e. the number of coefficients necessary to determine a form uniquely in the space.
         """
         if self._sturm_bound is None:
             self._sturm_bound = self._modular_symbols.sturm_bound()
-        return self._sturm_bound
 
-    def labels(self):
-        r"""
 
-        """
-        if(len(self._galois_orbits_labels) > 0):
-            return self._galois_orbits_labels
-        else:
-            self.galois_decomposition()
-            return self._galois_orbits_labels
 
-    def f(self, i):
-        r"""
-        Return function f in the set of newforms on self. Here i is either a label, e.g. 'a' or an integer.
-        """
-        if (isinstance(i, int) or i in ZZ):
-            if i <len(self.labels()):
-                i = self.labels()[i]
-            else:
-                raise IndexError,"Form nr. {i} does not exist!".format(i=i)
-        if not i in self._galois_orbits_labels:
-            raise IndexError,"Form wih label: {i} does not exist!".format(i=i)
-        if self._newforms.has_key(i) and self._newforms[i]<>None:
-            F = self._newforms[i]
-        else:
-            F = WebNewForm(N=self._N,k=self._k,  chi=self._chi, parent=self, label=i)
-        wmf_logger.debug("returning F! :{0}".format(F))
-        return F
-
-    def galois_orbit(self, orbit,prec=None):
-        r"""
-        Return the q_eigenform nr. orbit in self
-        """
-        if prec is None:
-            prec = self._prec
-        return self.galois_decomposition()[orbit].q_eigenform(prec, 'x')
-
-    def oldspace_decomposition(self):
+    def set_oldspace_decomposition(self):
         r"""
         Get decomposition of the oldspace in self into submodules.
 
         """
-        if(len(self._oldspace_decomposition) != 0):
-            return self._oldspace_decomposition
+        if not (self._oldspace_decomposition is None or self._oldspace_decomposition == []):
+            return
         N = self._N
         k = self._k
         M = self._modular_symbols.cuspidal_submodule()
@@ -512,6 +436,19 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         check_dim = check_dim - M.dimension()
         if(check_dim != 0):
             raise ArithmeticError("Something wrong! check_dim=%s" % check_dim)
-        return L
+        self._oldspace_decomposition = L
 
 
+
+       
+@cached_function
+def orbit_label(j):
+    x = AlphabeticStrings().gens()
+    if(j < 26):
+        label = str(x[j]).lower()
+    else:
+        j1 = j % 26
+        j2 = floor(QQ(j) / QQ(26))
+        label = str(x[j1]).lower()
+        label = label + str(j2)
+    return label
