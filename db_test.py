@@ -687,7 +687,7 @@ class WDBtoMongo(WDBtoMFDB):
             self._computedb.compute_atkin_lehner(N,k,i,M=ambient,m=number_of_factors)
             m = self._computedb._db.number_of_known_factors(N,k,i)
             for d in range(m):
-                atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,False)
+                atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,True)
                 #atkin_lehner = load(atkin_lehner_file)
                 try:
                     atkin_lehner = open(atkin_lehner_file,'r').read()
