@@ -667,7 +667,7 @@ class WDBtoMongo(WDBtoMFDB):
             print "Computing aps to prec {0}".format(pprec)
         aps = self.compute_aps(N,k,i,pprec,**kwds)
         if verbose>0:
-            print "Computing atkin lehner to prec {0}".format(pprec)
+            print "Computing atkin lehner to prec {0} for i={0}".format(pprec,i)
         atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
         return True    
 
@@ -675,6 +675,7 @@ class WDBtoMongo(WDBtoMFDB):
         r"""
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
         """
+        verbose = kwds.get('verbose',0)
         c = conrey_from_sage_character(N,i)
         ci = c.number()
         if not (c.is_trivial() or c.multiplicative_order()==2):
@@ -684,9 +685,10 @@ class WDBtoMongo(WDBtoMFDB):
         if len(al_in_mongo)==0:
             ambient = self.get_ambient(N,k,i,**kwds)
             number_of_factors = self.number_of_factors(N,k,i)
-            self._computedb.compute_atkin_lehner(N,k,i,M=ambient,m=number_of_factors)
+            self._computedb.compute_atkin_lehner(N,k,i,M=ambient,m=number_of_factors,verbose=verbose)
             m = self._computedb._db.number_of_known_factors(N,k,i)
             for d in range(m):
+
                 atkin_lehner_file = self._computedb._db.factor_atkin_lehner(N,k,i,d,True)
                 #atkin_lehner = load(atkin_lehner_file)
                 try:
