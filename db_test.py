@@ -35,6 +35,7 @@ import bson
 from mfdb import WDB,ComputeMFData
 from mfdb import FilenamesMFDB
 from mdb import db
+
 #print DB.known(format='web')
 #def do_computations_ranges(
 #from sage.all_cmdline import *   # import sage library
@@ -676,7 +677,7 @@ class WDBtoMongo(WDBtoMFDB):
         """
         c = conrey_from_sage_character(N,i)
         ci = c.number()
-        if not c.multiplicative_order() in [1,2]:
+        if not (c.is_trivial() or c.multiplicative_order()==2):
             return []
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
@@ -1994,3 +1995,43 @@ def existing_data(DB):
     for r in aps.find().sort('N',1):
         res['aps'].append((r['N'],r['k']))
     return res
+
+def spaces_with_all_chars(DB):
+    res =[]
+    LN = DB._factors.find().distinct('N')
+    for N in LN:
+        r = DB._factors.find({'N':int(N),'k':int(2),
+                              'cchi':{"$ne":int(1)}})
+        if r.count()>0:
+            res.append(N)
+    return res
+
+
+def add_names_to_aps(DB):
+    for r in DB._aps.find({'name':{"$exists":False}}):
+        N=r['N']
+        k=r['k']
+        fid=r['_id']
+        chi=r['chi']
+        cchi=r.get('cchi')
+        if cchi==None:
+            cchi = conrey_from_sage_character(N,chi)
+            DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
+
+        d=r['newform']
+        label = orbit_label(d)
+        name = '{0}.{1}.{2}{3}'.format(N,k,chi,label)
+        DB._aps.update({'_id':fid},{"$set":{'name':name}})
+
+@cached_function
+def orbit_label(j):
+    x = AlphabeticStrings().gens()
+    if(j < 26):
+        label = str(x[j]).lower()
+    else:
+        j1 = j % 26
+        j2 = floor(QQ(j) / QQ(26))
+        label = str(x[j1]).lower()
+        label = label + str(j2)
+    return label
+        
