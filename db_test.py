@@ -819,8 +819,15 @@ class WDBtoMongo(WDBtoMFDB):
             num_factors_in_file = self.factors_in_file_db(N,k,i)
             ambient = self.get_ambient(N,k,i,ambient_id=ambient_id)
             for d in range(num_factors_in_file):
-
-                factor = self._db.load_factor(N,k,i,d,M=ambient)
+                try: 
+                    factor = self._db.load_factor(N,k,i,d,M=ambient)
+                except IOError:
+                    ## We probably need to recompute the factors
+                    factors_in_file = self._computedb.compute_decompositions(N,k,i)
+                    try:
+                        factor = self._db.load_factor(N,k,i,d,M=ambient)
+                    except IOError:
+                        raise ValueError,"Could not get factors for {0}".format((N,k,i))
                 metaname = self._db.space(N,k,i,False)+"/decomp-meta.sobj"
                 if verbose>0:
                     print "metaname=",metaname
