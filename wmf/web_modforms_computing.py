@@ -117,10 +117,14 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.set_is_CM()
         wmf_logger.debug("compute Satake parameters")
         self.compute_satake_parameters_numeric()
-        
-
+        self.absolute_polynomial()
+        self.is_rational()
+        self.q_expansion()
+        self.relative_degree()
+        self.sturm_bound()
+        self.get_character_orbit_rep()
         #c = self.coefficients(self.prec(),insert_in_db=False)
-        #self._check_if_all_computed()
+        self._check_if_all_computed()
         self.insert_into_db()
     
 ##  Internal functions
@@ -134,6 +138,13 @@ class WebNewForm_computing_class(WebNewForm_class):
             self._parent = WebModFormSpace_computing(self._N, self._k,self._chi,get_from_db=True,get_all_newforms_from_db=False)
 
 
+    def get_character_orbit_rep(self):
+        r"""
+        Get the representative of the Galois orbit of the character of self.
+        """
+        from mdb.conversions import dirichlet_character_conrey_galois_orbit_rep
+        self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character().character()).number()
+        
         
     def set_newform_number(self):
         r"""

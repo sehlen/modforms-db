@@ -43,12 +43,9 @@ def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, 
     if data is None: data = {}
     if cuspidal <> 1:
         raise IndexError,"We are very sorry. There are only cuspidal spaces currently in the database!"
-    #try: 
-    F = WebModFormSpace_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec, data=data, verbose=verbose,**kwds)
-    #except Exception as e:
-    #    wmf_logger.critical("Could not construct WebModFormSpace with N,k,chi = {0}. Error: {1}".format( (N,k,chi),e.message))
-    #    #raise e
-    #    #raise IndexError,"We are very sorry. The sought space could not be found in the database."
+    
+    F = WebModFormSpace_computing_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec,
+                                        data=data, verbose=verbose,**kwds)
     return F
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
@@ -64,7 +61,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
 
 
     """
-    def __init__(self, N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,get_from_db=True):
+    def __init__(self, N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,get_from_db=True,**kwds):
         r"""
         Init self.
 
@@ -89,6 +86,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self.compute_additional_properties()
         self._check_if_all_computed()
         self.insert_into_db()
+        self._check_if_all_stored()
         
     def compute_additional_properties(self):
         r"""
@@ -113,8 +111,10 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         else:
             self._is_new = False
         self.set_sturm_bound()
+        self.character()
         self.set_oldspace_decomposition()
         self.get_character_galois_orbit()
+        self.get_character_orbit_rep()
         self.insert_into_db()
 
 
@@ -126,15 +126,13 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._newform_factors = self._get_newform_factors()
         return self._newform_factors
                             
-    def character_orbit_rep(self,k=None):
+    def get_character_orbit_rep(self,k=None):
         r"""
         Returns canonical representative of the Galois orbit nr. k acting on the ambient space of self.
 
         """
-        if self._character_orbit_rep is None:
-            x = self.character().character().galois_orbit()[0]
-            self._character_orbit_rep = WebChar(x.modulus(),x.number())
-        return self._character_orbit_rep            
+        from mdb.conversions import dirichlet_character_conrey_galois_orbit_rep
+        self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character().character()).number()
     ## Database fetching functions.
 
      
@@ -144,8 +142,8 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
 
         """
         from mdb.conversions import dirichlet_character_conrey_galois_orbit_numbers
-        if self._character_galois_orbit is None:
-            self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.character().character())
+        if self._character_galois_orbit is None or self._character_galois_orbit == []:
+            self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.level(),self.character().character().number())
                 
     def get_character_used_in_computation(self):
         r"""
@@ -432,7 +430,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         for d in divisors(N):
             if(d == 1):
                 continue
-            q = N.divide_knowing_divisible_by(d)
+            q = ZZ(N).divide_knowing_divisible_by(d)
             if(self._verbose > 1):
                 wmf_logger.debug("d={0}".format(d))
             # since there is a bug in the current version of sage

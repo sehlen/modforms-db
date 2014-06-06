@@ -146,7 +146,7 @@ def conrey_character_from_number(n,i):
     return dirichlet_group_conrey(n)[i]
     
 @cached_function    
-def conrey_from_sage_character(n,i):
+def conrey_from_sage_character_number(n,i):
     D = dirichlet_group_sage(n)
     x = D.galois_orbits()[i][0]
     for c in dirichlet_group_conrey(n):
@@ -203,7 +203,7 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
 
 @cached_function
 def dirichlet_character_sage_to_conrey(n,xi):
-    x = conrey_character_from_number(n,xi)
+    x = conrey_from_sage_character_number(n,xi)
     for y in dirichlet_group_conrey(n):
         if y.sage_character()==x:
             return y
@@ -261,18 +261,12 @@ def dirichlet_character_conrey_galois_orbit_rep(x):
     """
     N = x.modulus()
     reps = dirichlet_character_conrey_galois_orbits_reps(N)
-    ## Change this
-    xx = dirichlet_character_sage_to_conrey(x)
-    if xx in reps:
-        return xx
-        #return reps.index(xx)
-    else: 
-        for i in range(len(reps)):
-            if xx in reps[i].galois_orbit():
-                return reps[i]
-    raise ArithmeticError('Did not find representative of {0}'.format(xx))
+    for i in range(len(reps)):
+        if x in reps[i].galois_orbit():
+            return reps[i]
+    raise ArithmeticError('Did not find representative of {0}'.format(x))
 
-#@cached_function
+#@cached_functionself._character_galois_orbit is None:
 def dirichlet_character_to_int(chi,convention='Conrey'):
     r"""
     Returns integer representing the character 
