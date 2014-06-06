@@ -94,7 +94,6 @@ def base_ring_to_dict(F):
             'degree' : degree,
             'is_cyclotomic': is_cyclotomic }
         
-
 def dict_to_ambient_sage(modsym,convention='Conrey'):
     r"""
     Convert a dictionary to a Sage object of type ModularSymbols_ambient
@@ -161,14 +160,16 @@ def dirichlet_character_sage_galois_orbit_rep(x):
 def dirichlet_character_conrey_galois_orbits_reps(N):
     """
     Return list of representatives for the Galois orbits of Conrey Dirichlet characters of level N.
+    We always take the one that has the smallest index.
     """
     D = DirichletGroup_conrey(N)
+    Ds = dirichlet_character_sage_galois_orbit_reps(N)
     Dl = list(D)
     reps=[]
     for x in D:
         if x not in Dl:
             continue
-        orbit_of_x=x.galois_orbit()        
+        orbit_of_x = sorted(x.galois_orbit())
         reps.append(orbit_of_x[0])
         for xx in orbit_of_x:
             Dl.remove(xx)
@@ -179,6 +180,28 @@ def dirichlet_character_sage_to_conrey(x):
     for y in DirichletGroup_conrey(x.modulus()):
         if y.sage_character()==x:
             return y
+
+def dirichlet_character_conrey_galois_orbit_embeddings(x):
+    r"""
+       Returns a dictionary that maps the Conrey numbers
+       of the Dirichlet characters in the Galois orbit of x
+       to the powers of $\zeta_{\phi(N)}$ so that the corresponding
+       embeddings map the labels.
+    """
+    orbit = x.galois_orbit()
+    reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
+    embeddings = {}
+    base_number = 0
+    N = x.modulus()
+    for c in orbit:
+        if c.sage_character() in reps_sage:
+            embeddings[c.number()] = 1
+            base_number = c.number()
+            break
+    for n in range(2,N):
+        if gcd(n,N) == 1:
+            embeddings[Mod(base_number,N)**n] = n
+    return embeddings
 
 def dirichlet_character_conrey_galois_orbit_rep(x):
     """
@@ -196,6 +219,7 @@ def dirichlet_character_conrey_galois_orbit_rep(x):
             if xx in reps[i].galois_orbit():
                 return reps[i]
     raise ArithmeticError('Did not find representative of {0}'.format(xx))
+
 @cached_function
 def dirichlet_character_to_int(chi,convention='Conrey'):
     r"""
