@@ -186,6 +186,19 @@ def dirichlet_character_sage_to_conrey(x):
             return y
 
 @cached_function
+def dirichlet_character_conrey_used_in_computation(x)
+    r"""
+      Returns the Conrey Dirichlet Character ```c```,
+      such that ```c.sage_character()``` was used to compute the
+      spaces of modular forms with character ```x```.
+    """
+    reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
+    for c in orbit:
+        if c.sage_character() in reps_sage:
+            return c.number()
+    
+
+@cached_function
 def dirichlet_character_conrey_galois_orbit_embeddings(x):
     r"""
        Returns a dictionary that maps the Conrey numbers
@@ -201,15 +214,12 @@ def dirichlet_character_conrey_galois_orbit_embeddings(x):
        $\mathrm{exp}(2\pi i n /\phi(N))$.
     """
     orbit = x.galois_orbit()
-    reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
+    
     embeddings = {}
     base_number = 0
     N = x.modulus()
-    for c in orbit:
-        if c.sage_character() in reps_sage:
-            embeddings[c.number()] = 1
-            base_number = c.number()
-            break
+    base_number = dirichlet_character_conrey_used_in_computation(x).number()
+    embeddings[base_number] = 1
     for n in range(2,N):
         if gcd(n,N) == 1:
             embeddings[Mod(base_number,N)**n] = n
