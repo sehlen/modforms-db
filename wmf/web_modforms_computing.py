@@ -122,35 +122,6 @@ class WebNewForm_computing_class(WebNewForm_class):
         #c = self.coefficients(self.prec(),insert_in_db=False)
         #self._check_if_all_computed()
         self.insert_into_db()
-
-## Functions related to storing / fetching data from database
-##  
-    
-    def insert_into_db(self):
-        r"""
-        Insert a dictionary of data for self into the database collection
-        WebNewforms.files
-        """
-        wmf_logger.debug("inserting self into db! name={0}".format(self._name))
-        C = connect_to_modularforms_db('WebNewforms.files')
-        fs = get_files_from_gridfs('WebNewforms')
-        s = {'name':self._name,'version':float(self._version)}
-        rec = C.find_one(s)
-        if rec:
-            id = rec.get('_id')
-        else:
-            id = None
-        if id<>None:
-            wmf_logger.debug("Removing self from db with id={0}".format(id))
-            fs.delete(id)
-            
-        fname = "webnewform-{0:0>5}-{1:0>3}-{2:0>3}-{3}".format(self._N,self._k,self._chi,self._label) 
-        d = self.to_dict()
-        d.pop('_ap',None)
-        d.pop('_character',None)
-        d.pop('_as_factor',None)
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version),character_galois_orbit=map(int,self.parent().character_galois_orbit()))
-        wmf_logger.debug("inserted :{0}".format(id))
     
 ##  Internal functions
 ##
