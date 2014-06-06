@@ -1590,49 +1590,44 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(db,kmax=12,Nmax=100,do_one=0,Nmin=1,kmin=2,verbose=0):
+def get_all_web_newforms(DB,verbose=0):
     import lmfdb
     from lmfdb.modular_forms import emf_version
-    ambients = db.Modular_symbols.files
-    factors = db.Newform_factors.files
-    webnewforms = db.WebNewforms.files
-    args = []
-    for rec in ambients.find():
-        #print "rec=",rec        
-        N=rec['N']; k=rec['k']; chi=rec['chi']; 
-        if k>kmax or k<kmin:
+
+    args = []; args_space
+    for r in DB._aps.find({'chi':int(0)}).sort('N',1):
+        N=r['N']; k=r['k']; chi=r['chi'];
+        if chi==0:
+            cchi = 1
+        else:
+            cchi = conrey_from_sage_character(N,chi)
+        s = {'N':N,'k':k,'chi':chi,'version':emf_version}
+        if DB._mongodb['WebModformspace.files'].find(s).count()==0:
+            args_space.append((N,k,cchi,label))
+
+        if DB._webnewforms.find(s).count()==0:
+            ambient_id = r['ambient_id']
+            ambient = DB._modular_symbols.find_one({'_id':ambient_id})
+            if ambient is None:
+                print "Ambient does not exist!"
             continue
-        if N<Nmin:
-            continue
-        if N>Nmax:
-            continue
-        no = rec['orbits']        
-        if no==0:
-            continue
-        id = rec['_id']
-        labels = galois_labels(no)
-        facts = factors.find({'ambient_id':id})
-        if verbose>0:
-            print "rec=",rec
-            print "facts=",facts.count()
-        for f in facts:
-            n = f['newform']
-            #print "f=",f
-            if n>=len(labels):
-                continue
-            f1 = webnewforms.find({'N':int(N),'k':int(k),'chi':int(chi),'label':labels[n],'version':{"$gte":float(emf_version)}})
-            if f1.count()>0:
-                continue
-            args.append((N,k,chi,labels[n]))
-            
-            #F = WebNewForm(k,N,chi,labels[n],compute=True)
-            #if do_one and len(args)>=4:
-            #    break
-            #F.insert_into_db()
+            no = ambient['orbits']        
+            for n in range(no):
+                label = orbit_label(n)
+                args.append((N,k,cchi,label))
     if verbose>0:
         print "args=",args
-    return list(insert_one_form(args))
+    s =  list(compute_web_newforms(args))
+    s =  list(compute_web_mod_spaces(args_space))
 
+@parallel(ncpus=8)
+def compute_web_newforms(N,k,chi,label,**kwds):
+    F=Webnewforms_compute_class(N=N,k=k,chi=chi,label=label,**kwds)
+@parallel(ncpus=8)
+def compute_web_modform_space(N,k,chi,**kwds):
+    M=WebModFormSpace_compute_class(N=N,k=k,chi=chi,**kwds)
+
+        
 @parallel(ncpus=8)
 def insert_one_form(N,k,chi,label):
     import lmfdb
