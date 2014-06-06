@@ -823,6 +823,9 @@ class WDBtoMongo(WDBtoMFDB):
                     factor = self._db.load_factor(N,k,i,d,M=ambient)
                 except RuntimeError:
                     ## We probably need to recompute the factors
+                    if verbose>0:
+                        print "The factors from file was corrupt / empty. Need to compute them anew!"
+                        
                     factors_in_file = self._computedb.compute_decompositions(N,k,i)
                     try:
                         factor = self._db.load_factor(N,k,i,d,M=ambient)
