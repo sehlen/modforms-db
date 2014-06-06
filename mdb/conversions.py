@@ -156,6 +156,7 @@ def dirichlet_character_sage_galois_orbit_rep(x):
                 return i
     raise ArithmeticError("Could not find representative of Galois orbit of {0}".format(x))
 
+            
 @cached_function
 def dirichlet_character_conrey_galois_orbit_numbers(x):
     return [y.number() for y in x.galois_orbit()]
