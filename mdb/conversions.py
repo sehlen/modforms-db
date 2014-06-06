@@ -188,12 +188,17 @@ def dirichlet_character_sage_to_conrey(x):
 @cached_function
 def dirichlet_character_conrey_used_in_computation(x)
     r"""
+      INPUTS:
+       - ```x```: A Conrey Dirichlet Character
+    
       Returns the Conrey Dirichlet Character ```c```,
-      such that ```c.sage_character()``` was used to compute the
-      spaces of modular forms with character ```x```.
+      such that ```c.sage_character()``` is the representative that
+      was used to compute the spaces of modular forms with character ```x```.
     """
+    
     reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
-    for c in orbit:
+
+    for c in x.galois_orbit():
         if c.sage_character() in reps_sage:
             return c.number()
     
@@ -212,9 +217,7 @@ def dirichlet_character_conrey_galois_orbit_embeddings(x):
        Considering the space $S_k(N,\chi)$, where $\chi = \chi_N(m, \cdot)$,
        if embeddings()[m] = n, then $\zeta_{\phi(N)}$ is mapped to
        $\mathrm{exp}(2\pi i n /\phi(N))$.
-    """
-    orbit = x.galois_orbit()
-    
+    """    
     embeddings = {}
     base_number = 0
     N = x.modulus()
