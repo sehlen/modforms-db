@@ -40,6 +40,6 @@ def get_files_from_gridfs(collection='',create=True):
 import logging
 wmf_logger = logging.getLogger('wmf')
 
-from web_modforms_computing import WebNewForm_computing_class
+from web_modforms_computing import WebNewForm_computing_class,WebNewForm_computing
 from web_modform_space_computing import WebModFormSpace_computing,WebModFormSpace_computing_class
 

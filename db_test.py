@@ -1622,14 +1622,13 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
     s =  list(compute_web_newforms(args))
     s =  list(compute_web_modform_spaces(args_space))
 
-from web_modforms.web_modforms_computing import WebNewForm_computing_class
-from web_modforms.web_modform_space_computing import WebModFormSpace_computing_class
+from web_modforms import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
-    F=WebNewForms_computing_class(N=N,k=k,chi=chi,label=label,**kwds)
+    F=WebNewForms_computingN=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
 def compute_web_modform_spaces(N,k,chi,**kwds):
-    M=WebModFormSpace_computing_class(N=N,k=k,chi=chi,**kwds)
+    M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
 
         
 @parallel(ncpus=8)
