@@ -162,34 +162,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
         self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.level(),self.character().number())
         
-        
-        
-
-            
-    def insert_into_db(self):
-        r"""
-        Insert a dictionary of data for self into the collection WebModularforms.files
-        """
-        wmf_logger.debug("inserting self into db! name={0}".format(self._name))
-        db = connect_to_modularforms_db('WebModformspace.files')
-        fs = get_files_from_gridfs('WebModformspace')
-        s = {'name':self._name,'version':emf_version}
-        rec = db.find_one(s)
-        if rec:
-            id = rec.get('_id')
-        else:
-            id = None
-        if id<>None:
-            wmf_logger.debug("Removing self from db with id={0}".format(id))
-            fs.delete(id)
-            
-        fname = "webmodformspace-{0:0>5}-{1:0>3}-{2:0>3}".format(self._N,self._k,self._chi) 
-        d = self.to_dict()
-        d.pop('_ap',None) # Since the ap's are already in the database we don't need them here
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name,version=emf_version,
-                    character_galois_orbit=map(int,self.character_galois_orbit()))
-        wmf_logger.debug("inserted :{0}".format(id))
-        
     def get_from_db(self):
         r"""
         Fetch dictionary data from the database.
