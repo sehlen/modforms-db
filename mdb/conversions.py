@@ -9,7 +9,7 @@ Note: We follow Conrey's convention for enumerating characters.
 
 """
 
-from sage.all import cached_function,QQ,trivial_character,ModularSymbols
+from sage.all import cached_function,QQ,trivial_character,ModularSymbols,Mod
 from dirichlet_conrey import *
 import sage 
 from sage.structure.sequence import Sequence
@@ -135,6 +135,25 @@ def dict_to_ambient_sage(modsym,convention='Conrey'):
     return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 
 @cached_function
+def dirichlet_group_conrey(n):
+    return DirichletGroup_conrey(n)
+@cached_function
+def dirichlet_group_sage(n):
+    return DirichletGroup(n)
+
+@cached_function    
+def conrey_character_from_number(n,i):
+    return dirichlet_group_conrey(n)[i]
+    
+@cached_function    
+def conrey_from_sage_character(n,i):
+    D = dirichlet_group_sage(n)
+    x = D.galois_orbits()[i][0]
+    for c in dirichlet_group_conrey(n):
+        if c.sage_character() == x:
+            return c
+    
+@cached_function
 def dirichlet_character_sage_galois_orbits_reps(N):
     """
     Return representatives for the Galois orbits of Dirichlet characters of level N.
@@ -142,10 +161,11 @@ def dirichlet_character_sage_galois_orbits_reps(N):
     return [X[0] for X in DirichletGroup(N).galois_orbits()]
 
 @cached_function
-def dirichlet_character_sage_galois_orbit_rep(x):
+def dirichlet_character_sage_galois_orbit_rep(n,xi):
     """
     Return representatives for the Galois orbits of Dirichlet characters of level N.
     """
+    x = conrey_character_from_number(n,xi)
     N = x.modulus()
     reps = sage_dirichlet_character_galois_orbits_reps(N)
     if x in reps:
@@ -158,7 +178,8 @@ def dirichlet_character_sage_galois_orbit_rep(x):
 
             
 @cached_function
-def dirichlet_character_conrey_galois_orbit_numbers(x):
+def dirichlet_character_conrey_galois_orbit_numbers(n,xi):
+    x = conrey_character_from_number(n,xi)
     return [y.number() for y in x.galois_orbit()]
 
 @cached_function
@@ -168,7 +189,7 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
     We always take the one that has the smallest index.
     """
     D = DirichletGroup_conrey(N)
-    Ds = dirichlet_character_sage_galois_orbit_reps(N)
+    Ds = dirichlet_character_sage_galois_orbits_reps(N)
     Dl = list(D)
     reps=[]
     for x in D:
@@ -181,13 +202,14 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
     return reps
 
 @cached_function
-def dirichlet_character_sage_to_conrey(x):
-    for y in DirichletGroup_conrey(x.modulus()):
+def dirichlet_character_sage_to_conrey(n,xi):
+    x = conrey_character_from_number(n,xi)
+    for y in dirichlet_group_conrey(n):
         if y.sage_character()==x:
             return y
 
 @cached_function
-def dirichlet_character_conrey_used_in_computation(x):
+def dirichlet_character_conrey_used_in_computation(N,xi):
     r"""
       INPUTS:
        - ```x```: A Conrey Dirichlet Character
@@ -200,15 +222,15 @@ def dirichlet_character_conrey_used_in_computation(x):
        - int: the number of the corresponding Conrey Dirichlet Character.
     """
     
-    reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
-
+    reps_sage = dirichlet_character_sage_galois_orbits_reps(N)
+    x = conrey_character_from_number(N,xi)
     for c in x.galois_orbit():
         if c.sage_character() in reps_sage:
             return c.number()
     
 
 @cached_function
-def dirichlet_character_conrey_galois_orbit_embeddings(x):
+def dirichlet_character_conrey_galois_orbit_embeddings(N,xi):
     r"""
        Returns a dictionary that maps the Conrey numbers
        of the Dirichlet characters in the Galois orbit of x
@@ -224,8 +246,9 @@ def dirichlet_character_conrey_galois_orbit_embeddings(x):
     """    
     embeddings = {}
     base_number = 0
-    N = x.modulus()
-    base_number = dirichlet_character_conrey_used_in_computation(x).number()
+    x = conrey_character_from_number(N,xi)
+    #N = x.modulus()
+    base_number = dirichlet_character_conrey_used_in_computation(N,xi)
     embeddings[base_number] = 1
     for n in range(2,N):
         if gcd(n,N) == 1:
@@ -249,7 +272,7 @@ def dirichlet_character_conrey_galois_orbit_rep(x):
                 return reps[i]
     raise ArithmeticError('Did not find representative of {0}'.format(xx))
 
-@cached_function
+#@cached_function
 def dirichlet_character_to_int(chi,convention='Conrey'):
     r"""
     Returns integer representing the character 
@@ -257,7 +280,7 @@ def dirichlet_character_to_int(chi,convention='Conrey'):
     N = chi.modulus()
     if convention=='Sage':
         x = dirichlet_character_sage_galois_orbit_rep(chi)
-        return dirichlet_character_sage_galois_orbit_reps(chi.modulus()).index(x)
+        return dirichlet_character_sage_galois_orbits_reps(chi.modulus()).index(x)
     elif convention=='Conrey':
         x = dirichlet_character_conrey_galois_orbit_rep(chi)
         return x.number()

@@ -2013,8 +2013,8 @@ def add_conrey_character_numbers(DB,collection='ap.files'):
 collections = ['ap.files']
 def add_conrey_orbits(DB,collection='ap.files'):
     i = 0
-    for r in DB._mongodb[collection].find().sort('N',int(1)):
-        #for r in DB._mongodb[collection].find({'cchi':{'$exists':False}}).sort('N',int(1)):
+    #for r in DB._mongodb[collection].find().sort('N',int(1)):
+    for r in DB._mongodb[collection].find({'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
@@ -2063,11 +2063,10 @@ def add_names_to_aps(DB):
         if cchi==None:
             cchi = conrey_from_sage_character(N,chi)
             DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
-
-        d=r['newform']
-        label = orbit_label(d)
-        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
-        DB._aps.update({'_id':fid},{"$set":{'name':name}})
+        #d=r['newform']
+        #label = orbit_label(d)
+        #name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
+        #DB._aps.update({'_id':fid},{"$set":{'name':name}})
 
 @cached_function
 def orbit_label(j):

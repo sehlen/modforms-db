@@ -112,6 +112,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self.set_sturm_bound()
         self.set_oldspace_decomposition()
         self.get_character_used_in_computation()
+        self.get_galois_orbit_embeddings()
         self.insert_into_db()
 
 
@@ -141,15 +142,15 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         from mdb.conversions import dirichlet_character_conrey_used_in_computation
         if not self._character_used_in_computation is None:
             return 
-        self._character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.character().character())
+        self._character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.level(),self.character().number())
 
         
-    def set_galois_orbit_embeddings(self):
+    def get_galois_orbit_embeddings(self):
         r"""
         Set the list of Galois orbit embeddings (according to Conrey's naming scheme) of the character of self.
         """
         from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
-        self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.character().character())
+        self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.level(),self.character().number())
         
         
         
