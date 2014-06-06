@@ -157,6 +157,10 @@ def dirichlet_character_sage_galois_orbit_rep(x):
     raise ArithmeticError("Could not find representative of Galois orbit of {0}".format(x))
 
 @cached_function
+def dirichlet_character_conrey_galois_orbit_numbers(x):
+    return [y.number() for y in x.galois_orbit()]
+
+@cached_function
 def dirichlet_character_conrey_galois_orbits_reps(N):
     """
     Return list of representatives for the Galois orbits of Conrey Dirichlet characters of level N.
@@ -181,12 +185,20 @@ def dirichlet_character_sage_to_conrey(x):
         if y.sage_character()==x:
             return y
 
+@cached_function
 def dirichlet_character_conrey_galois_orbit_embeddings(x):
     r"""
        Returns a dictionary that maps the Conrey numbers
        of the Dirichlet characters in the Galois orbit of x
        to the powers of $\zeta_{\phi(N)}$ so that the corresponding
        embeddings map the labels.
+
+       Let $\zeta_{\phi(N)}$ be the generator of the cyclotomic field
+       of $N$-th roots of unity which is the base field
+       for the coefficients of a modular form contained in the database.
+       Considering the space $S_k(N,\chi)$, where $\chi = \chi_N(m, \cdot)$,
+       if embeddings()[m] = n, then $\zeta_{\phi(N)}$ is mapped to
+       $\mathrm{exp}(2\pi i n /\phi(N))$.
     """
     orbit = x.galois_orbit()
     reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
