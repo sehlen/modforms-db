@@ -1594,7 +1594,7 @@ def get_all_web_newforms(DB,verbose=0):
     import lmfdb
     from lmfdb.modular_forms import emf_version
 
-    args = []; args_space
+    args = []; args_space=[]
     for r in DB._aps.find({'chi':int(0)}).sort('N',1):
         N=r['N']; k=r['k']; chi=r['chi'];
         if chi==0:
