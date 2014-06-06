@@ -645,7 +645,7 @@ class WDBtoMongo(WDBtoMFDB):
         r"""
         Converting one record from file format to MongoDB.
         """
-        verbose = kwds.get('verbose')
+        verbose = kwds.get('verbose',0)
         if verbose>=0:
             print "converting ",N,k,i
         if verbose>0:
@@ -821,13 +821,13 @@ class WDBtoMongo(WDBtoMFDB):
             for d in range(num_factors_in_file):
                 try: 
                     factor = self._db.load_factor(N,k,i,d,M=ambient)
-                except IOError:
+                except RuntimeError:
                     ## We probably need to recompute the factors
                     factors_in_file = self._computedb.compute_decompositions(N,k,i)
                     try:
                         factor = self._db.load_factor(N,k,i,d,M=ambient)
-                    except IOError:
-                        raise ValueError,"Could not get factors for {0}".format((N,k,i))
+                    except RuntimeError:
+                        raise ArithmeticError,"Could not get factors for {0}".format((N,k,i))
                 metaname = self._db.space(N,k,i,False)+"/decomp-meta.sobj"
                 if verbose>0:
                     print "metaname=",metaname
