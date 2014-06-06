@@ -155,7 +155,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         if not isinstance(self._parent,WebModFormSpace_computing_class):
             if self._verbose > 0:
                 emf_logger.debug("compute parent! label={0}".format(label))
-            self._parent = WebModFormSpace_computing(self._N, self._k,self._chi)
+            self._parent = WebModFormSpace_computing(self._N, self._k,self._chi,get_from_db=True,get_all_newforms_from_db=False)
 
 
         

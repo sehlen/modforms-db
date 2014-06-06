@@ -2030,7 +2030,7 @@ def add_names_to_aps(DB):
 
         d=r['newform']
         label = orbit_label(d)
-        name = '{0}.{1}.{2}{3}'.format(N,k,chi,label)
+        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
         DB._aps.update({'_id':fid},{"$set":{'name':name}})
 
 @cached_function
