@@ -646,8 +646,9 @@ class WDBtoMongo(WDBtoMFDB):
         Converting one record from file format to MongoDB.
         """
         verbose = kwds.get('verbose')
-        if verbose>0:
+        if verbose>=0:
             print "converting ",N,k,i
+        if verbose>0:
             print "Computing ambient modular symbols"
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
             return 
