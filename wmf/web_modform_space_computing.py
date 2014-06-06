@@ -138,6 +138,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         r"""
         Get the character which was used in the computation of the data.
         """
+        from mdb.conversions import dirichlet_character_conrey_used_in_computation
         if not self._character_used_in_computation is None:
             return 
         self._character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.character().character())
