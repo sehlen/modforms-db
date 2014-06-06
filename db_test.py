@@ -1590,13 +1590,15 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(DB,verbose=0):
+def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
     import lmfdb
     from lmfdb.modular_forms import emf_version
 
     args = []; args_space=[]
     for r in DB._aps.find({'chi':int(0)}).sort('N',1):
         N=r['N']; k=r['k']; chi=r['chi'];
+        if Nmax>0 and N>Nmax: continue
+        if Nmin>0 and N<Nmin: continue
         if chi==0:
             cchi = 1
         else:
@@ -1618,14 +1620,15 @@ def get_all_web_newforms(DB,verbose=0):
     if verbose>0:
         print "args=",args
     s =  list(compute_web_newforms(args))
-    s =  list(compute_web_mod_spaces(args_space))
+    s =  list(compute_web_modform_spaces(args_space))
 
+from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
-    F=Webnewforms_compute_class(N=N,k=k,chi=chi,label=label,**kwds)
+    F=WebNewForms_computing(N=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
-def compute_web_modform_space(N,k,chi,**kwds):
-    M=WebModFormSpace_compute_class(N=N,k=k,chi=chi,**kwds)
+def compute_web_modform_spaces(N,k,chi,**kwds):
+    M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
 
         
 @parallel(ncpus=8)
@@ -2027,7 +2030,7 @@ def add_names_to_aps(DB):
 
         d=r['newform']
         label = orbit_label(d)
-        name = '{0}.{1}.{2}{3}'.format(N,k,chi,label)
+        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
         DB._aps.update({'_id':fid},{"$set":{'name':name}})
 
 @cached_function
