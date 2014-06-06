@@ -1965,17 +1965,26 @@ def dirichlet_group_conrey(n):
 def dirichlet_group_sage(n):
     return DirichletGroup(n)
     
+@cached_function    
 def conrey_from_sage_character(n,i):
     D = dirichlet_group_sage(n)
-    x = D[i]
+    x = D.galois_orbits()[i][0]
     for c in dirichlet_group_conrey(n):
         if c.sage_character() == x:
             return c
 
+def add_all_conrey_labels(DB):
+    DB.add_conrey_character_numbers(DB,'ap.files')
+    DB.add_conrey_character_numbers(DB,'Modular_symbols.files')
+    DB.add_conrey_character_numbers(DB,'Newform_factors.files')
+    DB.add_conrey_character_numbers(DB,'Atkin_Lehner.files')
+    DB.add_conrey_character_numbers(DB,'vector_on_basis.files')
+    
 def add_conrey_character_numbers(DB,collection='ap.files'):
     #fs = gridfs.GridFS(DB._mongodb, 'ap')
     
-    for r in DB._mongodb[collection].find({'cchi':{'$exists':False}}).sort('N',int(1)):
+    for r in DB._mongodb[collection].find().sort({'N',int(1)}):
+    #{'cchi':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
