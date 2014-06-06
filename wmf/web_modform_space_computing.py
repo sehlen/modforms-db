@@ -76,6 +76,9 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         """
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (k,N,chi)))
         super(WebModFormSpace_computing_class,self).__init__(N,k,chi,cuspidal,prec,bitprec,data, verbose,get_from_db=False)
+
+        ## Properties which are here temporarily
+        self._hecke_orbits_labels=None
         ## In this subclass we add properties which are not
         ## supposed to be used on the web or stored in the database
         self._dimension = None
@@ -108,7 +111,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._is_new = False
         self.set_sturm_bound()
         self.set_oldspace_decomposition()
-        self.character()
+        self.get_character_used_in_computation()
         self.insert_into_db()
 
 
@@ -130,6 +133,26 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._character_orbit_rep = WebChar(x.modulus(),x.number())
         return self._character_orbit_rep            
     ## Database fetching functions.
+
+    def get_character_used_in_computation(self):
+        r"""
+        Get the character which was used in the computation of the data.
+        """
+        if not self._character_used_in_computation is None:
+            return 
+        self._character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.character().character())
+
+        
+    def set_galois_orbit_embeddings(self):
+        r"""
+        Set the list of Galois orbit embeddings (according to Conrey's naming scheme) of the character of self.
+        """
+        from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
+        self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.character().character())
+        
+        
+        
+
             
     def insert_into_db(self):
         r"""
@@ -233,6 +256,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         factors_from_db  = factors.find(key).sort('newform',int(1))
         wmf_logger.debug("found factors={0}".format(factors_from_db))
         self._newforms = {}
+        self._hecke_orbits_labels = []
         if factors_from_db.count()==0:
             raise ValueError,"Factors of space {0} is not in database!".format(key)
         else:
@@ -242,7 +266,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             for rec in factors_from_db:
                 factor = loads(fs.get(rec['_id']).read())
                 label = orbit_label(rec['newform'])
-                self._galois_orbits_labels.append(label)
+                self._hecke_orbits_labels.append(label)
                 self._newforms[label] = factor
                 
  
@@ -311,17 +335,17 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
                 j2 = floor(QQ(j) / QQ(26))
                 label = str(x[j1]).lower()
                 label = label + str(j2)
-            if label not in self._galois_orbits_labels:
-                self._galois_orbits_labels.append(label)
+            if label not in self._heckes_orbits_labels:
+                self._hecke_orbits_labels.append(label)
         return L
 
-    def galois_orbit_label(self, j):
+    def hecke_orbit_label(self, j):
         r"""
         Return the label of the Galois orbit nr. j
         """
-        if(len(self._galois_orbits_labels) == 0):
-            self.galois_decomposition()
-        return self._galois_orbits_labels[j]
+        if(len(self._hecke_orbits_labels) == 0):
+            self.hecke_decomposition()
+        return self._hecke_orbits_labels[j]
 
     ###  Dimension formulas, calculates dimensions of subspaces of self.
     def set_dimensions(self):

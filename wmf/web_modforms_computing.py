@@ -114,12 +114,22 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.set_dimensions()
         self.coefficient_field()
         self.get_base_ring()
+        self.get_character_galois_orbit()
         #c = self.coefficients(self.prec(),insert_in_db=False)
         self.insert_into_db()
 
 ## Functions related to storing / fetching data from database
 ##  
+    def get_character_galois_orbit():
+        r"""
+        Get the numbers of the characters in the Galois orbit of the character of self.
 
+        """
+        from conversions import dirichlet_character_conrey_galois_orbit_numbers
+        if self._character_galois_orbit is None:
+            self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.character().character())
+        
+        
     
     def insert_into_db(self):
         r"""
@@ -144,7 +154,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         d.pop('_ap',None)
         d.pop('_character',None)
         d.pop('_as_factor',None)
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version))
+        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version,character_galois_orbit=self.character_galois_orbit()))
         wmf_logger.debug("inserted :{0}".format(id))
     
 ##  Internal functions
@@ -796,7 +806,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         NS.galois_decomposition()
         M = NS.sturm_bound() + len(divisors(new_level))
         C = self.coefficients(range(M))
-        for label in NS._galois_orbits_labels:
+        for label in NS._hecke_orbits_labels:
             wmf_logger.debug("label={0}".format(label))
             FT = NS.f(label)
             CT = FT.f.coefficients(M)
