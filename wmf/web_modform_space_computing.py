@@ -108,7 +108,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._is_new = False
         self.set_sturm_bound()
         self.set_oldspace_decomposition()
-            
+        self.character()
         self.insert_into_db()
 
 
@@ -234,7 +234,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         wmf_logger.debug("found factors={0}".format(factors_from_db))
         self._newforms = {}
         if factors_from_db.count()==0:
-            raise ValueError,"Space is not in database!"
+            raise ValueError,"Factors of space {0} is not in database!".format(key)
         else:
             facts = []
             self._labels = []

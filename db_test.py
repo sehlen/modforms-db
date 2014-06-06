@@ -1625,7 +1625,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
 from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
-    F=WebNewForms_computing(N=N,k=k,chi=chi,label=label,**kwds)
+    F=WebNewForms_computing_class(N=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
 def compute_web_modform_spaces(N,k,chi,**kwds):
     M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
@@ -1749,6 +1749,23 @@ def get_WebNF(db,s_in,remove=False):
             print "Removed record: {0}".format(s)
     return res
 
+def get_WebMFS(db,s_in,remove=False):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongodb.WebModformspace.files.find(s):
+        id=r['_id']
+        print r
+        print id
+        fs = gridfs.GridFS(DB._mongodb, 'WebModformspace')
+        f = loads(fs.get(id).read())
+        res.append(f)
+        if remove==True:
+            fs.delete(id)
+            print "Removed record: {0}".format(s)
+    return res
+            
 def delete_defective(db,s_in,dry_run=True):
     r"""
     Delete records which contain wrong information
@@ -1956,12 +1973,16 @@ import dirichlet_conrey
 from dirichlet_conrey import *
 
 from sage.all import cached_function
+
+from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
+
 @cached_function
 def dirichlet_group_conrey(n):
     return DirichletGroup_conrey(n)
 @cached_function
 def dirichlet_group_sage(n):
     return DirichletGroup(n)
+
     
 @cached_function    
 def conrey_from_sage_character(n,i):
@@ -1980,7 +2001,6 @@ def add_all_conrey_labels(DB):
     
 def add_conrey_character_numbers(DB,collection='ap.files'):
     #fs = gridfs.GridFS(DB._mongodb, 'ap')
-    
     for r in DB._mongodb[collection].find().sort('N',int(1)):
     #{'cchi':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
@@ -1989,7 +2009,23 @@ def add_conrey_character_numbers(DB,collection='ap.files'):
         chi = r['chi']
         x = conrey_from_sage_character(N,chi)
         DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':x.number()}})
-        
+
+collections = ['ap.files']
+def add_conrey_orbits(DB,collection='ap.files'):
+    i = 0
+    for r in DB._mongodb[collection].find().sort('N',int(1)):
+        #for r in DB._mongodb[collection].find({'cchi':{'$exists':False}}).sort('N',int(1)):
+        rid = r['_id']
+        N = r['N']
+        k = r['k']
+        chi = r['chi']
+        #cchi = r['cchi']
+        c = conrey_from_sage_character(N,chi)
+        orbit = [x.number() for x in c.galois_orbit()]
+        orbit.sort()
+        cchi = orbit[0]
+        DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':cchi}})
+        DB._mongodb[collection].update({'_id':rid},{"$set":{'character_galois_orbit':orbit}})
 
 
 def existing_data(DB):
