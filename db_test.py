@@ -1983,7 +1983,7 @@ def add_all_conrey_labels(DB):
 def add_conrey_character_numbers(DB,collection='ap.files'):
     #fs = gridfs.GridFS(DB._mongodb, 'ap')
     
-    for r in DB._mongodb[collection].find().sort({'N',int(1)}):
+    for r in DB._mongodb[collection].find().sort('N',int(1)):
     #{'cchi':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
