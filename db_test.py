@@ -1627,14 +1627,14 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
         print "args=",args
         print "args=",args_space
     if args <> []:
-        s1 =  list(compute_web_newforms(args))
-    if args_space <>[]:
         s2 =  list(compute_web_modform_spaces(args_space))
+    if args_space <>[]:
+        s1 =  list(compute_web_newforms(args))
     return True 
 from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
-    F=WebNewForms_computing_class(N=N,k=k,chi=chi,label=label,**kwds)
+    F=WebNewForms_computing(N=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
 def compute_web_modform_spaces(N,k,chi,**kwds):
     M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
