@@ -95,15 +95,21 @@ class WebNewForm_computing_class(WebNewForm_class):
         """
         wmf_logger.debug("Update ap's")
         self._get_aps()
+        self.coefficient_field()
+        self.get_base_ring()
+        self.set_dimension()
+        #self.get_character_galois_orbit()
         wmf_logger.debug("compute q-expansion")
-        prec = self._prec_needed_for_lfunctions()
+        prec = self.set_prec_needed_for_lfunctions()
         self.set_q_expansion_embeddings(prec=prec)
+
         wmf_logger.debug("as polynomial")
         if self._N == 1:
             self.as_polynomial_in_E4_and_E6()
         wmf_logger.debug("compute twist info")
         self.twist_info()
         wmf_logger.debug("compute CM-values")
+
         self.compute_cm_values_numeric()
         wmf_logger.debug("Get Atkin-Lehner evs")
         self.get_atkin_lehner_eigenvalues()
@@ -111,25 +117,14 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.set_is_CM()
         wmf_logger.debug("compute Satake parameters")
         self.compute_satake_parameters_numeric()
-        self.set_dimensions()
-        self.coefficient_field()
-        self.get_base_ring()
-        self.get_character_galois_orbit()
+
+
         #c = self.coefficients(self.prec(),insert_in_db=False)
+        self._check_if_all_computed()
         self.insert_into_db()
 
 ## Functions related to storing / fetching data from database
 ##  
-    def get_character_galois_orbit():
-        r"""
-        Get the numbers of the characters in the Galois orbit of the character of self.
-
-        """
-        from conversions import dirichlet_character_conrey_galois_orbit_numbers
-        if self._character_galois_orbit is None:
-            self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.character().character())
-        
-        
     
     def insert_into_db(self):
         r"""
@@ -154,7 +149,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         d.pop('_ap',None)
         d.pop('_character',None)
         d.pop('_as_factor',None)
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version,character_galois_orbit=self.character_galois_orbit()))
+        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version,character_galois_orbit=self.parent().character_galois_orbit()))
         wmf_logger.debug("inserted :{0}".format(id))
     
 ##  Internal functions
@@ -221,7 +216,7 @@ class WebNewForm_computing_class(WebNewForm_class):
             self._relative_degree = self.coefficient_field().absolute_degree()/self.base_ring().absolute_degree()
         return self._relative_degree
 
-    def set_dimensions(self):
+    def set_dimension(self):
         r"""
         The dimension of this galois orbit is not necessarily equal to the degree of the number field, when we have a character....
         We therefore need this routine to distinguish between the two cases...
@@ -229,7 +224,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         if self._dimension is None:
             self._dimension = self.as_factor().dimension()
 
-    def _prec_needed_for_lfunctions(self):
+    def set_prec_needed_for_lfunctions(self):
         r"""
         Calculates the number of coefficients needed for the L-function
         main page (formula taken from their pages)
@@ -593,6 +588,8 @@ class WebNewForm_computing_class(WebNewForm_class):
         """
         if isinstance(self._cm_values,dict) and self._cm_values  <> {}:
             return self._cm_values
+        if self.level()<>1:
+           return None
          # the points we want are i and rho. More can be added later...
         bits = ceil(int(digits) * int(4))
         CF = ComplexField(bits)
@@ -625,7 +622,7 @@ class WebNewForm_computing_class(WebNewForm_class):
                     for prec in range(minprec, maxprec, 10):
                         if(self._verbose > 1):
                             wmf_logger.debug("prec={0}".format(prec))
-                        v2 = self.as_factor().q_eigenform(prec).truncate(prec)(q)
+                        v2 = self.as_factor().q_eigenform(prec,name='a').truncate(prec)(q)
                         err = abs(v2 - v1)
                         if(self._verbose > 1):
                             wmf_logger.debug("err={0}".format(err))

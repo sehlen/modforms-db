@@ -44,7 +44,7 @@ def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, 
     if cuspidal <> 1:
         raise IndexError,"We are very sorry. There are only cuspidal spaces currently in the database!"
     #try: 
-    F = WebModFormSpace_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec, data=data, verbose=verbose,get_all_newforms_from_db=True,**kwds)
+    F = WebModFormSpace_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec, data=data, verbose=verbose,**kwds)
     #except Exception as e:
     #    wmf_logger.critical("Could not construct WebModFormSpace with N,k,chi = {0}. Error: {1}".format( (N,k,chi),e.message))
     #    #raise e
@@ -87,6 +87,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self._modular_symbols = None
         
         self.compute_additional_properties()
+        self._check_if_all_computed()
         self.insert_into_db()
         
     def compute_additional_properties(self):
@@ -104,6 +105,8 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
                 self._newforms[i]=None
         if len(self._ap) == 0:
             self._ap = self._get_aps(prec=self._prec)                
+        self.get_character_used_in_computation()
+        self.get_galois_orbit_embeddings()
         self.set_dimensions()
         if self.dimension() == self.dimension_newspace():
             self._is_new = True
@@ -111,8 +114,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._is_new = False
         self.set_sturm_bound()
         self.set_oldspace_decomposition()
-        self.get_character_used_in_computation()
-        self.get_galois_orbit_embeddings()
+        self.get_character_galois_orbit()
         self.insert_into_db()
 
 
@@ -135,6 +137,16 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         return self._character_orbit_rep            
     ## Database fetching functions.
 
+     
+    def get_character_galois_orbit(self):
+        r"""
+        Get a list of numbers of the characters in the Galois orbit of the character of self.
+
+        """
+        from mdb.conversions import dirichlet_character_conrey_galois_orbit_numbers
+        if self._character_galois_orbit is None:
+            self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.character().character())
+                
     def get_character_used_in_computation(self):
         r"""
         Get the character which was used in the computation of the data.
@@ -176,7 +188,8 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         fname = "webmodformspace-{0:0>5}-{1:0>3}-{2:0>3}".format(self._N,self._k,self._chi) 
         d = self.to_dict()
         d.pop('_ap',None) # Since the ap's are already in the database we don't need them here
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name,version=emf_version)
+        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name,version=emf_version,
+                    character_galois_orbit=self.character_galois_orbit())
         wmf_logger.debug("inserted :{0}".format(id))
         
     def get_from_db(self):
