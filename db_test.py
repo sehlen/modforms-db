@@ -1609,7 +1609,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
         else:
             cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
-        print s
+        #print s
         if DB._mongodb['WebModformspace.files'].find(s).count()==0:
             args_space.append((N,k,cchi))
 
@@ -1618,13 +1618,14 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
             ambient = DB._modular_symbols.find_one({'_id':ambient_id})
             if ambient is None:
                 print "Ambient does not exist!"
-            continue
+                continue
             no = ambient['orbits']        
             for n in range(no):
                 label = orbit_label(n)
                 args.append((N,k,cchi,label))
     if verbose>0:
         print "args=",args
+        print "args=",args_space
     if args <> []:
         s1 =  list(compute_web_newforms(args))
     if args_space <>[]:
