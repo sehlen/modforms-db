@@ -670,7 +670,10 @@ class WDBtoMongo(WDBtoMFDB):
         aps = self.compute_aps(N,k,i,pprec,**kwds)
         if verbose>0:
             print "Computing atkin lehner to prec {0} for i={0}".format(pprec,i)
-        atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
+        try:
+            atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
+        except:
+            pass 
         return True    
 
     def compute_atkin_lehner(self,N,k,i,**kwds):
@@ -1597,7 +1600,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
     from lmfdb.modular_forms import emf_version
 
     args = []; args_space=[]
-    for r in DB._aps.find({'chi':int(0)}).sort('N',1):
+    for r in DB._aps.find({'cchi':int(1)}).sort('N',1):
         N=r['N']; k=r['k']; chi=r['chi'];
         if Nmax>0 and N>Nmax: continue
         if Nmin>0 and N<Nmin: continue
@@ -1606,6 +1609,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
         else:
             cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
+        print s
         if DB._mongodb['WebModformspace.files'].find(s).count()==0:
             args_space.append((N,k,cchi))
 
@@ -1621,9 +1625,11 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
                 args.append((N,k,cchi,label))
     if verbose>0:
         print "args=",args
-    s =  list(compute_web_newforms(args))
-    s =  list(compute_web_modform_spaces(args_space))
-
+    if args <> []:
+        s1 =  list(compute_web_newforms(args))
+    if args_space <>[]:
+        s2 =  list(compute_web_modform_spaces(args_space))
+    return True 
 from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
