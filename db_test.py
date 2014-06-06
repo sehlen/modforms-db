@@ -1595,12 +1595,17 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
+def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0):
     import lmfdb
     from lmfdb.modular_forms import emf_version
-
+    if trivial:
+        s = {'cchi':int(1)}
+    else:
+        s = {}
+    if not search_in is None:
+        s = search_in
     args = []; args_space=[]
-    for r in DB._aps.find({'cchi':int(1)}).sort('N',1):
+    for r in DB._aps.find(s).sort('N',1):
         N=r['N']; k=r['k']; chi=r['chi'];
         if Nmax>0 and N>Nmax: continue
         if Nmin>0 and N<Nmin: continue
@@ -1634,7 +1639,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
 from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
 def compute_web_newforms(N,k,chi,label,**kwds):
-    F=WebNewForms_computing(N=N,k=k,chi=chi,label=label,**kwds)
+    F=WebNewForm_computing(N=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
 def compute_web_modform_spaces(N,k,chi,**kwds):
     M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
