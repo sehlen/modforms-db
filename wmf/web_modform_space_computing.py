@@ -43,9 +43,11 @@ def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, 
     if data is None: data = {}
     if cuspidal <> 1:
         raise IndexError,"We are very sorry. There are only cuspidal spaces currently in the database!"
-    
-    F = WebModFormSpace_computing_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec,
+    try: 
+        F = WebModFormSpace_computing_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec,
                                         data=data, verbose=verbose,**kwds)
+    except ValueError:
+        raise IndexError,"We are very sorry. There are only cuspidal spaces currently in the mongo database! Please run the full computations!"
     return F
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
@@ -96,7 +98,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         if self._group is None:
             self._group = Gamma0(self._N)
         self.get_modular_symbols()
-        self._newspace = self._modular_symbols.cuspidal_submodule().new_submodule()
+        self._newspace = self.modular_symbols().cuspidal_submodule().new_submodule()
         self.get_newform_factors()
         if self._newforms == {} and self._newspace.dimension()>0:
             for i in self.labels():
@@ -220,7 +222,8 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         modular_symbols_from_db  = modular_symbols.find_one(key)
         wmf_logger.debug("found ms={0}".format(modular_symbols_from_db))
         if modular_symbols_from_db is None:
-            ms = None
+            raise ValueError,"Space is not found in the database!"
+            #ms = None
         else:
             id = modular_symbols_from_db['_id']
             fs = get_files_from_gridfs('Modular_symbols')
