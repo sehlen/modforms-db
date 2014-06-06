@@ -186,7 +186,7 @@ def dirichlet_character_sage_to_conrey(x):
             return y
 
 @cached_function
-def dirichlet_character_conrey_used_in_computation(x)
+def dirichlet_character_conrey_used_in_computation(x):
     r"""
       INPUTS:
        - ```x```: A Conrey Dirichlet Character
