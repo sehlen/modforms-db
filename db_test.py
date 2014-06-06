@@ -1597,8 +1597,8 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,verbose=0):
     args = []; args_space=[]
     for r in DB._aps.find({'chi':int(0)}).sort('N',1):
         N=r['N']; k=r['k']; chi=r['chi'];
-        if Nmax>0 and N>Nmax: continu
-        if Nmin>0 and N<Nmin: continu
+        if Nmax>0 and N>Nmax: continue
+        if Nmin>0 and N<Nmin: continue
         if chi==0:
             cchi = 1
         else:
