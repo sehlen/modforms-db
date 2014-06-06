@@ -1603,7 +1603,7 @@ def get_all_web_newforms(DB,verbose=0):
             cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
         if DB._mongodb['WebModformspace.files'].find(s).count()==0:
-            args_space.append((N,k,cchi,label))
+            args_space.append((N,k,cchi))
 
         if DB._webnewforms.find(s).count()==0:
             ambient_id = r['ambient_id']
