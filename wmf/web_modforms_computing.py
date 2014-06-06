@@ -117,10 +117,10 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.set_is_CM()
         wmf_logger.debug("compute Satake parameters")
         self.compute_satake_parameters_numeric()
-
+        
 
         #c = self.coefficients(self.prec(),insert_in_db=False)
-        self._check_if_all_computed()
+        #self._check_if_all_computed()
         self.insert_into_db()
 
 ## Functions related to storing / fetching data from database
@@ -149,7 +149,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         d.pop('_ap',None)
         d.pop('_character',None)
         d.pop('_as_factor',None)
-        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version,character_galois_orbit=self.parent().character_galois_orbit()))
+        id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),label=self._label,name=self._name,version=float(self._version),character_galois_orbit=map(int,self.parent().character_galois_orbit()))
         wmf_logger.debug("inserted :{0}".format(id))
     
 ##  Internal functions

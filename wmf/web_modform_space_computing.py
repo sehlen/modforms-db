@@ -189,7 +189,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         d = self.to_dict()
         d.pop('_ap',None) # Since the ap's are already in the database we don't need them here
         id = fs.put(dumps(d),filename=fname,N=int(self._N),k=int(self._k),chi=int(self._chi),name=self._name,version=emf_version,
-                    character_galois_orbit=self.character_galois_orbit())
+                    character_galois_orbit=map(int,self.character_galois_orbit()))
         wmf_logger.debug("inserted :{0}".format(id))
         
     def get_from_db(self):

@@ -649,6 +649,8 @@ class WDBtoMongo(WDBtoMFDB):
         if verbose>0:
             print "converting ",N,k,i
             print "Computing ambient modular symbols"
+        if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
+            return 
         ambient_fid = self.compute_ambient(N,k,i,**kwds)
         # Insert ambient modular symbols
         kwds['ambient_id']=ambient_fid
