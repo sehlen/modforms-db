@@ -2019,7 +2019,8 @@ def spaces_with_all_chars(DB):
 
 
 def add_names_to_aps(DB):
-    for r in DB._aps.find({'name':{"$exists":False}}):
+    for r in DB._aps.find().sort('N',int(1)):
+    #{'name':{"$exists":False}}):
         N=r['N']
         k=r['k']
         fid=r['_id']
