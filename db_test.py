@@ -1974,11 +1974,11 @@ def conrey_from_sage_character(n,i):
             return c
 
 def add_all_conrey_labels(DB):
-    DB.add_conrey_character_numbers(DB,'ap.files')
-    DB.add_conrey_character_numbers(DB,'Modular_symbols.files')
-    DB.add_conrey_character_numbers(DB,'Newform_factors.files')
-    DB.add_conrey_character_numbers(DB,'Atkin_Lehner.files')
-    DB.add_conrey_character_numbers(DB,'vector_on_basis.files')
+    add_conrey_character_numbers(DB,'ap.files')
+    add_conrey_character_numbers(DB,'Modular_symbols.files')
+    add_conrey_character_numbers(DB,'Newform_factors.files')
+    add_conrey_character_numbers(DB,'Atkin_Lehner.files')
+    add_conrey_character_numbers(DB,'vector_on_basis.files')
     
 def add_conrey_character_numbers(DB,collection='ap.files'):
     #fs = gridfs.GridFS(DB._mongodb, 'ap')
