@@ -192,9 +192,12 @@ def dirichlet_character_conrey_used_in_computation(x):
       INPUTS:
        - ```x```: A Conrey Dirichlet Character
     
-      Returns the Conrey Dirichlet Character ```c```,
+      Returns the number of Conrey Dirichlet Character ```c```,
       such that ```c.sage_character()``` is the representative that
       was used to compute the spaces of modular forms with character ```x```.
+
+      OUTPUT:
+       - int: the number of the corresponding Conrey Dirichlet Character.
     """
     
     reps_sage = dirichlet_character_sage_galois_orbit_reps(x.modulus())
