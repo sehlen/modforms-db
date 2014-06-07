@@ -144,7 +144,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         r"""
         Check that parent is in the database.
         """
-        C = connect_to_modularforms_db('WebModformspace.files')
+        C = connect_to_modularforms_db('webmodformspace.files')
         res = C.find_one({'N':int(self.level()),'k':int(self.weight()),'chi':int(self.chi())})
         if res is None:
             raise ValueError,"The parent space is not computed! Please compute the space ({0},{1},{2})".format(self.level(),self.weight(),self.chi())
