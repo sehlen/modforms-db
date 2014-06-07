@@ -47,7 +47,7 @@ def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, 
         F = WebModFormSpace_computing_class(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec,
                                         data=data, verbose=verbose,**kwds)
     except ValueError:
-        raise IndexError,"We are very sorry. There are only cuspidal spaces currently in the mongo database! Please run the full computations!"
+        raise IndexError,"We are very sorry. The requested space could not be constructed! Please run the full computations!"
     return F
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace

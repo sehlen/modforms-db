@@ -1625,7 +1625,8 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         #else:
         #    cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
-        #print s
+        if verbose>1:
+            print s
         if spaces and DB._mongodb['WebModformspace.files'].find(s).count()==0:
             args_space.append((N,k,chi))
 
@@ -2105,3 +2106,14 @@ def orbit_label(j):
         label = label + str(j2)
     return label
         
+
+def find_multiple_records(DB):
+    files = DB._mongodb['WebModformspace.files']
+    fs = gridfs.GridFS(DB._mongodb, 'WebModformspace.files')
+    names = files.distinct('galois_orbit_name')
+    res = []
+    for x in names:
+        r = files.find({'galois_orbit_name':x})
+        if r.count()>1:
+            res.extend(list(r))
+    return res
