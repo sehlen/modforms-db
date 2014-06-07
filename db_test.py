@@ -1626,7 +1626,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         #    cchi = 1
         #else:
         #    cchi = conrey_from_sage_character(N,chi)
-        s = {'N':N,'k':k,'cchi':cchi,'version':emf_version}
+        s = {'N':N,'k':k,'cchi':cchi}
         web_s = {'N':N,'k':k,'chi':cchi,'version':emf_version}
         if verbose>1:
             print s,web_s
