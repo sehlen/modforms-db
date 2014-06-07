@@ -1793,6 +1793,23 @@ def get_WebMFS(db,s_in,remove=False):
             fs.delete(id)
             print "Removed record: {0}".format(s)
     return res
+
+def get_WebChar(db,s_in,remove=False):
+    s={}
+    for k in s_in:
+        s[k]=int(s_in[k])
+    res = []
+    for r in db._mongodb.WebChar.files.find(s):
+        id=r['_id']
+        print r
+        print id
+        fs = gridfs.GridFS(DB._mongodb, 'WebChar')
+        f = loads(fs.get(id).read())
+        res.append(f)
+        if remove==True:
+            fs.delete(id)
+            print "Removed record: {0}".format(s)
+    return res
             
 def delete_defective(db,s_in,dry_run=True):
     r"""
