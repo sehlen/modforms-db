@@ -37,9 +37,10 @@ def get_files_from_gridfs(collection='',create=True):
         raise ValueError,error_st
     return gridfs.GridFS(C,collection)
 
-import logging
-wmf_logger = logging.getLogger('wmf')
-
+#import logging
+#wmf_logger = logging.getLogger('wmf')
+from lmfdb.utils import make_logger
+wmf_logger = make_logger('wdb')
 from web_modforms_computing import WebNewForm_computing_class,WebNewForm_computing
 from web_modform_space_computing import WebModFormSpace_computing,WebModFormSpace_computing_class
 

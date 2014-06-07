@@ -2064,15 +2064,18 @@ collections = ['ap.files']
 def add_conrey_orbits(DB,collection='ap.files'):
     i = 0
     #for r in DB._mongodb[collection].find().sort('N',int(1)):
-    for r in DB._mongodb[collection].find({'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
+    for r in DB._mongodb[collection].find({'N':int(1)}): #,'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
         chi = r['chi']
         #cchi = r['cchi']
-        c = conrey_from_sage_character(N,chi)
-        orbit = [x.number() for x in c.galois_orbit()]
-        orbit.sort()
+        if N > 1: # There is a bug in Conrey character mod 1
+            c = conrey_from_sage_character(N,chi)
+            orbit = [x.number() for x in c.galois_orbit()]
+            orbit.sort()
+        else:
+            orbit = [int(1)]
         cchi = orbit[0]
         DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':cchi}})
         DB._mongodb[collection].update({'_id':rid},{"$set":{'character_galois_orbit':orbit}})

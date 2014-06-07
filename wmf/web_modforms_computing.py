@@ -236,7 +236,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         if display_bprec > bitprec:
             display_bprec = bitprec
         ## First check if we have sufficient data
-        if self._embeddings['prec'] >= prec or self._embeddings['bitprec'] >= bitprec:
+        if self._embeddings['prec'] >= prec and self._embeddings['bitprec'] >= bitprec:
             return 0 ## We should already have sufficient data.
         ## Else we compute new embeddings.
         CF = ComplexField(bitprec)
@@ -471,6 +471,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         k = self.weight()
         K = self.base_ring()
         l = list()
+        wmf_logger.debug("Start to get self as polynomial in E4 and E6")
         # for n in range(d+1):
         #    l.append(self._f.q_expansion(d+2)[n])
         # v=vector(l) # (self._f.coefficients(d+1))
