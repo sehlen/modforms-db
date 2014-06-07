@@ -1615,6 +1615,8 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         s = {}
     if not search_in is None:
         s = search_in
+    if verbose>0:
+        print "search for {0}".format(s)
     args = []; args_space=[]
     for r in DB._aps.find(s).sort('N',1):
         N=r['N']; k=r['k']; chi=r['cchi'];
@@ -2107,13 +2109,14 @@ def orbit_label(j):
     return label
         
 
-def find_multiple_records(DB):
-    files = DB._mongodb['WebModformspace.files']
-    fs = gridfs.GridFS(DB._mongodb, 'WebModformspace.files')
-    names = files.distinct('galois_orbit_name')
+def find_multiple_records(DB,col='WebModformspace',key='filename'):
+    files = DB._mongodb['{0}.files'.format(col)]
+    fs = gridfs.GridFS(DB._mongodb, col)
+    names = files.distinct(key)
+    #print "names=",names
     res = []
     for x in names:
-        r = files.find({'galois_orbit_name':x})
+        r = files.find({key:x})
         if r.count()>1:
             res.extend(list(r))
     return res
