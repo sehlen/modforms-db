@@ -1642,9 +1642,9 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
     if verbose>0:
         print "args=",args
         print "args_space=",args_space
-    if args <> [] and forms:
+    if args_space <> [] and spaces:
         s2 =  list(compute_web_modform_spaces(args_space))
-    if args_space <>[] and spaces:
+    if args <>[] and forms:
         s1 =  list(compute_web_newforms(args))
     return True 
 from wmf import WebNewForm_computing,WebModFormSpace_computing
