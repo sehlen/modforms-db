@@ -84,7 +84,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self._dimension_oldspace = None
         self._newforms = None
         self._modular_symbols = None
-        
         self.compute_additional_properties()
         self.insert_into_db()
         self._check_if_all_stored()
@@ -98,14 +97,14 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
             self._group = Gamma0(self._N)
         self.get_modular_symbols()
         self._newspace = self.modular_symbols().cuspidal_submodule().new_submodule()
+        self.get_character_used_in_computation()
+        self.get_galois_orbit_embeddings()
         self.get_newform_factors()
         if self._newforms == {} and self._newspace.dimension()>0:
             for i in self.labels():
                 self._newforms[i]=None
         if len(self._ap) == 0:
             self._ap = self._get_aps(prec=self._prec)                
-        self.get_character_used_in_computation()
-        self.get_galois_orbit_embeddings()
         self.set_dimensions()
         if self.dimension() == self.dimension_newspace():
             self._is_new = True
