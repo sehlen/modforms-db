@@ -84,7 +84,7 @@ class WebNewForm_computing_class(WebNewForm_class):
 
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
-        self.set_parent()
+        self.check_parent()
         self.set_newform_number()
         self.compute_additional_properties()
         #self.insert_into_db()
@@ -130,13 +130,25 @@ class WebNewForm_computing_class(WebNewForm_class):
 ##  Internal functions
 ##
 
-    def set_parent(self):
-        from wmf.web_modform_space_computing import WebModFormSpace_computing_class,WebModFormSpace_computing
-        if not isinstance(self._parent,WebModFormSpace_computing_class):
-            if self._verbose > 0:
-                emf_logger.debug("compute parent! label={0}".format(label))
-            self._parent = WebModFormSpace_computing(self._N, self._k,self._chi,get_from_db=True,get_all_newforms_from_db=False)
+#    def set_parent(self):
+#        r"""
+#        
+#        """
+#        from wmf.web_modform_space_computing import WebModFormSpace_computing_class,WebModFormSpace_computing
+#        if not isinstance(self._parent,WebModFormSpace_computing_class):
+#            if self._verbose > 0:
+#                emf_logger.debug("compute parent! label={0}".format(label))
+#            self._parent = WebModFormSpace_computing(self._N, self._k,self._chi,get_from_db=True,get_all_newforms_from_db=False)
 
+    def check_parent(self):
+        r"""
+        Check that parent is in the database.
+        """
+        C = connect_to_modularforms_db('WebModformspace.files')
+        res = C.find_one({'N':int(self.level()),'k':int(self.weight()),'chi':int(self.chi())})
+        if res is None:
+            raise ValueError,"The parent space is not computed! Please compute the space ({0})".format((int(self.level()),'k':int(self.weight()),'chi':int(self.chi())))
+         
 
     def get_character_orbit_rep(self):
         r"""
@@ -454,7 +466,7 @@ class WebNewForm_computing_class(WebNewForm_class):
             raise NotImplementedError("Only implemented for SL(2,Z). Need more generators in general.")
         if(self._as_polynomial_in_E4_and_E6 is not None and self._as_polynomial_in_E4_and_E6 != ''):
             return self._as_polynomial_in_E4_and_E6
-        d = self._parent.dimension_modular_forms()  # dimension of space of modular forms
+        d = self.parent().dimension_modular_forms()  # dimension of space of modular forms
         k = self.weight()
         K = self.base_ring()
         l = list()
