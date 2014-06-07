@@ -150,7 +150,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         from mdb.conversions import dirichlet_character_conrey_galois_orbit_numbers
         if self._character_galois_orbit is None or self._character_galois_orbit == []:
             if self.level()==1:
-                self._character_galois_orbit=[int(1}]
+                self._character_galois_orbit=[int(1)]
             else:
                 self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.level(),self.character().character().number())
                 
