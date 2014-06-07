@@ -1627,7 +1627,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
         #print s
         if forms and DB._mongodb['WebModformspace.files'].find(s).count()==0:
-            args_space.append((N,k,cchi))
+            args_space.append((N,k,chi))
 
         if spaces and DB._webnewforms.find(s).count()==0:
             ambient_id = r['ambient_id']
@@ -1638,7 +1638,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
             no = ambient['orbits']        
             for n in range(no):
                 label = orbit_label(n)
-                args.append((N,k,cchi,label))
+                args.append((N,k,chi,label))
     if verbose>0:
         print "args=",args
         print "args=",args_space
