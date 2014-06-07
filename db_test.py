@@ -1627,16 +1627,13 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         #else:
         #    cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
-
-        if DB._aps.find(s).count()==0:
-            continue            
         if verbose>1:
             print s
         q1 = DB._factors.find(s)
         q2 = DB._mongodb['WebModformspace.files'].find(s)
         if spaces and q1.count()==0 and q2.count()>0:
             args_space.append((N,k,chi))
-
+        q3 =DB._aps.find(s)
         if forms and DB._webnewforms.find(s).count()==0:
             s['ambient_id']=r['_id']
             no = r['orbits']        
