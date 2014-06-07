@@ -1606,7 +1606,7 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0,spaces=True,forms=False):
+def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0,spaces=True,forms=False,max_number=-1):
     import lmfdb
     from lmfdb.modular_forms import emf_version
     if trivial:
@@ -1647,6 +1647,9 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
                     continue
                 label = orbit_label(n)
                 args.append((N,k,cchi,label))
+    if max_number > 0:
+        args = args[0:max_number]
+        args_space = args_space[0:max_number]
     if verbose>0:
         print "args=",args
         print "args_space=",args_space
