@@ -147,8 +147,8 @@ class WebNewForm_computing_class(WebNewForm_class):
         C = connect_to_modularforms_db('WebModformspace.files')
         res = C.find_one({'N':int(self.level()),'k':int(self.weight()),'chi':int(self.chi())})
         if res is None:
-            raise ValueError,"The parent space is not computed! Please compute the space ({0})".format((int(self.level()),'k':int(self.weight()),'chi':int(self.chi())))
-         
+            raise ValueError,"The parent space is not computed! Please compute the space ({0},{1},{2})".format(self.level(),self.weight(),self.chi())
+         return True
 
     def get_character_orbit_rep(self):
         r"""
