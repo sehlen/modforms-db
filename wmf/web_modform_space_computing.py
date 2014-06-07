@@ -247,7 +247,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         factors = connect_to_modularforms_db('Newform_factors.files')
         key = {'k': int(self._k), 'N': int(self._N), 'cchi': int(self._chi),}
         factors_from_db  = factors.find(key).sort('newform',int(1))
-        wmf_logger.debug("found factors={0}".format(factors_from_db))
+        wmf_logger.debug("found factors={0}".format(factors_from_db.count()))
         self._newforms = {}
         self._hecke_orbits_labels = []
         if factors_from_db.count()==0:

@@ -1618,7 +1618,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
     if verbose>0:
         print "search for {0}".format(s)
     args = []; args_space=[]
-    for r in DB._aps.find(s).sort('N',1):
+    for r in DB._modular_symbols.find(s).sort('N',1):
         N=r['N']; k=r['k']; chi=r['cchi'];
         if Nmax>0 and N>Nmax: continue
         if Nmin>0 and N<Nmin: continue
@@ -1627,19 +1627,23 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         #else:
         #    cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
+
+        if DB._aps.find(s).count()==0:
+            continue            
         if verbose>1:
             print s
-        if spaces and DB._mongodb['WebModformspace.files'].find(s).count()==0:
+        q1 = DB._factors.find(s)
+        q2 = DB._mongodb['WebModformspace.files'].find(s)
+        if spaces and q1.count()==0 and q2.count()>0:
             args_space.append((N,k,chi))
 
         if forms and DB._webnewforms.find(s).count()==0:
-            ambient_id = r['ambient_id']
-            ambient = DB._modular_symbols.find_one({'_id':ambient_id})
-            if ambient is None:
-                print "Ambient does not exist!"
-                continue
-            no = ambient['orbits']        
+            s['ambient_id']=r['_id']
+            no = r['orbits']        
             for n in range(no):
+                s['newform']=int(n)
+                if DB._factors.find(s).count()==0:
+                    continue
                 label = orbit_label(n)
                 args.append((N,k,chi,label))
     if verbose>0:
