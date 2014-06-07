@@ -86,7 +86,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self._modular_symbols = None
         
         self.compute_additional_properties()
-        self._check_if_all_computed()
         self.insert_into_db()
         self._check_if_all_stored()
         
@@ -117,7 +116,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self.set_oldspace_decomposition()
         self.get_character_galois_orbit()
         self.get_character_orbit_rep()
-        self.insert_into_db()
 
     def modular_symbols(self):
         r"""

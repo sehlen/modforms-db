@@ -124,8 +124,8 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.sturm_bound()
         self.get_character_orbit_rep()
         #c = self.coefficients(self.prec(),insert_in_db=False)
-        self._check_if_all_computed()
         self.insert_into_db()
+        self._check_if_all_stored()
     
 ##  Internal functions
 ##
@@ -175,6 +175,7 @@ class WebNewForm_computing_class(WebNewForm_class):
                     break
         if self._newform_number is None:
             raise ValueError,"Newform with this label is not in the space!"
+        
     def as_factor(self):
         r"""
         Return self as a newform factor
