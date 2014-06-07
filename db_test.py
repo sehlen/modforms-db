@@ -255,7 +255,7 @@ class WDBtoMongo(WDBtoMFDB):
         self._factors = self._mongodb['Newform_factors.files']
         self._aps = self._mongodb['ap.files']
         self._atkin_lehner = self._mongodb['Atkin_Lehner.files']
-        self._webnewforms = self._mongodb['WebNewforms.files']
+        self._webnewforms = self._mongodb['webnewforms.files']
         self._sage_version = sage.version.version
         self._computedb = ComputeMFData(datadir)
         self._do_compute = kwds.get('compute',False)
@@ -1631,7 +1631,7 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         if verbose>1:
             print s,web_s
         q1 = DB._factors.find(s)
-        q2 = DB._mongodb['WebModformspace.files'].find(web_s)
+        q2 = DB._mongodb['webmodformspace.files'].find(web_s)
         if verbose>1:
             print "q1.count=",q1.count()
             print "q2.count=",q2.count()
@@ -1770,11 +1770,11 @@ def get_WebNF(db,s_in,remove=False):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongodb.WebNewforms.files.find(s):
+    for r in db._mongodb.webnewforms.files.find(s):
         id=r['_id']
         print r
         print id
-        fs = gridfs.GridFS(DB._mongodb, 'WebNewforms')
+        fs = gridfs.GridFS(DB._mongodb, 'webnewforms')
         f = loads(fs.get(id).read())
         res.append(f)
         if remove==True:
@@ -1787,11 +1787,11 @@ def get_WebMFS(db,s_in,remove=False):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongodb.WebModformspace.files.find(s):
+    for r in db._mongodb.webmodformspace.files.find(s):
         id=r['_id']
         print r
         print id
-        fs = gridfs.GridFS(DB._mongodb, 'WebModformspace')
+        fs = gridfs.GridFS(DB._mongodb, 'webmodformspace')
         f = loads(fs.get(id).read())
         res.append(f)
         if remove==True:
@@ -1804,11 +1804,11 @@ def get_WebChar(db,s_in,remove=False):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongodb.WebChar.files.find(s):
+    for r in db._mongodb.webchar.files.find(s):
         id=r['_id']
         print r
         print id
-        fs = gridfs.GridFS(DB._mongodb, 'WebChar')
+        fs = gridfs.GridFS(DB._mongodb, 'webchar')
         f = loads(fs.get(id).read())
         res.append(f)
         if remove==True:
@@ -1825,10 +1825,10 @@ def delete_defective(db,s_in,dry_run=True):
     for k in s_in:
         s[k]=int(s_in[k])
     res = []
-    for r in db._mongodb.WebNewforms.files.find(s):
+    for r in db._mongodb.webnewforms.files.find(s):
         id=r['_id']
 #        print id
-        fs = gridfs.GridFS(DB._mongodb, 'WebNewforms')
+        fs = gridfs.GridFS(DB._mongodb, 'webnewforms')
         f = loads(fs.get(id).read())
         #print "r=",r.keys()
         qexp = f['_q_expansion']
@@ -1838,7 +1838,7 @@ def delete_defective(db,s_in,dry_run=True):
                 if dry_run:
                     print "Would have deleted because of missing:",id
                 else:
-                    db._mongodb.WebNewforms.files.remove(id)           
+                    db._mongodb.webnewforms.files.remove(id)           
             continue
         co = qexp.coefficients()
         embeds = f['_embeddings']
@@ -1874,7 +1874,7 @@ def delete_defective(db,s_in,dry_run=True):
             if dry_run:
                 print "Would have deleted:",id
             else:
-                db._mongodb.WebNewforms.files.remove(id)
+                db._mongodb.webnewforms.files.remove(id)
                 db.convert_to_mongo_one_space(f['_N'],f['_k'],f['_chi'])
                 insert_one_form(f['_k'],f['_N'],f['_chi'],f['_label'])
                 
@@ -1883,8 +1883,8 @@ def delete_defective(db,s_in,dry_run=True):
 def drop_WebNewF(db,really=False):
     if not really:
         return 
-    DB._mongodb.drop_collection('WebNewForms.files')
-    DB._mongodb.drop_collection('WebNewForms.chunks')
+    DB._mongodb.drop_collection('webnewforms.files')
+    DB._mongodb.drop_collection('webnewforms.chunks')
 
 def collect_polynomials(db):
     res = {}
@@ -2131,7 +2131,7 @@ def orbit_label(j):
     return label
         
 
-def find_multiple_records(DB,col='WebModformspace',key='filename'):
+def find_multiple_records(DB,col='webmodformspace',key='filename'):
     files = DB._mongodb['{0}.files'.format(col)]
     fs = gridfs.GridFS(DB._mongodb, col)
     names = files.distinct(key)
