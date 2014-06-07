@@ -1606,7 +1606,7 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0):
+def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0,spaces=True,forms=False):
     import lmfdb
     from lmfdb.modular_forms import emf_version
     if trivial:
@@ -1626,10 +1626,10 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         #    cchi = conrey_from_sage_character(N,chi)
         s = {'N':N,'k':k,'chi':chi,'version':emf_version}
         #print s
-        if DB._mongodb['WebModformspace.files'].find(s).count()==0:
+        if forms and DB._mongodb['WebModformspace.files'].find(s).count()==0:
             args_space.append((N,k,cchi))
 
-        if DB._webnewforms.find(s).count()==0:
+        if spaces and DB._webnewforms.find(s).count()==0:
             ambient_id = r['ambient_id']
             ambient = DB._modular_symbols.find_one({'_id':ambient_id})
             if ambient is None:
@@ -1642,9 +1642,9 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
     if verbose>0:
         print "args=",args
         print "args=",args_space
-    if args <> []:
+    if args <> [] and spaces:
         s2 =  list(compute_web_modform_spaces(args_space))
-    if args_space <>[]:
+    if args_space <>[] and forms:
         s1 =  list(compute_web_newforms(args))
     return True 
 from wmf import WebNewForm_computing,WebModFormSpace_computing
