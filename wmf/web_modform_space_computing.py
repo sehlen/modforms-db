@@ -117,7 +117,14 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         self.get_character_galois_orbit()
         self.get_character_orbit_rep()
 
-
+    def modular_symbols(self):
+        r"""
+        Return the modular symbols of self.
+        """
+        if self._modular_symbols is None:
+            self.get_modular_symbols()
+        return self._modular_symbols
+        
     def newform_factors(self):
         r"""
         Return newform factors of self.
