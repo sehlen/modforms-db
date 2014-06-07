@@ -79,7 +79,8 @@ class WebNewForm_computing_class(WebNewForm_class):
         Init self as form with given label in S_k(N,chi)
         """
         super(WebNewForm_computing_class,self).__init__(N,k,chi,label,prec,bitprec,display_bprec,get_from_db=False)
-        print "d=",self.__dict__
+        #if verbose>0:
+        #    print "d=",self.__dict__
         wmf_logger.debug("WebNewForm with N,k,chi,label={0}".format( (N,k,chi,label)))
 
         self._as_factor = None
@@ -168,7 +169,7 @@ class WebNewForm_computing_class(WebNewForm_class):
             res = C.find({'N':int(self.level()),'k':int(self.weight()),
                           'cchi':int(self.chi())})
             num_orbits = res.count()
-            print "num_orbits=",num_orbits
+            wmf_logger.debug("num_orbits={0}".format(num_orbits))
             for i in range(num_orbits):
                 if orbit_label(i)==self.label():
                     self._newform_number = i
@@ -185,7 +186,7 @@ class WebNewForm_computing_class(WebNewForm_class):
             s = {'N':int(self.level()),'k':int(self.weight()),
                  'cchi':int(self.chi()),'newform':int(self.newform_number())}
             res = C.find_one(s)
-            print res
+            #print res
             if not res is None:
                 fid = res['_id']
                 fs = get_files_from_gridfs('Newform_factors')
@@ -249,6 +250,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         nstart = len(self._embeddings)
         wmf_logger.debug("Should have {0} embeddings".format(self._embeddings['prec']))
         wmf_logger.debug("Computing new stuff !")
+        deg = self.coefficient_field().absolute_degree()
         for n in range(self._embeddings['prec'],prec):
             try:
                 cn = self.coefficient(n)
