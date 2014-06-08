@@ -161,12 +161,13 @@ def dirichlet_character_sage_galois_orbits_reps(N):
     return [X[0] for X in DirichletGroup(N).galois_orbits()]
 
 @cached_function
-def dirichlet_character_sage_galois_orbit_rep(n,xi):
+def dirichlet_character_sage_galois_orbit_rep(N,xi):
     """
     Return representatives for the Galois orbits of Dirichlet characters of level N.
     """
-    x = conrey_character_from_number(n,xi)
-    N = x.modulus()
+    if n == 1:
+        return 1
+    x = conrey_character_from_number(N,xi)
     reps = sage_dirichlet_character_galois_orbits_reps(N)
     if x in reps:
         return reps.index(x)
@@ -179,6 +180,8 @@ def dirichlet_character_sage_galois_orbit_rep(n,xi):
             
 @cached_function
 def dirichlet_character_conrey_galois_orbit_numbers(n,xi):
+    if n==1:
+        return [int(1)]
     x = conrey_character_from_number(n,xi)
     return [y.number() for y in x.galois_orbit()]
 
@@ -189,6 +192,8 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
     We always take the one that has the smallest index.
     """
     D = DirichletGroup_conrey(N)
+    if N == 1:
+        return [D[1]]
     Ds = dirichlet_character_sage_galois_orbits_reps(N)
     Dl = list(D)
     reps=[]
@@ -221,7 +226,8 @@ def dirichlet_character_conrey_used_in_computation(N,xi):
       OUTPUT:
        - int: the number of the corresponding Conrey Dirichlet Character.
     """
-    
+    if N == 1:
+        return int(1)
     reps_sage = dirichlet_character_sage_galois_orbits_reps(N)
     x = conrey_character_from_number(N,xi)
     for c in x.galois_orbit():
@@ -260,6 +266,8 @@ def dirichlet_character_conrey_galois_orbit_rep(x):
     Return a representative of the Galois orbit of the Dirichlet character x
     """
     N = x.modulus()
+    if N == 1:
+        return x
     reps = dirichlet_character_conrey_galois_orbits_reps(N)
     for i in range(len(reps)):
         if x in reps[i].galois_orbit():
