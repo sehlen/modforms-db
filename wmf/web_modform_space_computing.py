@@ -439,13 +439,14 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
                     check_dim = check_dim + mult * Sd
                     L.append((q, 0, mult, Sd))
             else:
-                xd = self.character().decomposition()
+                xd = self.character().character().decomposition()
                 for xx in xd:
                     if xx.modulus() == q:
-                        Sd = dimension_new_cusp_forms(xx, k)
+                        Sd = dimension_new_cusp_forms(xx.sage_character(), k)
                         if Sd > 0:
                             # identify this character for internal storage... should be optimized
-                            x_k = self.conrey_character(xx).number()
+                            x_k = xx.number()
+                            #self.character().character()(xx).number()
                             mult = len(divisors(ZZ(d)))
                             check_dim = check_dim + mult * Sd
                             L.append((q, x_k, mult, Sd))
