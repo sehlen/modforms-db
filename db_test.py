@@ -1637,16 +1637,16 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
             print "q2.count=",q2.count()
         if spaces and q1.count()>0 and q2.count()==0:
             args_space.append((N,k,cchi))
-        q3 =DB._aps.find(s)
-        if forms and DB._webnewforms.find(web_s).count()==0:
-            s['ambient_id']=r['_id']
-            no = r['orbits']        
-            for n in range(no):
-                s['newform']=int(n)
-                if DB._factors.find(s).count()==0:
-                    continue
-                label = orbit_label(n)
-                args.append((N,k,cchi,label))
+        #q3 =DB._aps.find(s)
+        #if forms and DB._webnewforms.find(web_s).count()==0:
+        #    s['ambient_id']=r['_id']
+        #    no = r['orbits']        
+        #    for n in range(no):
+        #        s['newform']=int(n)
+        #        if DB._factors.find(s).count()==0:
+        #            continue
+        #        label = orbit_label(n)
+        #        args.append((N,k,cchi,label))
     if max_number > 0:
         args = args[0:max_number]
         args_space = args_space[0:max_number]
@@ -1655,8 +1655,8 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=
         print "args_space=",args_space
     if args_space <> [] and spaces:
         s2 =  list(compute_web_modform_spaces(args_space))
-    if args <>[] and forms:
-        s1 =  list(compute_web_newforms(args))
+#    if args <>[] and forms:
+#        s1 =  list(compute_web_newforms(args))
     return True 
 from wmf import WebNewForm_computing,WebModFormSpace_computing
 @parallel(ncpus=8)
@@ -1664,8 +1664,14 @@ def compute_web_newforms(N,k,chi,label,**kwds):
     F=WebNewForm_computing(N=N,k=k,chi=chi,label=label,**kwds)
 @parallel(ncpus=8)
 def compute_web_modform_spaces(N,k,chi,**kwds):
+    r""" Compute the space and then all forms
+    """
     M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
-
+    if kwds.get('forms',True)==False:
+        return 
+    for x in M.labels():
+        F = WebNewForm_computing(N=N,k=k,chi=chi,label=x,**kwds)
+    return True
         
 @parallel(ncpus=8)
 def insert_one_form(N,k,chi,label):
