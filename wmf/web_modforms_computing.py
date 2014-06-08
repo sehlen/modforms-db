@@ -619,7 +619,7 @@ class WebNewForm_computing_class(WebNewForm_class):
                     for prec in range(minprec, maxprec, 10):
                         if(self._verbose > 1):
                             wmf_logger.debug("prec={0}".format(prec))
-                        v2 = self.as_factor().q_eigenform(prec,name='a').truncate(prec)(q)
+                        v2 = self.as_factor().q_eigenform(prec,names='a').truncate(prec)(q)
                         err = abs(v2 - v1)
                         if(self._verbose > 1):
                             wmf_logger.debug("err={0}".format(err))
