@@ -59,11 +59,11 @@ def WebNewForm_computing(N=1, k=2, chi=1, label='', prec=10, bitprec=53, display
             return 0
     if data is None: data = {}
     wmf_logger.debug("incoming data in construction : {0}".format(data.get('N'),data.get('k'),data.get('chi')))
-    try: 
-        F = WebNewForm_computing_class(N=N, k=k, chi=chi, label=label, prec=prec, bitprec = bitprec, display_bprec=display_bprec, parent = parent, data = data, compute = compute, verbose = verbose,get_from_db = get_from_db)
-    except ArithmeticError as e:#Exception as e:
-        wmf_logger.critical("Could not construct WebNewForm with N,k,chi,label={0}. Error: {1}".format( (N,k,chi,label),e))
-        raise IndexError,"We are very sorry. The sought function could not be found in the database."
+    #try: 
+    F = WebNewForm_computing_class(N=N, k=k, chi=chi, label=label, prec=prec, bitprec = bitprec, display_bprec=display_bprec, parent = parent, data = data, compute = compute, verbose = verbose,get_from_db = get_from_db)
+    #except ArithmeticError as e:#Exception as e:
+    #    wmf_logger.critical("Could not construct WebNewForm with N,k,chi,label={0}. Error: {1}".format( (N,k,chi,label),e))
+    #    raise IndexError,"We are very sorry. The sought function could not be found in the database."
     return F
 
 

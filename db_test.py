@@ -1630,12 +1630,13 @@ def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=False,search_in=None,verbose
         web_s = {'N':N,'k':k,'chi':cchi,'version':emf_version}
         if verbose>1:
             print s,web_s
-        q1 = DB._factors.find(s)
+        q0 = DB._factors.find(s)
+        q1 = DB._aps.find(s)
         q2 = DB._mongodb['webmodformspace.files'].find(web_s)
         if verbose>1:
             print "q1.count=",q1.count()
             print "q2.count=",q2.count()
-        if spaces and q1.count()>0 and q2.count()==0:
+        if spaces and q0.count()>0 and q1.count()>0 and q2.count()==0:
             args_space.append((N,k,cchi))
         #q3 =DB._aps.find(s)
         #if forms and DB._webnewforms.find(web_s).count()==0:
