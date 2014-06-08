@@ -121,6 +121,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.compute_satake_parameters_numeric()
         self.absolute_polynomial()
         self.is_rational()
+        self.absolute_degree()
         self.relative_degree()
         self.sturm_bound()
         self.get_character_orbit_rep()
