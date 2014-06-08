@@ -298,9 +298,8 @@ class WebNewForm_computing_class(WebNewForm_class):
         else: # We compute them
             A = self.as_factor()
             for p in prime_divisors(self.level()):
-                if self.level() % p**2 <>0:
+                if self.character().is_trivial() or p==self.level():
                     self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
-            
 
     def set_twist_info(self, prec=10,insert_in_db=True):
         r"""
