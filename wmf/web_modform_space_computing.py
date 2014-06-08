@@ -77,7 +77,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         super(WebModFormSpace_computing_class,self).__init__(N,k,chi,cuspidal,prec,bitprec,data, verbose,get_from_db=False)
 
         ## Properties which are here temporarily
-        self._hecke_orbits_labels=None
+        self._hecke_orbits_labels = None
         ## In this subclass we add properties which are not
         ## supposed to be used on the web or stored in the database
         self._dimension = None
@@ -171,23 +171,6 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
         self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.level(),self.character().number())
         
-    def get_from_db(self):
-        r"""
-        Fetch dictionary data from the database.
-        """
-        db = connect_to_modularforms_db('WebModformspace.files')
-        s = {'name':self._name,'version':emf_version}
-        wmf_logger.debug("Looking in DB for rec={0}".format(s))
-        f = db.find_one(s)
-        wmf_logger.debug("Found rec={0}".format(f))
-        if f<>None:
-            id = f.get('_id')
-            fs = get_files_from_gridfs('WebModformspace')
-            f = fs.get(id)
-            wmf_logger.debug("Getting rec={0}".format(f))
-            d = loads(f.read())
-            return d
-        return {}
 
     def _get_aps(self, prec=-1):
         r"""
