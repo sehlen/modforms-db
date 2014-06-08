@@ -81,7 +81,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         super(WebNewForm_computing_class,self).__init__(N,k,chi,label,prec,bitprec,display_bprec,get_from_db=False)
         #if verbose>0:
         #    print "d=",self.__dict__
-        wmf_logger.debug("WebNewForm with N,k,chi,label={0}".format( (N,k,chi,label)))
+        wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (N,k,chi,label)))
 
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
@@ -102,6 +102,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         #self.get_character_galois_orbit()
         wmf_logger.debug("compute q-expansion")
         prec = self.set_prec_needed_for_lfunctions()
+        self.q_expansion(prec=prec)
         self.set_q_expansion_embeddings(prec=prec)
 
         wmf_logger.debug("as polynomial")
@@ -120,7 +121,6 @@ class WebNewForm_computing_class(WebNewForm_class):
         self.compute_satake_parameters_numeric()
         self.absolute_polynomial()
         self.is_rational()
-        self.q_expansion()
         self.relative_degree()
         self.sturm_bound()
         self.get_character_orbit_rep()
@@ -712,12 +712,12 @@ class WebNewForm_computing_class(WebNewForm_class):
                 continue
             self._satake['ps'].append(p)
             chip = self.character().value(p)
-            wmf_logger.debug("p={0}".format(p))
-            wmf_logger.debug("chip={0} of type={1}".format(chip,type(chip)))
-            if hasattr(chip,'complex_embeddings'):
-                wmf_logger.debug("embeddings(chip)={0}".format(chip.complex_embeddings()))
-            wmf_logger.debug("ap={0}".format(ap))
-            wmf_logger.debug("K={0}".format(K))                        
+            #wmf_logger.debug("p={0}".format(p))
+            #wmf_logger.debug("chip={0} of type={1}".format(chip,type(chip)))
+            #if hasattr(chip,'complex_embeddings'):
+            #    wmf_logger.debug("embeddings(chip)={0}".format(chip.complex_embeddings()))
+            #wmf_logger.debug("ap={0}".format(ap))
+            #wmf_logger.debug("K={0}".format(K))                        
             
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
