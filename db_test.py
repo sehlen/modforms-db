@@ -1606,7 +1606,7 @@ def galois_labels(L):
         res.append(label)
     return res
 
-def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=True,search_in=None,verbose=0,spaces=True,forms=False,max_number=-1):
+def get_all_web_newforms(DB,Nmax=-1,Nmin=-1,trivial=False,search_in=None,verbose=0,spaces=True,forms=False,max_number=-1):
     import lmfdb
     from lmfdb.modular_forms import emf_version
     if trivial:
@@ -1667,8 +1667,8 @@ def compute_web_modform_spaces(N,k,chi,**kwds):
     r""" Compute the space and then all forms
     """
     M=WebModFormSpace_computing(N=N,k=k,chi=chi,**kwds)
-    if kwds.get('forms',True)==False:
-        return 
+    #if kwds.get('forms',True)==False:
+    #    return 
     for x in M.labels():
         F = WebNewForm_computing(N=N,k=k,chi=chi,label=x,**kwds)
     return True
