@@ -271,7 +271,7 @@ class WebNewForm_computing_class(WebNewForm_class):
             for x in self._embeddings['values'][n]:
                 t = my_complex_latex(x,display_bprec)
             cn_emb_latex.append(t)
-            self._embeddidngs['latex'].append(cn_emb_latex)
+            self._embeddings['latex'].append(cn_emb_latex)
         return 1
                       
     
