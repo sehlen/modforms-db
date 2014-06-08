@@ -267,12 +267,11 @@ class WebNewForm_computing_class(WebNewForm_class):
             self._embeddings['latex'] = []  ## Have to redo these
         numc = len(self._embeddings['latex'])
         for n in range(numc,prec):
-            cn_emb = []
+            cn_emb_latex = []
             for x in self._embeddings['values'][n]:
                 t = my_complex_latex(x,display_bprec)
             cn_emb_latex.append(t)
-            self._embeddidngs['latex'].append(cn_emb)
-        wmf_logger.debug("has embeddings_latex:{0}".format(nstart))
+            self._embeddidngs['latex'].append(cn_emb_latex)
         return 1
                       
     
