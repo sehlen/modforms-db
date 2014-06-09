@@ -19,8 +19,10 @@ os.sys.path.append("{0}/../mfdb/".format(basedir))
 os.sys.path.append("{0}".format(basedir))
 os.sys.path.append("{0}/mdb/".format(basedir))
 
-import mfdb
+#import mfdb
 import mdb
+import compmf
+
 #from mdb import schema
 from mdb.schema import ModularSymbols_ambient_class,Coefficient_class,NumberField_class,ModularSymbols_base_field_class,CoefficientField_class,ModularSymbols_oldspace_factor_class,ModularSymbols_newspace_factor_class,ModularSymbols_base_field,CoefficientField,Coefficient_DB
 from mdb.nf_schema import NumberField_DB,AlgebraicNumber_DB,AlgebraicNumber_class
@@ -32,8 +34,10 @@ import bson
 #schema.setup_all() 
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
-from mfdb import WDB,ComputeMFData
-from mfdb import FilenamesMFDB
+from compmf import WDB
+from compmf import filesdb
+
+from compmf import * 
 from mdb import db
 
 #print DB.known(format='web')
