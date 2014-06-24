@@ -29,7 +29,7 @@ import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf.character_conversions import conrey_from_sage_character_number,sage_character_galois_orbit_rep_from_number
-from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil
+from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load
 
 
 from compmf import clogger
