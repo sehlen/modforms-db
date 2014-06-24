@@ -137,7 +137,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         Returns canonical representative of the Galois orbit nr. k acting on the ambient space of self.
 
         """
-        from mdb.conversions import dirichlet_character_conrey_galois_orbit_rep
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep
         self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character().character()).number()
     ## Database fetching functions.
 
@@ -147,7 +147,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         Get a list of numbers of the characters in the Galois orbit of the character of self.
 
         """
-        from mdb.conversions import dirichlet_character_conrey_galois_orbit_numbers
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_numbers
         if self._character_galois_orbit is None or self._character_galois_orbit == []:
             if self.level()==1:
                 self._character_galois_orbit=[int(1)]
@@ -158,7 +158,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         r"""
         Get the character which was used in the computation of the data.
         """
-        from mdb.conversions import dirichlet_character_conrey_used_in_computation
+        from compmf.character_conversions import dirichlet_character_conrey_used_in_computation
         if not self._character_used_in_computation is None:
             return 
         self._character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.level(),self.character().number())
@@ -168,7 +168,7 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         r"""
         Set the list of Galois orbit embeddings (according to Conrey's naming scheme) of the character of self.
         """
-        from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_embeddings
         self._galois_orbits_embeddings = dirichlet_character_conrey_galois_orbit_embeddings(self.level(),self.character().number())
         
 

@@ -1200,7 +1200,7 @@ def create_query(obj,data={},**kwds):
     return q
 
 import sage.modular.modsym.ambient
-from mdb.conversions import dirichlet_character_to_int,sage_ambient_to_dict,dict_to_factor_sage,factor_to_dict_sage
+from compmf.character_conversions import dirichlet_character_to_int,sage_ambient_to_dict,dict_to_factor_sage,factor_to_dict_sage
 
 def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObject_DB):
     r"""
@@ -2038,7 +2038,7 @@ from dirichlet_conrey import *
 
 from sage.all import cached_function
 
-from mdb.conversions import dirichlet_character_conrey_galois_orbit_embeddings
+from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_embeddings
 
 @cached_function
 def dirichlet_group_conrey(n):

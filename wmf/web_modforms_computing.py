@@ -156,7 +156,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         r"""
         Get the representative of the Galois orbit of the character of self.
         """
-        from mdb.conversions import dirichlet_character_conrey_galois_orbit_rep
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep
         self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character().character()).number()
         
         
