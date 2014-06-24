@@ -8,7 +8,7 @@ try:
     from colorlog import ColoredFormatter
     formatter = ColoredFormatter(LOGFORMAT)
 except:
-    formatter = logging.format(LOGFORMAT)
+    formatter = logging.Formatter(LOGFORMAT)
 stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
 stream.setFormatter(formatter)
