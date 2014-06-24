@@ -465,6 +465,10 @@ class CompMF(object):
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0}".format(num_factors))
                 aps = self._computedb.compute_aplists(N,k,i,pprec,ambient=ambient,save=self._save_to_file)
+                if aps == 0:
+                    aps = {}
+                    for d in range(num_factors):
+                        aps[(N,k,i,d)] = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)   
             else:
                 aps = {}
                 for d in range(num_factors):
