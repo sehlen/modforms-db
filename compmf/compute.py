@@ -281,7 +281,7 @@ class ComputeMFData(object):
             M = self.files().load_ambient_space(N, k, i)
         else:
             M = kwds['ambient']
-        clogger.debug("M,m={0} and save={1}".format((M,m,kwds.get('save'))))
+        clogger.debug("M,m={0} and save={1}".format((M,m),kwds.get('save')))
         if kwds.get('save',True) is False:
             res = {}
         else:
