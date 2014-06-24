@@ -687,11 +687,16 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         metaname = fname.split(".")[0]+"-meta.sobj"
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
+        except Exception as e:
+            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
+        try: 
             v = load("{0}/v.sobj".format(factor_dir))
+        except Exception as e:
+            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,'v.sobj',e.message)      
+        try: 
             meta = load("{0}/{1}".format(factor_dir,metaname))
         except Exception as e:
-            raise ValueError,"Could not load factor: {0}. Error:{1}".format(factor_dir,e.message)
-
+            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,metaname,e.message)      
         return E,v,meta
 
 

@@ -673,7 +673,7 @@ class CompMF(object):
                 res[(N,k,chi)] = check
         return res
 
-    def complete_records(self,nrange=[],krange=[],chi=None,check_content=False):
+    def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False):
         r"""
         Check all records within a specified bound and update / compute the incomplete ones.
 
@@ -684,10 +684,12 @@ class CompMF(object):
         - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
         """
         recs = self.find_records_needing_completion(nrange,krange,check_content)
+        args = []
         for N,k,i in recs.keys():
             if not chi is None and i<>chi:
                 continue
-            self.compute_and_insert_one_space(N,k,i)
+            args.append((N,k,i))
+        self.get_or_compute_spaces(args,ncpus=ncpus)
         return True
         
     
