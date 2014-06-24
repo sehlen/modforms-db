@@ -1,13 +1,13 @@
 import logging
 LOG_LEVEL = logging.DEBUG
 logging.root.setLevel(LOG_LEVEL)
-LOGFORMAT = "  %(log_color)s%(levelname)-10s%(filename)s:%(lineno)d%(reset)s | %(log_color)s%(message)s%(reset)s"
-
 try:
     import colorlog
     from colorlog import ColoredFormatter
+    LOGFORMAT = "  %(log_color)s%(levelname)-10s%(filename)s:%(lineno)d%(reset)s | %(log_color)s%(message)s%(reset)s"
     formatter = ColoredFormatter(LOGFORMAT)
 except:
+    LOGFORMAT = "  %(levelname)-10s%(filename)s:%(lineno)d%(reset)s | %(log_color)s%(message)s%(reset)s"
     formatter = logging.Formatter(LOGFORMAT)
 stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
