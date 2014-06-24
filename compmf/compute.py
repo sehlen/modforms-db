@@ -291,6 +291,7 @@ class ComputeMFData(object):
                 if d <> kwds.get('factor'):
                     continue
             aplist_file = self.files().factor_aplist(N, k, i, d, False, *args)
+            clogger.debug("Checking file:{0}".format(aplist_file))
             if self.files().path_exists(aplist_file):
                 clogger.debug("skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%(args, N,k,i,d))
                 # already done
