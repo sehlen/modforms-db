@@ -1,24 +1,61 @@
-
-
+# -*- coding: utf-8 -*-
+#*****************************************************************************
+#  Copyright (C) 2014
+#  Fredrik Strömberg <fredrik314@gmail.com>,
+#  Stephan Ehlen <stephan.j.ehlen@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPLv2)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+#################################################################
+#                                                               #
+# Database of Classical GL2 Holomorphic Modular Forms over Q    #
+# (c) William Stein, 2012                                       #
+#                                                               #
+#################################################################
 r"""
+
+Database classes for storing data for (holomorphic, cuspidal) modular forms on subgroups of the modular group and integer weight.
+
+In this file we define three classes:
+Filenames                            -- basic class for storing objects in files
+FilenamesMFDB(Filenames)             -- specialized for storing modular forms related objects
+FilenamesMFDBLoading(FilenamesMFDB)  -- class for accessing and storing modular forms data
+
+These classes are based on the file compute.py in the project: https://github.com/williamstein/mfdb
+by William Stein.
+
+
 
 
 """
-
-from sage.all import cached_function
+import os
+from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols
 
 import sqlite3
 from stat import S_ISDIR
 
-try: 
+try:
     import paramiko
+    has_paramiko = True
 except ImportError:
-    print "Note that remote files are not supported without paramiko installed!"
+    have_paramiko = False
+    pass # print "Note that remote files are not supported without paramiko installed!"
+
+from compmf import clogger
 
 class Filenames(object):
     def __init__(self, datadir,host='',db_file='',username=''):
         r"""
-        If host is left empty we work with local files, otherwise via SFTP 
+        If host is left empty we work with local files, otherwise via SFTP
         """
         self._host = host
         self._sftp = None
@@ -44,7 +81,7 @@ class Filenames(object):
 
     ##
     ## file interface functions
-    ##        
+    ##
     def path_exists(self,f):
         r"""
         Check if the path f exists as a local file or on the remote host.
@@ -52,20 +89,20 @@ class Filenames(object):
         if self._sftp == None:
             return os.path.exists(f)
         else:
-            return rexists(self._sftp,f)
+            return remote_exists(self._sftp,f)
 
     def make_path_name(self,f,*args):
         r"""
         Make a path name from a list of arguments.
         """
         if self._sftp==None:
-            s = os.path.join(self._data,f) 
+            s = os.path.join(self._data,f)
         else:
             s = "{0}/{1}".format(self._data,f)
         for fs in args:
             s+= "/{0}".format(fs)
         return s
-    
+
     def makedirs(self,f):
         r"""
         Make directories.
@@ -78,11 +115,13 @@ class Filenames(object):
         r"""
         List files in directory.
         """
-        if self._sftp == None:
-            return os.listdir(f)
-        else:
-            return self._sftp.listdir(f)
-
+        try:
+            if self._sftp == None:
+                return os.listdir(f)
+            else:
+                return self._sftp.listdir(f)
+        except OSError:
+            return []
     def isdir(self,path):
         r"""
         Check if path is a directory.
@@ -98,7 +137,7 @@ class Filenames(object):
 
     def delete_file(self,path):
         r"""
-        Delete file at path. 
+        Delete file at path.
         """
         if self._sftp == None:
             os.unlink(path)
@@ -111,8 +150,8 @@ class FilenamesMFDB(Filenames):
 
 
     NOTE: In the descriptions below we use M(N,k,i) to denote the space of modular forms
-          on Gamma0(N), weight k and with character chi = DirichletGroup(N).galois_orbits()[i][0]
-          and similarly for ModSym(N,k,i)
+    on Gamma0(N), weight k and with character chi = DirichletGroup(N).galois_orbits()[i][0]
+    and similarly for ModSym(N,k,i)
     """
 
     def __init__(self,datadir,host='',db_file='',username=''):
@@ -132,13 +171,13 @@ class FilenamesMFDB(Filenames):
         """
         base, ext = os.path.splitext(filename)
         return base + '-meta.sobj'
-    
+
     def space_name(self, N, k, i):
         r"""
         Directory name files related to M(N,k,i)
         """
         return '%05d-%03d-%03d'%(N,k,i)
-    
+
     def space(self, N, k, i, makedir=False):
         r"""
         Return the full directory name of M(N,k,i) and create it if it doesn't exist.
@@ -147,7 +186,7 @@ class FilenamesMFDB(Filenames):
         if makedir and not self.path_exists(f):
             self.makedirs(f)
         return f
-    
+
     def M(self, N, k, i, makedir=False):
         r"""
         The name of the file containing ModSym(N,k,i)
@@ -165,7 +204,7 @@ class FilenamesMFDB(Filenames):
         The name of the metadata for the decomposition.
         """
         return self.make_path_name(self.space(N,k,i), 'decomp-meta.sobj')
-    
+
     def factor(self, N, k, i, d, makedir=False):
         r"""
         The name of the file containing the newform factor nr. d of the space M(N,k,i)
@@ -185,13 +224,13 @@ class FilenamesMFDB(Filenames):
         The basis matrix of the newform factor nr. d of M(N,k,i)
         """
         return self.make_path_name(self.factor(N,k,i,d), 'B.sobj')
-    
+
     def factor_dual_basis_matrix(self, N, k, i, d):
         r"""
         The dual basis matrix of the newform factor nr. d of M(N,k,i)
         """
         return self.make_path_name(self.factor(N,k,i,d), 'Bd.sobj')
-    
+
     def factor_dual_eigenvector(self, N, k, i, d, makedir=True):
         r"""
         The dual eigenvector of the newform factor nr. d of M(N,k,i)
@@ -216,11 +255,11 @@ class FilenamesMFDB(Filenames):
         The Atkin-Lehner eigenvalues of the factor.
         """
         return self.make_path_name(self.factor(N,k,i,d,makedir), 'atkin_lehner.txt')
-    
+
     ##
     ## Quering the files directly
     ##
-    
+
     def number_of_known_factors(self, N, k, i):
         r"""
         Returning the number of factors for which we have computed data.
@@ -228,7 +267,7 @@ class FilenamesMFDB(Filenames):
         """
         fn = self.space(N,k,i)
         return len([d for d in self.listdir(fn) if d.isdigit() and self.isdir(self.make_path_name(fn, d)) ])
-        
+
     def known_levels(self):
         r"""
         The number of levels in the database.
@@ -246,8 +285,8 @@ class FilenamesMFDB(Filenames):
         """
         Return iterator of 5-tuples of Python ints, defined as follows:
 
-            (N, k, i, newforms, maxp)
-            (37, 2, 0, 2, 10000)
+        (N, k, i, newforms, maxp)
+        (37, 2, 0, 2, 10000)
 
         Here N = level, k = weight, i = character, newforms = number of newforms,
         maxp = integer such that a_p is known for p<=maxp.
@@ -288,8 +327,7 @@ class FilenamesMFDB(Filenames):
                                 this_maxp = max(this_maxp, max(args))
                         if len(v) != len(prime_range(this_maxp)):
                             # something missing!
-                            if verbose>0:
-                                print "data ranges are missing in the aplist data for %s"%Nki
+                            clogger.debug("data ranges are missing in the aplist data for %s"%Nki)
                             maxp = 100
                         else:
                             maxp = this_maxp if maxp is None else min(this_maxp, maxp)
@@ -301,7 +339,7 @@ class FilenamesMFDB(Filenames):
     ##
     def update_known_db(self):
         r"""
-        Create the sqlite database and iterate through the known files. 
+        Create the sqlite database and iterate through the known files.
         """
         # 1. create the sqlite3 database
         # Unlink is only necessary with loal files
@@ -326,7 +364,7 @@ class FilenamesMFDB(Filenames):
         Return the result of an SQL query against the datbase.
         """
         query = query.replace('prec','maxp')
-        
+
         # 1. open database
         db = sqlite3.connect(self._known_db_file)
         cursor = db.cursor()
@@ -345,29 +383,29 @@ class FilenamesMFDB(Filenames):
 
 
 
-       
+
     def find_missing(self, Nrange, krange, irange, fields=None):
         """
         Return generator of
-        
-             {'N':N, 'k':k, 'i':i, 'missing':missing, ...},
+
+        {'N':N, 'k':k, 'i':i, 'missing':missing, ...},
 
         where missing is in the intersection of fields and the
         following strings (or all strings if fields is None):
 
-                'M', 'decomp',
-                'aplist-00100',  'aplist-00100-01000',  'aplist-01000-10000',
-                'charpoly-00100','charpoly-00100-01000','charpoly-01000-10000',
-                'zeros', 
-                'leading', 
-                'atkin_lehner'
+        'M', 'decomp',
+        'aplist-00100',  'aplist-00100-01000',  'aplist-01000-10000',
+        'charpoly-00100','charpoly-00100-01000','charpoly-01000-10000',
+        'zeros',
+        'leading',
+        'atkin_lehner'
 
         If the string is not 'M' or 'decomp' then the meaning is that
         the indicated data is not complete for *all* newforms in this
         space, i.e., at least one is missing.  If 'decomp' is given,
         it means the decomp isn't complete (it could be partial).
-        
-        Spaces with dimension 0 are totally ignored. 
+
+        Spaces with dimension 0 are totally ignored.
 
         Note that not every missing is listed, just the *next* one that
         needs to be computed, e.g., if (11,2,0,'M') is output, then
@@ -375,11 +413,11 @@ class FilenamesMFDB(Filenames):
         """
         if fields is None:
             fields = set(['M', 'decomp',
-                'aplist-00100',  'aplist-00100-01000',  'aplist-01000-10000',
-                'charpoly-00100','charpoly-00100-01000','charpoly-01000-10000',
-                'zeros', 
-                'leading', 
-                'atkin_lehner'])
+                          'aplist-00100',  'aplist-00100-01000',  'aplist-01000-10000',
+                          'charpoly-00100','charpoly-00100-01000','charpoly-01000-10000',
+                          'zeros',
+                          'leading',
+                          'atkin_lehner'])
         else:
             assert isinstance(fields, (list, tuple, str))
             fields = set(fields)
@@ -388,7 +426,7 @@ class FilenamesMFDB(Filenames):
         for k in rangify(krange):
             for N in rangify(Nrange):
                 for ch in rangify(irange):
-                    
+
                     if isinstance(ch, str):
                         CHI = list(enumerate(characters(N)))
                         if ch == 'quadratic':
@@ -402,7 +440,7 @@ class FilenamesMFDB(Filenames):
                             CHI = [(ch, character(N, ch))]
                         except IndexError:
                             CHI = []
-                            
+
                     for i, chi in CHI:
                         N,k,i = int(N), int(k), int(i)
                         obj = {'space':(N,k,i)}
@@ -464,20 +502,48 @@ class FilenamesMFDB(Filenames):
                                 obj2['missing'] = 'other'
                                 obj2['other'] = missing
                                 yield obj2
-                        
 
 
 
 
+    def show_existing_files_db(self):
+        r"""
+        Display an overview of the existing files.
+        """
+        self.update_known_db()
+        res = {}
+        for t in self.find_known():
+            N,k,i,newf,d = t
+            if N not in res:
+                res[N] = {}
+            if k not in res[N]:
+                res[N][k] = {}
+            res[N][k][i]=newf,d
+        Ns = res.keys(); Ns.sort()
+        s=""
+        for N in Ns:
+            #s="{0:0>4} \t : \n".format(N)
+            ks = res[N].keys(); ks.sort()
+            #print "ks=",ks
+            for k in ks:
+                s+="{0:0>3} {1:0>3} \t ".format(N,k)
+                i_s = res[N][k].keys(); i_s.sort()
+                for i in i_s:
+                    no,nap = res[N][k][i]
+                    s+="{0}\t{1} \t {2:0>3}\t".format(i,no,nap)
+                s+="\n"
+        return s
 
-################################################    
+
+
+################################################
 
 class FilenamesMFDBLoading(FilenamesMFDB):
     r"""
-    Class for loading / saving and converting modular forms objects. 
+    Class for loading / saving and converting modular forms objects.
     """
     def __init__(self,data):
-        super(FilenamesMFDB,self).__init__(data)        
+        super(FilenamesMFDB,self).__init__(data)
 
     def save_ambient_space(self,M, i):
         r"""
@@ -487,12 +553,15 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         k = M.weight()
         fname = self.ambient(N, k, i, makedir=True)
         if self.path_exists(fname):
-            print "%s already exists; not recreating"%fname
+            clogger.debug("%s already exists; not recreating"%fname)
             return
-        if verbose>0:
-            print "Creating ", fname
-        save(ambient_to_dict(M, i), fname)
+        clogger.debug("Creating  {0}".format(fname))
+        clogger.debug("space {0}".format(M))
+        ambient = ambient_to_dict(M, i)
+        clogger.debug("as dict: {0}".format(ambient))
+        save(ambient,fname)
 
+        
     def load_M(self,N, k, i):
         r"""
         Load the ambient space as a modular symbols space.
@@ -510,7 +579,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         Go through the database and convert all M.sobj files.
         """
         d = self._data
-        
+
         for X in self.listdir(d):
             p = self.make_path_name(d, X)
             if self.isdir(p):
@@ -520,7 +589,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     #try:
                     self.convert_M_to_ambient(*parse_Nki(X))
                     #except:
-                    #    print "ERROR!"
+                    #    clogger.debug("ERROR!")
 
     def delete_all_M_after_conversion(self):
         r"""
@@ -532,22 +601,28 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             if self._db.isdir(p):
                 f = set(self.listdir(p))
                 if 'M.sobj' in f and 'ambient.sobj' in f:
-                    print "Remove: \n ",X                    
+                    clogger.debug("Remove: \n {0}".format(X))
                     self.delete_file(self.make_path_name(p, 'M.sobj'))
 
 
     def load_ambient_space(self,N, k, i):
         r"""
         Load the ambient space as a modular forms space. If the M.sobj exist we load from that, otherwise we initialize from ambient.sobj.
-        
+
         """
         fnameM = self.M(N, k, i, makedir=False)
-        if self.path_exists(fname):
+        if self.path_exists(fnameM):
             return load(fnameM)
         fname = self.ambient(N, k, i, makedir=False)
         if self.path_exists(fname):
-            return dict_to_ambient(load(fname))
-        raise ValueError, "ambient space (%s,%s,%s) not yet computed"%(N,k,i)
+            ambient = load(fname)
+            if not ambient is None:
+                M = dict_to_ambient(ambient)
+                clogger.debug("Constructed space: {0}".format(M))
+                return M
+        s = "ambient space (%s,%s,%s) not yet computed"%(N,k,i)
+        clogger.warning(s)
+        raise ValueError,s
 
     def load_factor(self,N, k, i, d, M=None):
         r"""
@@ -581,12 +656,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         Load aps for a given factor. If numc > 0 we return all sets.
         """
         import sage.modular.modsym.subspace
+        clogger.debug("Load_aps of {0}".format((N,k,i,d)))
         F = self.load_factor(N, k, i, d, ambient)
         factor_dir = self.factor(N, k, i, d, makedir=False)
         try:
             tmp = self.listdir(factor_dir)
         except OSError:
-            return 
+            return
         aplist_files = []; aplist_meta_files = []
         for fname in tmp:
             if "aplist" in fname:
@@ -597,7 +673,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     numap = int(fname.split("-")[1].split(".")[0])
                     aplist_files.append((numap,fname))
         if aplist_files == []:
-            return 
+            return
         if numc == 'max' or numc == -1: # Find max no. of coeffs.
             numap,fname = max(aplist_files)
         elif numc == 'min' or numc == 0: # Find min. no. of coeffs.
@@ -615,14 +691,14 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             meta = load("{0}/{1}".format(factor_dir,metaname))
         except Exception as e:
             raise ValueError,"Could not load factor: {0}. Error:{1}".format(factor_dir,e.message)
-        
+
         return E,v,meta
 
-                                
+
 ###### Helper routines ############
 
 
-    
+
 @cached_function
 def characters(N):
     """
@@ -651,12 +727,12 @@ def character_to_int(eps):
 def character(N, i):
     if i==0:
         return trivial_character(N)
-    #print "character(%s, %s)"%(N,i)
+    #clogger.debug("character(%s, %s)"%(N,i))
     return characters(N)[i]
 
 
-    
-def ambient_to_dict(self,M, i=None):
+
+def ambient_to_dict(M, i=None):
     """
     Data structure of dictionary that is created:
 
@@ -673,51 +749,53 @@ def ambient_to_dict(self,M, i=None):
     of the list is equivalent via 2-term relations only
     to c times the n-th basis Manin symbol; these
     """
+    clogger.debug("Make ambient from M={0}, i={1}".format(M,i))        
     if i is None:
         i = character_to_int(M.character())
-        return {'space':(int(M.level()), int(M.weight()), int(i)),
-                'eps':list(M.character().values_on_gens()),
-                'manin':[(t.i,t.u,t.v) for t in M._manin_generators],
-                'basis':M._manin_basis,
-                'rels':M._manin_gens_to_basis,
-                'mod2term':M._mod2term}
+    return {'space':(int(M.level()), int(M.weight()), int(i)),
+            'eps':list(M.character().values_on_gens()),
+            'manin':[(t.i,t.u,t.v) for t in M._manin_generators],
+            'basis':M._manin_basis,
+            'rels':M._manin_gens_to_basis,
+            'mod2term':M._mod2term}
 
 def dict_to_ambient(modsym):
-        r"""
-        Convert a dictionary (as stored in ambient.sobj) to a modular symbols space.
-        """
-        N,k,i = modsym['space']
-        eps   = modsym['eps']
-        manin = modsym['manin']
-        basis = modsym['basis']
-        rels  = modsym['rels']
-        mod2term  = modsym['mod2term']
-        F = rels.base_ring()
-        if i == 0:
-            eps = trivial_character(N)
-        else:
-            eps = DirichletGroup(N, F)(eps)
+    r"""
+    Convert a dictionary (as stored in ambient.sobj) to a modular symbols space.
+    """
+    clogger.debug("Converting dict to ambient!")
+    N,k,i = modsym['space']
+    eps   = modsym['eps']
+    manin = modsym['manin']
+    basis = modsym['basis']
+    rels  = modsym['rels']
+    mod2term  = modsym['mod2term']
+    F = rels.base_ring()
+    if i == 0:
+        eps = trivial_character(N)
+    else:
+        eps = DirichletGroup(N, F)(eps)
 
-        from sage.modular.modsym.manin_symbols import ManinSymbolList, ManinSymbol
-        manin_symbol_list = ManinSymbolList(k, manin)
+    from sage.modular.modsym.manin_symbols import ManinSymbolList, ManinSymbol
+    manin_symbol_list = ManinSymbolList(k, manin)
 
-        def custom_init(M):
-            # reinitialize the list of Manin symbols with ours, which may be
-            # ordered differently someday:
-            syms = M.manin_symbols()
-            ManinSymbolList.__init__(syms, k, manin_symbol_list)
+    def custom_init(M):
+        # reinitialize the list of Manin symbols with ours, which may be
+        # ordered differently someday:
+        syms = M.manin_symbols()
+        ManinSymbolList.__init__(syms, k, manin_symbol_list)
+        
+        M._manin_generators = [ManinSymbol(syms, x) for x in manin]
+        M._manin_basis = basis
+        M._manin_gens_to_basis = rels
+        M._mod2term = mod2term
+        return M
 
-            M._manin_generators = [ManinSymbol(syms, x) for x in manin]
-            M._manin_basis = basis
-            M._manin_gens_to_basis = rels
-            M._mod2term = mod2term
-            return M
+    return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 
-        return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 
-    
 
-def rexists(sftp, path):
+def remote_exists(sftp, path):
     """os.path.exists for paramiko's SCP object
     """
     try:
@@ -735,4 +813,4 @@ def parse_Nki(s):
 
 
 def rangify(v):
-        return [v] if isinstance(v, (int, long, Integer, str)) else v
+    return [v] if isinstance(v, (int, long, Integer, str)) else v

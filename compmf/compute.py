@@ -1,4 +1,40 @@
+# -*- coding: utf-8 -*-
+#*****************************************************************************
+#  Copyright (C) 2014
+#  Fredrik Strömberg <fredrik314@gmail.com>,
+#  Stephan Ehlen <stephan.j.ehlen@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPLv2)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+#################################################################
+#                                                               #
+# Database of Classical GL2 Holomorphic Modular Forms over Q    #
+# (c) William Stein, 2012                                       #
+#                                                               #
+#################################################################
 
+r"""
+
+Database classes for computing data for (holomorphic, cuspidal) modular forms on subgroups of the modular group and integer weight.
+
+In this file we define the following classes:
+ ComputeMFData                           -- basic class for computing modular forms data
+ FilenamesMFDB(Filenames)             -- specialized for storing modular forms related objects
+ FilenamesMFDBLoading(FilenamesMFDB)  -- class for accessing and storing modular forms data
+
+ This class is based on the file compute.py in the project: https://github.com/williamstein/mfdb
+  by William Stein.
+
+"""
 
 
 from sage.modular.modsym.space import is_ModularSymbolsSpace
@@ -15,9 +51,9 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
+from compmf.character_conversions import sage_character_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
 
-
-
+from compmf import clogger
 
     
  
@@ -45,27 +81,32 @@ class ComputeMFData(object):
         r"""
         Compute the ambient space M(N,k,i) and save as file. 
         """
+        clogger.debug("compute ambient space {0}".format((N,k,i)))
         if i == 'all':
-            G = DirichletGroup(N).galois_orbits()
+            j = 0
             sgn = (-1)**k
-            for j, g in enumerate(G):
-                if g[0](-1) == sgn:
+            for g in dirichlet_character_sage_galois_orbits_reps(N):
+                if g(-1) == sgn:
                     self.compute_ambient_space(N,k,j,**kwds)
+                j+=1
             return
         if i == 'quadratic':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
-            for j, g in enumerate(G):
-                if g[0](-1) == sgn and g[0].order()==2:
+            j = 0
+            for g in dirichlet_character_sage_galois_orbits_reps(N):
+                if g(-1) == sgn and g.order()==2:
                     self.compute_ambient_space(N,k,j,**kwds)
+                j+=1
             return
         filename = self.files().ambient(N, k, i)
         if self.files().path_exists(filename):
             return
-        eps = character(N, i)
+        eps = sage_character_galois_orbit_rep_from_number(N, i)
         t = cputime()
         M = kwds.get('M',None)
         if M ==  None or M.sign()<>N or M.weight()<>k or M.level()<>N or M.character()<> eps or not is_ModularSymbolsSpace(M):
+            clogger.debug("Will compute ambient modular symbols space {0}".format((N,k,i)))
             t = cputime()
             M = ModularSymbols(eps, weight=k, sign=1)
             tm = cputime(t)
@@ -74,9 +115,8 @@ class ComputeMFData(object):
         self.files().save_ambient_space(M,i)
         #save(M, filename)
         meta = {'cputime':tm, 'dim':M.dimension(), 'M':str(M), 'version':sage.version.version}
-        save(meta, self.files().meta(filename))
-        if verbose>0:
-            print "save {0} to {1}".format(meta,filename)
+        save(meta, self.files().meta(filename))        
+        clogger.debug("saved {0} to {1}".format(meta,filename))
 
 
     def compute_ambient_spaces(self,Nrange, krange, irange, ncpu=1,**kwds):
@@ -93,7 +133,7 @@ class ComputeMFData(object):
    
        
     @fork    
-    def compute_decompositions(self,N, k, i,verbose=0,**kwds):
+    def compute_decompositions(self,N, k, i,**kwds):
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
@@ -113,30 +153,26 @@ class ComputeMFData(object):
             return numo
 
         filename = self.files().ambient(N, k, i)        
-        if verbose>0:
-            print "filename=",filename
+        clogger.debug("filename={0}".format(filename))
         if not self.files().path_exists(filename):
-            print "Ambient space ({0},{1},{2}) not computed. filename={3}".format(N,k,i,filename)
+            clogger.warning("Ambient space ({0},{1},{2}) not computed. filename={3}".format(N,k,i,filename))
             #return
             self.compute_ambient_space(N, k, i,**kwds)
         if not self.files().path_exists(filename):
             return 0
         eps = DirichletGroup(N).galois_orbits()[i][0]
         # check if the factor already exists by checking for 
-        if verbose>0:
-            print "check if path exists {0}".format(self.files().factor_eigen_nonzero(N, k, i, 0))
+        clogger.debug("check if path exists {0}".format(self.files().factor_eigen_nonzero(N, k, i, 0)))
         if self.files().path_exists(self.files().factor_eigen_nonzero(N, k, i, 0)):
             return self.files().number_of_known_factors(N,k,i) 
         t = cputime()
         M = self.files().load_ambient_space(N, k, i)
-        if verbose>0:
-            print "M=",M
+        clogger.debug("M={0}".format(M))
         if kwds.get('D') is None:
             D = M.cuspidal_subspace().new_subspace().decomposition()
         else:
             D = kwds['D']
-        if verbose>0:
-            print "D=",D
+        clogger.debug("D={0}".format(D))
         for d in range(len(D)):
             self.files().factor(N,k,i,d,makedir=True)
             f = self.files().factor_basis_matrix(N, k, i, d)
@@ -158,10 +194,10 @@ class ComputeMFData(object):
         save(meta, self.files().decomp_meta(N, k, i))
         return len(D)
     
-    def compute_decomposition_ranges(self,Nrange, krange, irange, ncpu,verbose=0):
+    def compute_decomposition_ranges(self,Nrange, krange, irange, ncpu):
         @parallel(ncpu)
         def f(N,k,i):
-            self.compute_decompositions(N,k,i,verbose=verbose)
+            self.compute_decompositions(N,k,i)
 
         v = [(N,k,i) for N in rangify(Nrange) for k in rangify(krange) for i in rangify(irange)]
         for X in f(v):
@@ -177,14 +213,12 @@ class ComputeMFData(object):
     # atkin_lehner
     @fork    
     def compute_atkin_lehner(self,N, k, i,M=None,m=None,**kwds):
-        verbose = kwds.get('verbose',0)
         filename = self.files().ambient(N, k, i)
         if not self.files().path_exists(filename):
-            print "Ambient (%s,%s,%s) space not computed. Filename=%s "%(N,k,i,filename)
+            clogger.warning("Ambient (%s,%s,%s) space not computed. Filename=%s "%(N,k,i,filename))
             return -1
             #compute_ambient_space(N, k, i)
-        if verbose>0:
-            print "computing atkin-lehner for (%s,%s,%s)"%(N,k,i)
+        clogger.debug("computing atkin-lehner for (%s,%s,%s)"%(N,k,i))
         if m is None:
             m = self.files().number_of_known_factors(N, k, i)
         if M is None:
@@ -192,28 +226,27 @@ class ComputeMFData(object):
         for d in range(m):
             atkin_lehner_file = self.files().factor_atkin_lehner(N, k, i, d, False)
             if self.files().path_exists(atkin_lehner_file):
-                if verbose>0:
-                    print "skipping computing atkin_lehner for (%s,%s,%s,%s) since it already exists"%(N,k,i,d)
+                clogger.debug("skipping computing atkin_lehner for (%s,%s,%s,%s) since it already exists"%(N,k,i,d))
                 # already done
                 continue
             # compute atkin_lehner
-            if verbose>0:
-                print "computing atkin_lehner for (%s,%s,%s,%s)"%(N,k,i,d)
+            clogger.debug("computing atkin_lehner for (%s,%s,%s,%s)"%(N,k,i,d))
             t = cputime()
             A = self.files().load_factor(N, k, i, d, M)
-            #print "A=",A
-            #print "character=",A.character()
-            #print "character order=",A.character().order()
+            clogger.debug("A={0}".format(A))
+            #clogger.debug("character=",A.character()
+            #clogger.debug("character order=",A.character().order()
             al = ' '.join(['+' if a > 0 else '-' for a in atkin_lehner_signs(A)])
             #print al
+
             open(atkin_lehner_file, 'w').write(al)
             tm = cputime(t)
             meta = {'cputime':tm, 'version':sage.version.version}
             save(meta, self.files().meta(atkin_lehner_file))
-
+        return 0
     # aplists
     @fork    
-    def compute_aplists(self,N, k, i, *args):
+    def compute_aplists(self,N, k, i, *args,**kwds):
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
@@ -229,50 +262,56 @@ class ComputeMFData(object):
                 if g[0](-1) == sgn and g[0].order()==2:
                     self.compute_aplists(N,k,j,*args)
             return
-
         if len(args) == 0:
             args = (100, )
 
         filename = self.files().ambient(N, k, i)
         if not self.files().path_exists(filename):
-            print "Ambient ({0},{1},{2}) space not computed. Filename:{3}".format(N,k,i,filename)
+            clogger.warning("Ambient ({0},{1},{2}) space not computed. Filename:{3}".format(N,k,i,filename))
             return -1
             #compute_ambient_space(N, k, i)
-        if verbose>0:
-            print "computing aplists for (%s,%s,%s)"%(N,k,i)
+        clogger.debug("computing aplists for (%s,%s,%s)"%(N,k,i))
 
         m = self.files().number_of_known_factors(N, k, i)
-        if verbose>0:
-            print "m=",m
+        clogger.debug("m={0}".format(m))
         if m == 0:
             # nothing to do
             return
-
-        M = self.files().load_ambient_space(N, k, i)
-        if verbose>0:
-            print "M,m=",M,m
+        if kwds.get('ambient') is None:
+            M = self.files().load_ambient_space(N, k, i)
+        else:
+            M = kwds['ambient']
+        clogger.debug("M,m={0}".format((M,m)))
+        if kwds.get('save',True) is False:
+            res = {}
+        else:
+            res = 0
         for d in range(m):
+            if kwds.get('factor') is not None:
+                if d <> kwds.get('factor'):
+                    continue
             aplist_file = self.files().factor_aplist(N, k, i, d, False, *args)
             if self.files().path_exists(aplist_file):
-                if verbose>0:
-                    print "skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%(args, N,k,i,d)
+                clogger.debug("skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%(args, N,k,i,d))
                 # already done
                 continue
 
             # compute aplist
-            if verbose>0:
-                print "computing aplist(%s) for (%s,%s,%s,%s)"%(args, N,k,i,d)
+            clogger.debug("computing aplist(%s) for (%s,%s,%s,%s)"%(args, N,k,i,d))
             t = cputime()
             A = self.files().load_factor(N, k, i, d, M)
             aplist, _ = A.compact_system_of_eigenvalues(prime_range(*args), 'a')
             #print aplist, aplist_file
-            save(aplist, aplist_file)
             tm = cputime(t)
             meta = {'cputime':tm, 'version':sage.version.version}
-            if verbose>0:
-                print "meta=",meta
-            save(meta, self.files().meta(aplist_file))
-
+            clogger.debug("meta={0}".format(meta))
+            if kwds.get('save',True):
+                save(aplist, aplist_file)
+                save(meta, self.files().meta(aplist_file))
+            else:
+                res[(N,k,i,d)]=aplist,meta
+            
+        return res
     def compute_aplists_ranges(self,Nrange, krange, irange, ncpu, *args):
         @parallel(ncpu)
         def f(N,k,i):
@@ -385,7 +424,12 @@ def parallel_eval(v, ncpu, do_fork=True):
 
 def atkin_lehner_signs(A):
     N = A.level()
-    return [A.atkin_lehner_operator(p).matrix()[0,0] for p in prime_divisors(N)]
+    try:
+        clogger.debug("A={0}. ".format(A))
+        return [A.atkin_lehner_operator(p).matrix()[0,0] for p in prime_divisors(N)]
+    except Exception as e:
+        clogger.critical("A={0}. Error:{1}".format(A,e.message))
+        return []
 
 
 
