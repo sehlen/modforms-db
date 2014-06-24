@@ -696,7 +696,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         try: 
             meta = load("{0}/{1}".format(factor_dir,metaname))
         except Exception as e:
-            metaname1 = "aplist-{0:0>5}-meta.sobj".format(numap)
+            metaname1 = "aplist-00100-meta.sobj".format(numap)
             try:
                 meta = load("{0}/{1}".format(factor_dir,metaname1))                
             except Exception as e:
