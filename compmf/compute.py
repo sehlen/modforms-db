@@ -276,7 +276,7 @@ class ComputeMFData(object):
         clogger.debug("m={0}".format(m))
         if m == 0:
             # nothing to do
-            return
+            return 0
         if kwds.get('ambient') is None:
             M = self.files().load_ambient_space(N, k, i)
         else:

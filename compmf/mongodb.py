@@ -469,7 +469,9 @@ class CompMF(object):
                 aps = {}
                 for d in range(num_factors):
                     aps[(N,k,i,d)] = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
-            if aps == None or len(aps.values()[0])<>3:
+            if not isinstance(aps,dict):
+                clogger.critical("APS = {0}".format(aps))
+            if aps == None or (isinstance(aps,dict) and len(aps.values()[0])<>3) or aps==-1:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
                 return aps
             aps_in_mongo = insert_aps_into_mongodb(aps)
