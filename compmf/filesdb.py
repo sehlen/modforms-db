@@ -696,7 +696,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         try: 
             meta = load("{0}/{1}".format(factor_dir,metaname))
         except Exception as e:
-            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,metaname,e.message)      
+            metaname1 = "aplist-{0:0>5}-meta.sobj".format(numap)
+            try:
+                meta = load("{0}/{1}".format(factor_dir,metaname1))                
+            except Exception as e:
+                raise ValueError,"Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message)      
         return E,v,meta
 
 
