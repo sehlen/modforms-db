@@ -215,7 +215,7 @@ class FilenamesMFDB(Filenames):
         return f
 
 
-    ##
+    #
     ## Functions for returning the names of files for different objects.
     ##
 
@@ -247,6 +247,8 @@ class FilenamesMFDB(Filenames):
         r"""
         The list of a(p)'s for the factor with range determined by the *args.
         """
+        if len(args)==1:
+            args = (0,args[0])
         a = '-'.join('%05d'%x for x in args)
         return self.make_path_name(self.factor(N,k,i,d,makedir), 'aplist-%s.sobj'%a)
 

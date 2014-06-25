@@ -246,7 +246,11 @@ class ComputeMFData(object):
         return 0
     # aplists
     @fork    
-    def compute_aplists(self,N, k, i, *args,**kwds):
+    def compute_aplists(self,N, k, i, n0,n1,**kwds):
+        r""" Compute a list of a(p) for S(N,k,i) with p in the range [next_prime(n0),previous_prime(n1)]. The length of the list is prime_pi(n1)-prime_pi(n0).
+        We store the list in a file named aplist-n0-n1.sobj where n0 and n1 are padded with zeros to
+        length 5.
+        """
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k

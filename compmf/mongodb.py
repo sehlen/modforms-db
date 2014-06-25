@@ -29,7 +29,7 @@ import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf.character_conversions import conrey_from_sage_character_number,sage_character_galois_orbit_rep_from_number
-from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save
+from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
 
 
 from compmf import clogger
@@ -561,9 +561,29 @@ class CompMF(object):
             res[t].append((E,v,meta))
         return res
  
-            
-   
 
+    def check_records(self,N,k,i='all',check_content=False):
+        r"""
+        We check if the records corresponding to M(N_i,k_i,i_i) is complete or not.
+        
+        """
+        args = []
+        if not isinstance(N,list):
+            N = [N]
+            for n in N:
+                if not isinstance(k,list):
+                    k = [k]
+                for l in k:                    
+                    if i == 'all':
+                        i = range(euler_phi(N))
+                    elif not isinstance(i,list):
+                        i = [i]
+                    for ii in i:
+                        args.append((N,k,i,check_content))
+                        
+        return list(check_record(args))
+    
+    @parallel(ncpus=8)        
     def check_record(self,N,k,i,check_content=False):
         r"""
 
@@ -614,7 +634,12 @@ class CompMF(object):
                     res['factors'] = False
                     clogger.warning("Dimensions of all factors do not sum up to the total dimension!")
         ### Check ap's
-        aps = self.get_aps(N,k,i)
+        if check_content:
+            aps = self.get_aps(N,k,i)
+        else:
+            newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
+            aps = {(N,k,i,x) :True  for x in newforms}
+            print "aps=",aps
         # Necessary for L-function computations (rounded to nearest 100).        
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
         pprec = max(pprec,100)
