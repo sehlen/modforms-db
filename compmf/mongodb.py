@@ -34,7 +34,142 @@ from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,lo
 
 from compmf import clogger
 
-class CompMF(object):
+class MongoMF(object):
+    def __init__(self,host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
+        r"""
+        Mongo database for modular forms.
+        
+        INPUT:
+
+        - host    -- string:  host where mongodb is located
+        - port    -- integer: port where we connect ot the mongodb
+        - db      -- string:  name of the mongo database to use.
+        - verbose -- integer: set verbosity
+
+        KEYWORDS:
+        
+        - compute -- Boolean (default True) set to False if you do not want to compute anything.
+        """
+        self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
+        self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+
+        ## Our databases
+      
+        self._modular_symbols_collection = 'Modular_symbols'
+        self._newform_factors_collection = 'Newform_factors'
+        self._aps_collection = 'ap'
+        self._atkin_lehner_collection = 'Atkin_Lehner'
+        self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
+        self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
+        self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
+        self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
+
+        self._sage_version = sage.version.version
+
+    def __repr__(self):
+        r"""
+        String representation of self.
+        """
+        s="Modular forms database at mongodb: {1}".format(self._db._data,self._mongo_conn)
+        return s
+
+
+    def show_existing_mongo(self,db='fr'):
+        r"""
+        Display an overview of the existing records in the mongo db.
+        """
+        files = self._modular_symbols
+        factors = self._newform_factors 
+        levels = files.distinct('N')
+        weights = files.distinct('k')
+        print "Modular symbols: \n"
+        if levels<>[]:
+            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
+        print "Newforms: \n"
+        levels = factors.distinct('N')
+        weights = factors.distinct('k')
+        if levels<>[]:
+            print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))        
+
+          ### Routines for accessing the objects stored in the mongo database.
+
+    def load_from_mongo(self,col,fid):
+        r"""
+        Load a file from gridfs collection col and id nr. fid.
+        
+        """
+        col_files = '{0}.files'.format(col)
+        if not col_files in self._mongodb.collection_names():
+            return None
+        if self._mongodb[col_files].find({'_id':fid}).count()==0:
+            return None
+        fs = gridfs.GridFS(self._mongodb,col)
+        return loads(fs.get(fid).read())
+       
+    def get_ambient(self,N,k,i,**kwds):
+        r"""
+        Return the ambient space M(N,k,i)
+
+        """
+        ambient_id = kwds.get('ambient_id',None)
+        if ambient_id is None:
+            if kwds.get('compute',True):
+                ambient_id = self.compute_ambient(N,k,i,**kwds)
+            else:
+                ids = self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('_id')
+                if ids==[]:
+                    return None
+                ambient_id = ids[0]
+        return self.load_from_mongo('Modular_symbols',ambient_id)
+       
+    def number_of_factors(self,N,k,i,**kwds):
+        r"""
+        Return the number of factors. 
+        """
+        return self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)}).count()
+
+    def get_factors(self,N,k,i,d=None):
+        r"""
+        Get factor nr. d of the space M(N,k,i)
+        """
+        s = {'N':int(N),'k':int(k),'chi':int(i)}
+        if not d is None:
+            s['newform']=int(d)
+        res = {}
+        for r in self._newform_factors.find(s):
+            d = r['newform']
+            fid = r['_id']
+            f = self.load_from_mongo('Newform_factors',fid)
+            t = (int(N),int(k),int(i),int(d))
+            res[t] = f
+        return res
+    
+    def get_aps(self,N,k,i,d=None,character_naming='sage'):
+        r"""
+        Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
+        
+        """
+        if character_naming=='sage':
+            s = {'N':int(N),'k':int(k),'chi':int(i)}
+        else:
+            ## Fetch the record in the database corresponding to the Galois orbit of
+            ## chi_N,i  (in Conrey's character naming scheme)
+            s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
+        if not d is None:
+            s['newform']=int(d)
+        res = {}
+        for r in self._aps.find(s):
+            fid=r['_id']
+            d = r['newform']
+            meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
+            E,v = self.load_from_mongo('ap',fid)
+            t = (int(N),int(k),int(i),int(d))
+            if not res.has_key(t):
+                res[t]=[]
+            res[t].append((E,v,meta))
+        return res
+        
+class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
     """
@@ -56,23 +191,11 @@ class CompMF(object):
 
 
         """
+        super(CompMF,self).__init__(host,port,verbose,db,**kwds)
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
-        self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
         assert str(db).isalnum()
-
-        self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
-        ## Our databases
-        self._modular_symbols_collection = 'Modular_symbols'
-        self._newform_factors_collection = 'Newform_factors'
-        self._aps_collection = 'ap'
-        self._atkin_lehner_collection = 'Atkin_Lehner'
-        self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
-        self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
-        self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
-        self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
-
-        self._sage_version = sage.version.version
+        
         self._do_computations = kwds.get('compute',True)
         self._save_to_file = kwds.get('save_to_file',True)
         
@@ -84,22 +207,7 @@ class CompMF(object):
         return s
 
     
-    def show_existing_mongo(self,db='fr'):
-        r"""
-        Display an overview of the existing records in the mongo db.
-        """
-        files = self._modular_symbols
-        factors = self._newform_factors 
-        levels = files.distinct('N')
-        weights = files.distinct('k')
-        print "Modular symbols: \n"
-        if levels<>[]:
-            print "{0} records with levels in range {1} -- {2}".format(files.count(),min(levels),max(levels))
-        print "Newforms: \n"
-        levels = factors.distinct('N')
-        weights = factors.distinct('k')
-        if levels<>[]:
-            print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))        
+    
 
     def show_existing_files(self):
         r"""
@@ -163,13 +271,13 @@ class CompMF(object):
     ## Different levels of parallelization
     @parallel(ncpus=8)
     def _compute_and_insert_one_space8(self,N,k,i,**kwds):
-        return self.get_or_compute_and_insert_one_space(N,k,i,**kwds)        
+        return self.compute_and_insert_one_space(N,k,i,**kwds)        
     @parallel(ncpus=16)
     def _compute_and_insert_one_space16(self,N,k,i,**kwds):
-        return self.get_or_compute_and_insert_one_space(N,k,i,**kwds)
+        return self.compute_and_insert_one_space(N,k,i,**kwds)
     @parallel(ncpus=32)
     def _compute_and_insert_one_space32(self,N,k,i,**kwds):
-        return self.get_or_compute_and_insert_one_space(N,k,i,**kwds)        
+        return self.compute_and_insert_one_space(N,k,i,**kwds)        
         
     def compute_and_insert_one_space(self,N,k,i,**kwds):
         r"""
@@ -402,7 +510,7 @@ class CompMF(object):
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')              
         key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
         clogger.debug("key={0}".format(key))
-        aps_in_mongo = files_ap.find(key).distinct('_id')
+        aps_in_mongo = self._aps.find(key).distinct('_id')
         aps_in_file = 0 
         clogger.debug("Already have {0} ap lists in mongodb! Need {1}".format(len(aps_in_mongo),num_factors))
         def insert_aps_into_mongodb(aps):
@@ -471,7 +579,7 @@ class CompMF(object):
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0}".format(num_factors))
-                aps = self._computedb.compute_aplists(N,k,i,pprec,ambient=ambient,save=self._save_to_file)
+                aps = self._computedb.compute_aplists(N,k,i,0,pprec,ambient=ambient,save=self._save_to_file)
                 if aps == 0:
                     aps = {}
                     for d in range(num_factors):
@@ -494,80 +602,10 @@ class CompMF(object):
         return aps_in_mongo
 
 
-   ### Routines for accessing the objects stored in the mongo database.
-
-    def load_from_mongo(self,col,fid):
-        r"""
-        Load a file from gridfs collection col and id nr. fid.
-        
-        """
-        col_files = '{0}.files'.format(col)
-        if not col_files in self._mongodb.collection_names():
-            return None
-        if self._mongodb[col_files].find({'_id':fid}).count()==0:
-            return None
-        fs = gridfs.GridFS(self._mongodb,col)
-        return loads(fs.get(fid).read())
-       
-    def get_ambient(self,N,k,i,**kwds):
-        r"""
-        Return the ambient space M(N,k,i)
-
-        """
-        ambient_id = kwds.get('ambient_id',None)
-        if ambient_id is None:
-            if kwds.get('compute',True):
-                ambient_id = self.compute_ambient(N,k,i,**kwds)
-            else:
-                ids = self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('_id')
-                if ids==[]:
-                    return None
-                ambient_id = ids[0]
-        return self.load_from_mongo('Modular_symbols',ambient_id)
-       
-    def number_of_factors(self,N,k,i,**kwds):
-        r"""
-        Return the number of factors. 
-        """
-        return self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)}).count()
-
-    def get_factors(self,N,k,i,d=None):
-        r"""
-        Get factor nr. d of the space M(N,k,i)
-        """
-        s = {'N':int(N),'k':int(k),'chi':int(i)}
-        if not d is None:
-            s['newform']=int(d)
-        res = {}
-        for r in self._newform_factors.find(s):
-            d = r['newform']
-            fid = r['_id']
-            f = self.load_from_mongo('Newform_factors',fid)
-            t = (int(N),int(k),int(i),int(d))
-            res[t] = f
-        return res
-    
-    def get_aps(self,N,k,i,d=None):
-        r"""
-        Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
-
-        
-        """
-        s = {'N':int(N),'k':int(k),'chi':int(i)}
-        if not d is None:
-            s['newform']=int(d)
-        res = {}
-        for r in self._aps.find(s):
-            fid=r['_id']
-            d = r['newform']
-            meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
-            E,v = self.load_from_mongo('ap',fid)
-            t = (int(N),int(k),int(i),int(d))
-            if not res.has_key(t):
-                res[t]=[]
-            res[t].append((E,v,meta))
-        return res
  
+
+ 
+    
 
     def check_records(self,N,k,i='all',check_content=False):
         r"""

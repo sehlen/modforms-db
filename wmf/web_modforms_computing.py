@@ -34,7 +34,7 @@ from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimen
 import re
 import yaml
 from flask import url_for
-
+import pymongo
 ## DB modules
 
 
@@ -44,6 +44,7 @@ from sage.rings.number_field.number_field_base import NumberField as NumberField
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
 from wmf import wmf_logger
 from wmf.web_modform_space_computing import orbit_label
+from compmf import MongoMF
 #from web_modforms import WebModFormSpace_computing_class,WebModFormSpace_computing
 #from web_character import WebChar
 
@@ -69,25 +70,39 @@ def WebNewForm_computing(N=1, k=2, chi=1, label='', prec=10, bitprec=53, display
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
 
+
 class WebNewForm_computing_class(WebNewForm):
     r"""
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None, update_from_db=True):
+    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None,host='localhost',port=37010,db='modularforms2'):
         r"""
         Init self as form with given label in S_k(N,chi)
-        """
-        super(WebNewForm_computing_class,self).__init__(level,weight,character,label,prec,bitprec,parent,update_from_db)
 
-        wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (N,k,chi,label)))
+        INPUT:
+
+        
+        
+        """
+        super(WebNewForm_computing_class,self).__init__(level,weight,character,label,prec,bitprec,parent)
+        try: 
+            self._db = MongoMF(host,port,db)
+        except pymongo.errors.ConnectionFailure as e:
+            logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
+            self._db = None
+            
+        wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
-        self.check_parent()
-        self.set_newform_number()
-        self.compute_additional_properties()
+        self.base_ring = QQ
+        self.get_aps()
+#        self.check_parent()
+#        self.set_newform_number()
+#        self.compute_additional_properties()
         #self.insert_into_db()
-
+        
+        
     def compute_additional_properties(self):
         r"""
         Compute everything we need.
@@ -147,8 +162,16 @@ class WebNewForm_computing_class(WebNewForm):
         
         
         """
-        self.coefficients.E =
-        
+        from wmf.web_modform_space_computing import orbit_index_from_label
+        newform = orbit_index_from_label(self.label)
+        aps = self._db.get_aps(self.level,self.weight,self.character.number,newform,character_naming='conrey')
+        wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+        if len(aps)>0:
+            E,v,meta = aps.values()[0][0]
+            self.eigenvalues.E = E
+            self.eigenvalues.v = v
+            self.eigenvalues.init_dynamic_properties()
+            
         
     def get_character_orbit_rep(self):
         r"""

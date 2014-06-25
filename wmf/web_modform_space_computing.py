@@ -36,6 +36,8 @@ from sage.rings.number_field.number_field_base import NumberField as NumberField
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace
 
+from compmf import MongoMF
+
 def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,**kwds):
     r"""
     Constructor for WebNewForms with added 'nicer' error message.
@@ -63,21 +65,36 @@ class WebModFormSpace_computing_class(WebModFormSpace):
 
 
     """
-    def __init__(self, N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,get_from_db=True,**kwds):
+    def __init__(self, N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, get_from_db=True,host='localhost',port=37010,db='modularforms2',**kwds):
         r"""
         Init self.
 
         INPUT:
+
+        
         - 'k' -- weight
         - 'N' -- level
         - 'chi' -- character
         - 'cuspidal' -- 1 if space of cuspforms, 0 if all modforms
+
+        - 'prec' -- integer (default 10)
+        - 'bitprec' -- 53
+        - 'get_from_db' -- Boolean (default True)
+        - 'host' -- string (default 'localhost')
+        - 'port' -- integer (default 37010)
+        - 'db' -- string (default modularforms2)
+
+        
         """
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (k,N,chi)))
         
 
         super(WebModFormSpace_computing_class,self).__init__(N,k,chi,cuspidal,prec,bitprec,data, verbose,get_from_db=False)
-
+        try: 
+            self._db = MongoMF(host,port,db)
+        except ConnectionFailure as e:
+            logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
+            self._db = None
         ## Properties which are here temporarily
         self._hecke_orbits_labels = None
         ## In this subclass we add properties which are not
@@ -449,11 +466,31 @@ class WebModFormSpace_computing_class(WebModFormSpace):
 @cached_function
 def orbit_label(j):
     x = AlphabeticStrings().gens()
-    if(j < 26):
-        label = str(x[j]).lower()
-    else:
+    j1 = j % 26
+    label = str(x[j1]).lower()
+    j  = (j - j1) / 26 -1
+    while j >= 0:
         j1 = j % 26
-        j2 = floor(QQ(j) / QQ(26))
-        label = str(x[j1]).lower()
-        label = label + str(j2)
+        label = str(x[j1]).lower() + label
+        j = (j - j1) / 26 - 1
     return label
+
+
+@cached_function
+def orbit_index_from_label(label):
+    r"""
+    Inverse of the above
+    """
+    res = 0
+    A = AlphabeticStrings()
+    x = A.gens()
+    l = list(label)
+    su = A(l.pop().upper())
+    res = x.index(su)
+    l.reverse()
+    i = 1
+    for s in l:
+        su = A(s.upper())
+        res+=(1+x.index(su))*26**i
+        i+=1
+    return res

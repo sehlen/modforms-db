@@ -256,7 +256,7 @@ class ComputeMFData(object):
             sgn = (-1)**k
             for j, g in enumerate(G):
                 if g[0](-1) == sgn:
-                    self.compute_aplists(N,k,j,*args)
+                    self.compute_aplists(N,k,j,n0,n1)
             return
 
         if i == 'quadratic':
@@ -264,10 +264,12 @@ class ComputeMFData(object):
             sgn = (-1)**k
             for j, g in enumerate(G):
                 if g[0](-1) == sgn and g[0].order()==2:
-                    self.compute_aplists(N,k,j,*args)
+                    self.compute_aplists(N,k,j,n0,n1)
             return
-        if len(args) == 0:
-            args = (100, )
+        if n1 == 100:
+            n1 = 100
+        if n0 < 0:
+            n0 = 0
 
         filename = self.files().ambient(N, k, i)
         if not self.files().path_exists(filename):
@@ -294,18 +296,18 @@ class ComputeMFData(object):
             if kwds.get('factor') is not None:
                 if d <> kwds.get('factor'):
                     continue
-            aplist_file = self.files().factor_aplist(N, k, i, d, False, *args)
+            aplist_file = self.files().factor_aplist(N, k, i, d, False, n0,n1)
             clogger.debug("Checking file:{0}".format(aplist_file))
             if self.files().path_exists(aplist_file):
-                clogger.debug("skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%(args, N,k,i,d))
+                clogger.debug("skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%((n0,n1), N,k,i,d))
                 # already done
                 continue
 
             # compute aplist
-            clogger.debug("computing aplist(%s) for (%s,%s,%s,%s)"%(args, N,k,i,d))
+            clogger.debug("computing aplist(%s) for (%s,%s,%s,%s)"%((n0,n1), N,k,i,d))
             t = cputime()
             A = self.files().load_factor(N, k, i, d, M)
-            aplist, _ = A.compact_system_of_eigenvalues(prime_range(*args), 'a')
+            aplist, _ = A.compact_system_of_eigenvalues(prime_range(n0,n1), 'a')
             #print aplist, aplist_file
             tm = cputime(t)
             meta = {'cputime':tm, 'version':sage.version.version}
@@ -317,10 +319,10 @@ class ComputeMFData(object):
                 res[(N,k,i,d)]=aplist,meta
             
         return res
-    def compute_aplists_ranges(self,Nrange, krange, irange, ncpu, *args):
+    def compute_aplists_ranges(self,Nrange, krange, irange, ncpu, n0,n1):
         @parallel(ncpu)
         def f(N,k,i):
-            self.compute_aplists(N,k,i,*args)
+            self.compute_aplists(N,k,i,n0,n1)
 
         v = [(N,k,i) for N in rangify(Nrange) for k in rangify(krange) for i in rangify(irange)]
         for X in f(v):
