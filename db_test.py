@@ -34,7 +34,7 @@ import bson
 #schema.setup_all() 
 #schema.create_all()
 #DB=mfdb.WDB('git/mfdb/data/')
-from compmf import WDB
+from compmf import CompMF
 from compmf import filesdb
 
 from compmf import * 
@@ -48,7 +48,7 @@ import pymongo
 from pymongo import Connection
 import gridfs
 
-class WDBtoMFDB(WDB):
+class WDBtoMFDB(CompMF):
     r"""
     Class to pull records from database in William's format and insert in our sql database.
 
@@ -1200,7 +1200,8 @@ def create_query(obj,data={},**kwds):
     return q
 
 import sage.modular.modsym.ambient
-from compmf.character_conversions import dirichlet_character_to_int,sage_ambient_to_dict,dict_to_factor_sage,factor_to_dict_sage
+from compmf.character_conversions import dirichlet_character_to_int
+from mdb.conversions import sage_ambient_to_dict,dict_to_factor_sage,factor_to_dict_sage
 
 def ModularSymbols_ambient(M=None,**kwds): #ModularSymbols_ambient_DB, SageObject_DB):
     r"""
@@ -2065,8 +2066,8 @@ def add_all_conrey_labels(DB):
     
 def add_conrey_character_numbers(DB,collection='ap.files'):
     #fs = gridfs.GridFS(DB._mongodb, 'ap')
-    for r in DB._mongodb[collection].find().sort('N',int(1)):
-    #{'cchi':{'$exists':False}}).sort('N',int(1)):
+    #for r in DB._mongodb[collection].find().sort('N',int(1)):
+    for r in DB._mongodb[collection].find({'cchi':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
@@ -2078,18 +2079,18 @@ collections = ['ap.files']
 def add_conrey_orbits(DB,collection='ap.files'):
     i = 0
     #for r in DB._mongodb[collection].find().sort('N',int(1)):
-    for r in DB._mongodb[collection].find({'N':int(1)}): #,'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
+    for r in DB._mongodb[collection].find({'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
         chi = r['chi']
         #cchi = r['cchi']
-        if N > 1: # There is a bug in Conrey character mod 1
+        if chi==0 or N==1:
+            orbit = [int(1)]
+        else: # There is a bug in Conrey character mod 1
             c = conrey_from_sage_character(N,chi)
             orbit = [x.number() for x in c.galois_orbit()]
             orbit.sort()
-        else:
-            orbit = [int(1)]
         cchi = orbit[0]
         DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':cchi}})
         DB._mongodb[collection].update({'_id':rid},{"$set":{'character_galois_orbit':orbit}})

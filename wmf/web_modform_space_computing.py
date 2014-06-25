@@ -34,7 +34,7 @@ from lmfdb.modular_forms.elliptic_modular_forms import emf_version
 
 from sage.rings.number_field.number_field_base import NumberField as NumberField_class
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
-from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace_class
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace
 
 def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, data=None, verbose=0,**kwds):
     r"""
@@ -52,7 +52,7 @@ def WebModFormSpace_computing(N=1, k=2, chi=1, cuspidal=1, prec=10, bitprec=53, 
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
 
-class WebModFormSpace_computing_class(WebModFormSpace_class):
+class WebModFormSpace_computing_class(WebModFormSpace):
     r"""
     Space of cuspforms to be presented on the web.
         G  = NS.
@@ -74,6 +74,8 @@ class WebModFormSpace_computing_class(WebModFormSpace_class):
         - 'cuspidal' -- 1 if space of cuspforms, 0 if all modforms
         """
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (k,N,chi)))
+        
+
         super(WebModFormSpace_computing_class,self).__init__(N,k,chi,cuspidal,prec,bitprec,data, verbose,get_from_db=False)
 
         ## Properties which are here temporarily

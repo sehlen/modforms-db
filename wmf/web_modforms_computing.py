@@ -67,22 +67,20 @@ def WebNewForm_computing(N=1, k=2, chi=1, label='', prec=10, bitprec=53, display
     return F
 
 
-from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modforms import WebNewForm_class
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
 
-class WebNewForm_computing_class(WebNewForm_class):
+class WebNewForm_computing_class(WebNewForm):
     r"""
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self, N=1, k=2, chi=1, label='', prec=10, bitprec=53, display_bprec=26,parent=None, data=None,compute=False, verbose=-1,get_from_db=True):
+    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None, update_from_db=True):
         r"""
         Init self as form with given label in S_k(N,chi)
         """
-        super(WebNewForm_computing_class,self).__init__(N,k,chi,label,prec,bitprec,display_bprec,get_from_db=False)
-        #if verbose>0:
-        #    print "d=",self.__dict__
-        wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (N,k,chi,label)))
+        super(WebNewForm_computing_class,self).__init__(level,weight,character,label,prec,bitprec,parent,update_from_db)
 
+        wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (N,k,chi,label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
         self.check_parent()
@@ -95,7 +93,7 @@ class WebNewForm_computing_class(WebNewForm_class):
         Compute everything we need.
         """
         wmf_logger.debug("Update ap's")
-        self._get_aps()
+        self.get_aps()
         self.coefficient_field()
         self.get_base_ring()
         self.set_dimension()
@@ -132,15 +130,7 @@ class WebNewForm_computing_class(WebNewForm_class):
 ##  Internal functions
 ##
 
-#    def set_parent(self):
-#        r"""
-#        
-#        """
-#        from wmf.web_modform_space_computing import WebModFormSpace_computing_class,WebModFormSpace_computing
-#        if not isinstance(self._parent,WebModFormSpace_computing_class):
-#            if self._verbose > 0:
-#                emf_logger.debug("compute parent! label={0}".format(label))
-#            self._parent = WebModFormSpace_computing(self._N, self._k,self._chi,get_from_db=True,get_all_newforms_from_db=False)
+
 
     def check_parent(self):
         r"""
@@ -152,6 +142,14 @@ class WebNewForm_computing_class(WebNewForm_class):
             raise ValueError,"The parent space is not computed! Please compute the space ({0},{1},{2})".format(self.level(),self.weight(),self.chi())
         return True
 
+    def get_aps(self):
+        r"""
+        
+        
+        """
+        self.coefficients.E =
+        
+        
     def get_character_orbit_rep(self):
         r"""
         Get the representative of the Galois orbit of the character of self.

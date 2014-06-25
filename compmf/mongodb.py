@@ -391,8 +391,13 @@ class CompMF(object):
 
         compute = kwds.get('compute',self._do_computations)
         verbose = kwds.get('verbose')
-        ci = conrey_from_sage_character_number(N,i).number()
-        files_ap = self._aps
+        c = conrey_from_sage_character_number(N,i)
+        ci = c.number()        
+        if N > 1: # There is a bug in Conrey character mod 1
+            orbit = [int(x.number()) for x in c.galois_orbit()]
+            orbit.sort()
+        else:
+            orbit = [int(1)]
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')              
         key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
@@ -417,6 +422,7 @@ class CompMF(object):
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),cchi=int(ci),
+                                 character_galois_orbit=orbit,
                                  newform=int(d),
                                  prec = int(pprec),
                                  cputime = meta.get("cputime",""),
@@ -429,6 +435,7 @@ class CompMF(object):
                 clogger.debug("fnamev={0}".format(fnamev))
                 vid = fs_v.put(dumps(v),filename=fnamev,
                                newform=int(d),
+                               character_galois_orbit=orbit,
                                N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                prec = int(pprec),
                                sage_version = meta.get("version",""),
