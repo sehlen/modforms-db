@@ -660,7 +660,7 @@ class CompMF(MongoMF):
         res = {}
         ### Check the ambient space
         check_level = int(2) if check_content else int(1)
-        clogger.debug("Checking at level {0}".format(check_level))
+        #clogger.debug("Checking at level {0}".format(check_level))
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
