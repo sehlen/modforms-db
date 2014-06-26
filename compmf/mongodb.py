@@ -639,8 +639,10 @@ class CompMF(MongoMF):
         s = {'N':int(N),'k':int(k),'chi':int(i)}
         res = {}
         ### Check the ambient space
+        check_level = int(2) if check_content else int(1)
+        
         if not recheck:
-            if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':True}).count()>0:
+            if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
                 
         M = self.get_ambient(N,k,i,compute=False)
@@ -722,7 +724,7 @@ class CompMF(MongoMF):
                 res['aps'] = True
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
-            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':True}})
+            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
         clogger.debug("done checking!")
         return res
 
@@ -757,7 +759,7 @@ class CompMF(MongoMF):
                 res[arg[0:2]] = val
         return res
 
-    def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False):
+    def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False):
         r"""
         Check all records within a specified bound and update / compute the incomplete ones.
 
@@ -766,8 +768,11 @@ class CompMF(MongoMF):
         - nrange -- list/tuple : give upper and lower bound for the levels we complete
         - krange -- list/tuple : give upper and lower bound for the weights we complete
         - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
+
+        - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
+        - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
         """
-        recs = self.find_records_needing_completion(nrange,krange,check_content,chi=chi)
+        recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck)
         args = []
         for N,k,i in recs.keys():
             if not chi is None and i<>chi:
