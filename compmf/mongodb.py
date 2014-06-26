@@ -586,11 +586,14 @@ class CompMF(MongoMF):
                 if aps == 0:
                     aps = {}
                     for d in range(num_factors):
-                        aps[(N,k,i,d)] = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)   
+                        E,v,meta  = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)   
+                        aps[(N,k,i,d)] = E,v,meta
             else:
                 aps = {}
                 for d in range(num_factors):
-                    aps[(N,k,i,d)] = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
+                    E,v,meta = self._db.load_aps(N,k,i,d,ambient=ambient,numc=pprec)
+                    aps[(N,k,i,d)] = E,v,meta
+                    
             if not isinstance(aps,dict):
                 clogger.critical("APS = {0}".format(aps))
             if aps == None or (isinstance(aps,dict) and len(aps.values()[0])<>3) or aps==-1:

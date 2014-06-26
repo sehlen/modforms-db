@@ -706,7 +706,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             try:
                 meta = load("{0}/{1}".format(factor_dir,metaname1))                
             except Exception as e:
-                raise ValueError,"Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message)      
+                clogger.critical("Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message))
+                meta = {}
+            
         return E,v,meta
 
 
