@@ -773,6 +773,7 @@ class CompMF(MongoMF):
             if not chi is None and i<>chi:
                 continue
             args.append((N,k,i))
+        clogger.debug("Completing {0} spaces!".format(len(args))
         self.get_or_compute_spaces(args,ncpus=ncpus)
         return True
         
