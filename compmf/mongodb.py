@@ -607,7 +607,7 @@ class CompMF(MongoMF):
  
     
 
-    def check_records(self,nrange,krange,irange='all',check_content=False):
+    def check_records(self,nrange,krange,irange='all',check_content=False,ncpus=8):
         r"""
         We check if the records corresponding to M(N_i,k_i,i_i) is complete or not.
         
@@ -625,10 +625,24 @@ class CompMF(MongoMF):
             for k in krange:                                    
                 for i in irange:
                     args.append((n,k,i,check_content))
-                        
-        return list(self.check_record(args))
+        if ncpus >= 32:
+            return list(self.check_record32(args))
+        elif ncpus >= 16:
+            return list(self.check_record16(args))
+        elif ncpus >= 8:
+            return list(self.check_record8(args))                    
+        return self.check_record(args)
     
     @parallel(ncpus=8)        
+    def check_record8(self,N,k,i,check_content=False,recheck=False):
+        return self.check_record(N,k,i,check_content,recheck)
+    @parallel(ncpus=16)        
+    def check_record16(self,N,k,i,check_content=False,recheck=False):
+        return self.check_record(N,k,i,check_content,recheck)
+    @parallel(ncpus=32)        
+    def check_record32(self,N,k,i,check_content=False,recheck=False):
+        return self.check_record(N,k,i,check_content,recheck)
+    @parallel(ncpus=1)            
     def check_record(self,N,k,i,check_content=False,recheck=False):
         r"""
 
@@ -642,7 +656,7 @@ class CompMF(MongoMF):
         check_level = int(2) if check_content else int(1)
         
         if not recheck:
-            if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level}}).count()>0:
+            if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
                 
         M = self.get_ambient(N,k,i,compute=False)
@@ -730,7 +744,7 @@ class CompMF(MongoMF):
 
 
 
-    def find_records_needing_completion(self,nrange=[],krange=[],chi=None,check_content=False,recheck=False):
+    def find_records_needing_completion(self,nrange=[],krange=[],chi=None,check_content=False,recheck=False,ncpus=1):
         r"""
         Check all records within a specified bound.
         """
@@ -752,8 +766,15 @@ class CompMF(MongoMF):
             N = r['N']; k=r['k']; i = r['chi']
             clogger.debug("r = {0}".format((N,k,i)))
             args.append((N,k,i,check_content,recheck))
-
-        check = self.check_record(args)
+        if ncpus >= 32:
+            check = list(self.check_record32(args))
+        elif ncpus >= 16:
+            check = list(self.check_record16(args))
+        elif ncpus >= 8:
+            check = list(self.check_record8(args))                    
+        else:
+            check = list(self.check_record(args))                    
+        #check = self.check_record(args)
         for arg,val in check:
             if val.values().count(False)>0:
                 res[arg[0:2]] = val
@@ -772,7 +793,7 @@ class CompMF(MongoMF):
         - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
         - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
         """
-        recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck)
+        recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck,ncpus=ncpus)
         args = []
         for N,k,i in recs.keys():
             if not chi is None and i<>chi:
