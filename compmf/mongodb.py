@@ -520,6 +520,9 @@ class CompMF(MongoMF):
             aps = {(N,k,i,d) : (E,v,meta) }
             where E*v gives the actual list of ap's and meta is a dictionary with cputime and sage version. 
             """
+            if not isinstance(aps,dict):
+                clogger.warning("Trying to insert non-dict aps:{0}".format(aps))
+                return 
             for key,value in aps.iteritems():
                 N,k,i,d = key
                 E,v,meta = value

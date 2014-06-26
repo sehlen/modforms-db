@@ -643,6 +643,10 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             nz = load(self.factor_eigen_nonzero(N, k, i, d))
         except IOError:
             raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+        if B._cache is None:
+            B._cache = {}
+        if Bd._cache is None:
+            Bd._cache = {}
         B._cache['in_echelon_form'] = True
         Bd._cache['in_echelon_form'] = True
         # These two lines are scary, obviously, since they depend on

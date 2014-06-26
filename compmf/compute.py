@@ -307,7 +307,9 @@ class ComputeMFData(object):
             clogger.debug("computing aplist(%s) for (%s,%s,%s,%s)"%((n0,n1), N,k,i,d))
             t = cputime()
             A = self.files().load_factor(N, k, i, d, M)
+            clogger.debug("A={0}".format(A))
             aplist, _ = A.compact_system_of_eigenvalues(prime_range(n0,n1), 'a')
+            clogger.debug("got aplist!")
             #print aplist, aplist_file
             tm = cputime(t)
             meta = {'cputime':tm, 'version':sage.version.version}
