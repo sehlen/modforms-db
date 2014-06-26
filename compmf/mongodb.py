@@ -629,7 +629,7 @@ class CompMF(MongoMF):
         return list(self.check_record(args))
     
     @parallel(ncpus=8)        
-    def check_record(self,N,k,i,check_content=False):
+    def check_record(self,N,k,i,check_content=False,recheck=False):
         r"""
 
         We check if the record corresponding to M(N,k,i) is complete or not.
@@ -638,7 +638,11 @@ class CompMF(MongoMF):
         res = {}
         s = {'N':int(N),'k':int(k),'chi':int(i)}
         res = {}
-        ### Check the ambient space 
+        ### Check the ambient space
+        if not recheck:
+            if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':True}).count()>0:
+                return  {'modular_symbols':True,'aps':True,'factors':True}
+                
         M = self.get_ambient(N,k,i,compute=False)
         if M is None:
             res['modular_symbols']=False
@@ -651,11 +655,9 @@ class CompMF(MongoMF):
                 res['modular_symbols']=False
             else:
                 res['modular_symbols']=True
-            q = self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('orbits')
-            if q == []:
-                numf = 0
-            else:
-                numf = q[0]
+            rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+            numf = rec['orbits']
+            ambient_id = rec['_id']
         ## Check factors
         numf1 = self.number_of_factors(N,k,i)
         res['factors'] = False
@@ -684,7 +686,7 @@ class CompMF(MongoMF):
         else:
             newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
             aps = {(N,k,i,x) :True  for x in newforms}
-            print "aps=",aps
+            
         # Necessary for L-function computations (rounded to nearest 100).        
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
         pprec = max(pprec,100)
@@ -718,32 +720,41 @@ class CompMF(MongoMF):
         else:
             if len(aps.keys())==numf:
                 res['aps'] = True
+        if res.values().count(False)==0:
+            # Record is complete so we mark it as such
+            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':True}})
         clogger.debug("done checking!")
         return res
 
 
 
-    def find_records_needing_completion(self,nrange=[],krange=[],check_content=False):
+    def find_records_needing_completion(self,nrange=[],krange=[],chi=None,check_content=False,recheck=False):
         r"""
         Check all records within a specified bound.
         """
         clogger.debug("Find records needing completion!")
         s = {}
         res = {}
+        if not isinstance(krange,(list,tuple)):
+            krange = [krange]
+        if not isinstance(nrange,(list,tuple)):
+            nrange = [nrange]            
         if nrange <> []:
             s['N'] = {"$lt":int(nrange[-1]+1), "$gt":int(nrange[0]-1)}
         if krange <> []:
             s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
+        if chi=='trivial' or chi==0:
+            s['chi'] = int(0)
         args = []
         for r in self._modular_symbols.find(s):
-            N = r['N']; k=r['k']; chi = r['chi']
-            clogger.debug("r = {0}".format((N,k,chi)))
-            args.append((N,k,chi,check_content))
+            N = r['N']; k=r['k']; i = r['chi']
+            clogger.debug("r = {0}".format((N,k,i)))
+            args.append((N,k,i,check_content,recheck))
 
         check = self.check_record(args)
         for arg,val in check:
             if val.values().count(False)>0:
-                res[(N,k,chi)] = val
+                res[arg[0:2]] = val
         return res
 
     def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False):
@@ -756,7 +767,7 @@ class CompMF(MongoMF):
         - krange -- list/tuple : give upper and lower bound for the weights we complete
         - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
         """
-        recs = self.find_records_needing_completion(nrange,krange,check_content)
+        recs = self.find_records_needing_completion(nrange,krange,check_content,chi=chi)
         args = []
         for N,k,i in recs.keys():
             if not chi is None and i<>chi:
