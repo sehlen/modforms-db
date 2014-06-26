@@ -28,7 +28,7 @@ TODO:
 Fix complex characters. I.e. embedddings and galois conjugates in a consistent way.
 
 """
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy
 import re
@@ -95,8 +95,10 @@ class WebNewForm_computing_class(WebNewForm):
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
-        #self.base_ring = QQ
-        self.get_aps()
+        self._newform_number = None
+        self._satake = {}
+        self._twist_info = None
+#        self.set_aps()
 #        self.check_parent()
 #        self.set_newform_number()
 #        self.compute_additional_properties()
@@ -114,63 +116,87 @@ class WebNewForm_computing_class(WebNewForm):
         Compute everything we need.
         """
         wmf_logger.debug("Update ap's")
-        self.get_aps()
-        self.coefficient_field()
-        self.get_base_ring()
+
         self.set_dimension()
-        #self.get_character_galois_orbit()
-        wmf_logger.debug("compute q-expansion")
-        prec = self.set_prec_needed_for_lfunctions()
-        self.q_expansion(prec=prec)
-        self.set_q_expansion_embeddings(prec=prec)
+        self.set_aps()
+        self.set_q_expansion()
+        
+        self.set_base_ring()       
+        self.set_coefficient_field()
 
-        wmf_logger.debug("as polynomial")
-        if self._N == 1:
-            self.as_polynomial_in_E4_and_E6()
-        wmf_logger.debug("compute twist info")
-        self.twist_info()
-        wmf_logger.debug("compute CM-values")
+        self.set_dimension()
+        self.set_sturm_bound()
 
-        self.compute_cm_values_numeric()
-        wmf_logger.debug("Get Atkin-Lehner evs")
-        self.get_atkin_lehner_eigenvalues()
-        wmf_logger.debug("compute Satake parameters")
-        self.set_is_CM()
-        wmf_logger.debug("compute Satake parameters")
+        
+        self.set_twist_info()
+        self.set_is_cm()
         self.compute_satake_parameters_numeric()
-        self.absolute_polynomial()
-        self.is_rational()
-        self.absolute_degree()
-        self.relative_degree()
-        self.sturm_bound()
-        self.get_character_orbit_rep()
-        #c = self.coefficients(self.prec(),insert_in_db=False)
-        self.insert_into_db()
-        self._check_if_all_stored()
+
+        self.set_atkin_lehner()
+        self.set_absolute_polynomial()
+        
+
+        # #self.get_character_galois_orbit()
+        # wmf_logger.debug("compute q-expansion")
+        # prec = self.set_prec_needed_for_lfunctions()
+        # self.q_expansion(prec=prec)
+        # self.set_q_expansion_embeddings(prec=prec)
+
+        # wmf_logger.debug("as polynomial")
+        # if self._N == 1:
+        #     self.as_polynomial_in_E4_and_E6()
+        # wmf_logger.debug("compute twist info")
+        # self.twist_info()
+        # wmf_logger.debug("compute CM-values")
+
+        # self.compute_cm_values_numeric()
+        # wmf_logger.debug("Get Atkin-Lehner evs")
+        # self.get_atkin_lehner_eigenvalues()
+        # wmf_logger.debug("compute Satake parameters")
+        # self.set_is_CM()
+        # wmf_logger.debug("compute Satake parameters")
+        # self.compute_satake_parameters_numeric()
+        # self.absolute_polynomial()
+        # self.is_rational()
+        # self.absolute_degree()
+        # self.relative_degree()
+        # self.sturm_bound()
+        # self.get_character_orbit_rep()
+        # #c = self.coefficients(self.prec(),insert_in_db=False)
+        # self.insert_into_db()
+        # self._check_if_all_stored()
     
 ##  Internal functions
 ##
 
 
 
-    def check_parent(self):
-        r"""
-        Check that parent is in the database.
-        """
-        C = connect_to_modularforms_db('webmodformspace.files')
-        res = C.find_one({'N':int(self.level()),'k':int(self.weight()),'chi':int(self.chi())})
-        if res is None:
-            raise ValueError,"The parent space is not computed! Please compute the space ({0},{1},{2})".format(self.level(),self.weight(),self.chi())
-        return True
+    # def check_parent(self):
+    #     r"""
+    #     Check that parent is in the database.
+    #     """
+    #     C = connect_to_modularforms_db('webmodformspace.files')
+    #     res = C.find_one({'N':int(self.level()),'k':int(self.weight()),'chi':int(self.chi())})
+    #     if res is None:
+    #         raise ValueError,"The parent space is not computed! Please compute the space ({0},{1},{2})".format(self.level(),self.weight(),self.chi())
+    #     return True
 
-    def get_aps(self):
+    def set_dimension(self):
+        r"""
+        The dimension of this galois orbit is not necessarily equal to the degree of the number field, when we have a character....
+        We therefore need this routine to distinguish between the two cases...
+        """
+        if self.dimension is None:
+            self._dimension = self.as_factor().dimension()
+            
+    def set_aps(self):
         r"""
         
         
         """
-        from wmf.web_modform_space_computing import orbit_index_from_label
-        newform = orbit_index_from_label(self.label)
-        aps = self._db.get_aps(self.level,self.weight,self.character.number,newform,character_naming='conrey')
+#        from wmf.web_modform_space_computing import orbit_index_from_label
+#        newform = orbit_index_from_label(self.label)
+        aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
         wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
         if len(aps)>0:
             E,v,meta = aps.values()[0][0]
@@ -178,41 +204,28 @@ class WebNewForm_computing_class(WebNewForm):
             self.eigenvalues.v = v
             self.eigenvalues.init_dynamic_properties()
             
-        
-    def get_character_orbit_rep(self):
-        r"""
-        Get the representative of the Galois orbit of the character of self.
-        """
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep
-        self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character().character()).number()
-        
-        
-    def set_newform_number(self):
-        r"""
-        Find the index of self in the Galois decomposition list. 
 
+    def set_q_expansion(self):
+        r"""
+        Set the q-expansion for self.
         """
-        if self._newform_number is None:
-            C = connect_to_modularforms_db('Newform_factors.files')
-            res = C.find({'N':int(self.level()),'k':int(self.weight()),
-                          'cchi':int(self.chi())})
-            num_orbits = res.count()
-            wmf_logger.debug("num_orbits={0}".format(num_orbits))
-            for i in range(num_orbits):
-                if orbit_label(i)==self.label():
-                    self._newform_number = i
-                    break
-        if self._newform_number is None:
-            raise ValueError,"Newform with this label is not in the space!"
-        
+        if not self.eigenvalues.has_eigenvalue(2):
+            self.get_aps()
+        q = self.base_ring[['q']].gen()
+        res = 0
+        for n in range(1,max(self.prec,self.prec_needed_for_lfunctions())):
+            res+=self.coefficient(n)*q**n
+        self.q_expansion = res
+
+
     def as_factor(self):
         r"""
         Return self as a newform factor
         """
         if self._as_factor is None:
             C = connect_to_modularforms_db('Newform_factors.files')
-            s = {'N':int(self.level()),'k':int(self.weight()),
-                 'cchi':int(self.chi()),'newform':int(self.newform_number())}
+            s = {'N':int(self.level),'k':int(self.weight),
+                 'cchi':int(self.character.number),'newform':int(self.newform_number())}
             res = C.find_one(s)
             #print res
             if not res is None:
@@ -222,39 +235,92 @@ class WebNewForm_computing_class(WebNewForm):
         if self._as_factor is None:
             raise ValueError,"Newform matching {0} can not be found".format(s)
         return self._as_factor
-            
-    def get_base_ring(self):
+
+    def set_base_ring(self):
         r"""
         The base ring of self, that is, the field of values of the character of self. 
         """
-        if self._base_ring is None:
-            self._base_ring = self.as_factor().base_ring()
-        return self._base_ring
-
-    
-    def relative_degree(self):
+        if self.base_ring is None or self.base_ring=={}:
+            self.base_ring = self.as_factor().base_ring()
+        if self.base_ring == QQ:
+            self.is_rational = True
+        
+    def set_coefficient_field(self):
         r"""
-        Degree of the field of coefficient relative to its base ring.
+        The base ring of self, that is, the field of values of the character of self. 
         """
-        if self._relative_degree is None:
-            self._relative_degree = self.coefficient_field().absolute_degree()/self.base_ring().absolute_degree()
-        return self._relative_degree
+        if not self.eigenvalues.has_eigenvalue(2):
+            self.get_aps()
+        try:
+            self.coefficient_field = self.eigenvalues[2].parent()
+        except KeyError:
+            raise KeyError,"We do not have eigenvalue a(2) for this newform!"
 
-    def set_dimension(self):
+    def set_absolute_polynomial(self):
         r"""
-        The dimension of this galois orbit is not necessarily equal to the degree of the number field, when we have a character....
-        We therefore need this routine to distinguish between the two cases...
+        Set the absolute polynomial of self.
         """
-        if self._dimension is None:
-            self._dimension = self.as_factor().dimension()
+        if self.coefficient_field == QQ:
+            self.absolute_polynomial = PolynomialRing(QQ,'x').gen()
+        else:
+            self.absolute_polynomial = self.coefficient_field.absolute_polynomial()
+        
 
-    def set_prec_needed_for_lfunctions(self):
+    def set_sturm_bound(self):
+        r"""
+        Set the Sturm bound of self.
+        """
+        self.sturm_bound = self.as_factor().sturm_bound()
+
+    def newform_number(self):
+        r"""
+        Return the index of self in the list of all Hecke orbits.
+        """
+        from wmf.web_modform_space_computing import orbit_index_from_label
+        if self._newform_number is None:
+            self._newform_number = orbit_index_from_label(self.label)
+        return self._newform_number
+    # def get_character_orbit_rep(self):
+    #     r"""
+    #     Get the representative of the Galois orbit of the character of self.
+    #     """
+    #     from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep
+    #     self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep(self.character.character()).number()
+        
+        
+    # def set_newform_number(self):
+    #     r"""
+    #     Find the index of self in the Galois decomposition list. 
+
+    #     """
+    #     if self._newform_number is None:
+    #         C = connect_to_modularforms_db('Newform_factors.files')
+    #         res = C.find({'N':int(self.level()),'k':int(self.weight()),
+    #                       'cchi':int(self.chi())})
+    #         num_orbits = res.count()
+    #         wmf_logger.debug("num_orbits={0}".format(num_orbits))
+    #         for i in range(num_orbits):
+    #             if orbit_label(i)==self.label():
+    #                 self._newform_number = i
+    #                 break
+    #     if self._newform_number is None:
+    #         raise ValueError,"Newform with this label is not in the space!"
+        
+    # def relative_degree(self):
+    #     r"""
+    #     Degree of the field of coefficient relative to its base ring.
+    #     """
+    #     if self._relative_degree is None:
+    #         self._relative_degree = self.coefficient_field().absolute_degree()/self.base_ring().absolute_degree()
+    #     return self._relative_degree
+
+    def prec_needed_for_lfunctions(self):
         r"""
         Calculates the number of coefficients needed for the L-function
         main page (formula taken from their pages)
         """
         if self._prec_needed_for_lfunctions is None:
-            self._prec_needed_for_lfunctions = 22 + int(RR(5)*RR(self._k)*RR(self._N).sqrt())
+            self._prec_needed_for_lfunctions = 22 + int(RR(5)*RR(self.weight)*RR(self.level).sqrt())
         return self._prec_needed_for_lfunctions 
     
     def set_q_expansion_embeddings(self, prec=10, bitprec=53,format='numeric',display_bprec=26,insert_in_db=True):
@@ -278,7 +344,7 @@ class WebNewForm_computing_class(WebNewForm):
         nstart = len(self._embeddings)
         wmf_logger.debug("Should have {0} embeddings".format(self._embeddings['prec']))
         wmf_logger.debug("Computing new stuff !")
-        deg = self.coefficient_field().absolute_degree()
+        deg = self.coefficient_field.absolute_degree()
         for n in range(self._embeddings['prec'],prec):
             try:
                 cn = self.coefficient(n)
@@ -304,28 +370,28 @@ class WebNewForm_computing_class(WebNewForm):
                       
     
   
-    def get_atkin_lehner_eigenvalues(self):
+    def set_atkin_lehner(self):
         r"""
         Get the Atkin-Lehner eigenvalues from database if they exist. 
         """
         
-        if not ((self.character().is_trivial() or self.character().order() == 2) and not self._atkin_lehner_eigenvalues is None):
+        if not ((self.character.is_trivial() or self.character.order == 2) and not self._atkin_lehner_eigenvalues is None):
             return None
         C = connect_to_modularforms_db('Atkin-Lehner.files')
         fs = get_files_from_gridfs('Atkin-Lehner')
-        s = {'N':int(self.level()),'k':int(self.weight()),
-             'cchi':int(self.chi()),'newform':int(self.newform_number())}
+        s = {'N':int(self.level),'k':int(self.weight),
+             'cchi':int(self.character.number),'newform':int(self.newform_number())}
         res = C.find_one(s)
         self._atkin_lehner_eigenvalues = {}
         if not res is None:
             alid = res['_id']
             al = loads(fs.get(alid).read())
-            for d in prime_divisors(self.level()):
+            for d in prime_divisors(self.level):
                 self._atkin_lehner_eigenvalues[d] = 1 if al[d]=='+' else -1
         else: # We compute them
             A = self.as_factor()
-            for p in prime_divisors(self.level()):
-                if self.character().is_trivial() or p==self.level():
+            for p in prime_divisors(self.level):
+                if self.character.is_trivial() or p==self.level:
                     self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
 
     def set_twist_info(self, prec=10,insert_in_db=True):
@@ -343,17 +409,17 @@ class WebNewForm_computing_class(WebNewForm):
 
 
         """
-        if(len(self._twist_info) > 0):
-            return self._twist_info
-        N = self.level()
-        k = self.weight()
+        #if (len(self._twist_info) > 0):
+        #    return self._twist_info
+        N = self.level
+        k = self.weight
         if(is_squarefree(ZZ(N))):
             self._twist_info = [True, None ]
             return [True, None]
 
         # We need to check all square factors of N
         twist_candidates = list()
-        KF = self.base_ring()
+        KF = self.base_ring
         # check how many Hecke eigenvalues we need to check
         max_nump = self._number_of_hecke_eigenvalues_to_check()
         maxp = max(primes_first_n(max_nump))
@@ -437,9 +503,10 @@ class WebNewForm_computing_class(WebNewForm):
             self._twist_info = [True, None]
         else:
             self._twist_info = [False, twist_candidates]
+        self.twist_info = self._twist_info
         return self._twist_info
 
-    def set_is_CM(self,insert_in_db=True):
+    def set_is_cm(self,insert_in_db=True):
         r"""
         Checks if f has complex multiplication and if it has then it returns the character.
 
@@ -450,12 +517,12 @@ class WebNewForm_computing_class(WebNewForm):
         EXAMPLES::
 
         """
-        if(len(self._is_CM) > 0):
-            return self._is_CM
+        #if(len(self._is_CM) > 0):
+        #    return self._is_CM
         max_nump = self._number_of_hecke_eigenvalues_to_check()
         # E,v = self._f.compact_system_of_eigenvalues(max_nump+1)
         try:
-            coeffs = self.coefficients(range(max_nump + 1),insert_in_db=insert_in_db)
+            coeffs = self.coefficients(range(max_nump + 1))
         except IndexError: 
            return None,None
         nz = coeffs.count(0)  # number of zero coefficients
@@ -482,6 +549,7 @@ class WebNewForm_computing_class(WebNewForm):
             except StopIteration:
                 pass
         self._is_CM = [False, 0]
+        self.is_cm = self._is_CM[0]
         return self._is_CM
 
     def as_polynomial_in_E4_and_E6(self,insert_in_db=True):
@@ -492,13 +560,13 @@ class WebNewForm_computing_class(WebNewForm):
         with f = Sum_{i=0}^{k/6} x_(n-i) E_6^i * E_4^{k/4-i}
         i.e. x_i is the coefficient of E_6^(k/6-i)*
         """
-        if(self.level() != 1):
+        if(self.level != 1):
             raise NotImplementedError("Only implemented for SL(2,Z). Need more generators in general.")
         if(self._as_polynomial_in_E4_and_E6 is not None and self._as_polynomial_in_E4_and_E6 != ''):
             return self._as_polynomial_in_E4_and_E6
         d = self.parent().dimension_modular_forms()  # dimension of space of modular forms
-        k = self.weight()
-        K = self.base_ring()
+        k = self.weight
+        K = self.base_ring
         l = list()
         wmf_logger.debug("Start to get self as polynomial in E4 and E6")
         # for n in range(d+1):
@@ -554,7 +622,7 @@ class WebNewForm_computing_class(WebNewForm):
             [poldeg, monomials, X] = self.as_polynomial_in_E4_and_E6()
         except:
             return ""
-        k = self.weight()
+        k = self.weight
         tab = dict()
         QQ['x']
         tab[0] = 0 * x ** 0
@@ -573,38 +641,38 @@ class WebNewForm_computing_class(WebNewForm):
         return res
 
 
-    def print_as_polynomial_in_E4_and_E6(self):
-        r"""
+    # def print_as_polynomial_in_E4_and_E6(self):
+    #     r"""
 
-        """
-        if(self.level() != 1):
-            return ""
-        try:
-            [poldeg, monomials, X] = self.as_polynomial_in_E4_and_E6()
-        except ValueError:
-            return ""
-        s = ""
-        e4 = "E_{4}"
-        e6 = "E_{6}"
-        dens = map(denominator, X)
-        g = gcd(dens)
-        s = "\\frac{1}{" + str(g) + "}\left("
-        for n in range(len(X)):
-            c = X[n] * g
-            if(c == -1):
-                s = s + "-"
-            elif(c != 1):
-                s = s + str(c)
-            if(n > 0 and c > 0):
-                s = s + "+"
-            d4 = monomials[n][0]
-            d6 = monomials[n][1]
-            if(d6 > 0):
-                s = s + e6 + "^{" + str(d6) + "}"
-            if(d4 > 0):
-                s = s + e4 + "^{" + str(d4) + "}"
-        s = s + "\\right)"
-        return "\(" + s + "\)"
+    #     """
+    #     if(self.level() != 1):
+    #         return ""
+    #     try:
+    #         [poldeg, monomials, X] = self.as_polynomial_in_E4_and_E6()
+    #     except ValueError:
+    #         return ""
+    #     s = ""
+    #     e4 = "E_{4}"
+    #     e6 = "E_{6}"
+    #     dens = map(denominator, X)
+    #     g = gcd(dens)
+    #     s = "\\frac{1}{" + str(g) + "}\left("
+    #     for n in range(len(X)):
+    #         c = X[n] * g
+    #         if(c == -1):
+    #             s = s + "-"
+    #         elif(c != 1):
+    #             s = s + str(c)
+    #         if(n > 0 and c > 0):
+    #             s = s + "+"
+    #         d4 = monomials[n][0]
+    #         d6 = monomials[n][1]
+    #         if(d6 > 0):
+    #             s = s + e6 + "^{" + str(d6) + "}"
+    #         if(d4 > 0):
+    #             s = s + e4 + "^{" + str(d4) + "}"
+    #     s = s + "\\right)"
+    #     return "\(" + s + "\)"
 
 
     def compute_cm_values_numeric(self,digits=12,insert_in_db=True):
@@ -613,7 +681,7 @@ class WebNewForm_computing_class(WebNewForm):
         """
         if isinstance(self._cm_values,dict) and self._cm_values  <> {}:
             return self._cm_values
-        if self.level()<>1:
+        if self.level<>1:
            return None
          # the points we want are i and rho. More can be added later...
         bits = ceil(int(digits) * int(4))
@@ -622,7 +690,7 @@ class WebNewForm_computing_class(WebNewForm):
         eps = RF(10 ** - (digits + 1))
         if(self._verbose > 1):
             wmf_logger.debug("eps={0}".format(eps))
-        K = self.base_ring()
+        K = self.base_ring
         # recall that
         degree = self.degree()
         cm_vals = dict()
@@ -635,7 +703,7 @@ class WebNewForm_computing_class(WebNewForm):
             q = CF(exp(2 * pi * I * tau))
             fexp = dict()
             cm_vals[tau] = dict()
-            if(tau == I and self.level() == -1):
+            if(tau == I and self.level == -1):
                 # cv=    #"Exact(soon...)" #_cohen_exact_formula(k)
                 for h in range(degree):
                     cm_vals[tau][h] = cv
@@ -709,12 +777,12 @@ class WebNewForm_computing_class(WebNewForm):
         -''bits'' -- do real embedings intoi field of bits precision
 
         """
-        if self.character().order()>2:
+        if self.character.order > 2:
             ## We only implement this for trival or quadratic characters.
             ## Otherwise there is difficulty to figure out what the embeddings mean... 
             return 
-        K = self.coefficient_field()
-        degree = self.degree()
+        K = self.coefficient_field
+        degree = K.absolute_degree()
         RF = RealField(bits)
         CF = ComplexField(bits)
         ps = prime_range(prec)
@@ -724,7 +792,7 @@ class WebNewForm_computing_class(WebNewForm):
         thetas = dict()
         aps = list()
         tps = list()
-        k = self.weight()
+        k = self.weight
 
         for j in range(degree):
             alphas[j] = dict()
@@ -736,10 +804,10 @@ class WebNewForm_computing_class(WebNewForm):
             except IndexError:
                 break
             # Remove bad primes
-            if p.divides(self.level()):
+            if p.divides(self.level):
                 continue
             self._satake['ps'].append(p)
-            chip = self.character().value(p)
+            chip = self.character.value(p)
             #wmf_logger.debug("p={0}".format(p))
             #wmf_logger.debug("chip={0} of type={1}".format(chip,type(chip)))
             #if hasattr(chip,'complex_embeddings'):
@@ -794,6 +862,7 @@ class WebNewForm_computing_class(WebNewForm):
                 self._satake['thetas_latex'][j][p] = s
 
         wmf_logger.debug("satake=".format(self._satake))
+        self.satake = self._satake
         return self._satake
 
 
@@ -803,7 +872,7 @@ class WebNewForm_computing_class(WebNewForm):
         ## initial bound
         bd = self.as_factor().sturm_bound()
         # we do not check primes dividing the level
-        bd = bd + len(divisors(self.level()))
+        bd = bd + len(divisors(self.level))
         return bd
 
 
@@ -816,11 +885,11 @@ class WebNewForm_computing_class(WebNewForm):
         assert x.is_primitive()
         q = x.conductor()
         # what level will the twist live on?
-        level = self.level()
-        qq = self.character().conductor()
-        new_level = lcm(self.level(), lcm(q * q, q * qq))
+        level = self.level
+        qq = self.character.conductor()
+        new_level = lcm(self.level, lcm(q * q, q * qq))
         D = DirichletGroup(new_level)
-        new_x = D(self.character()) * D(x) * D(x)
+        new_x = D(self.character) * D(x) * D(x)
         ix = D.list().index(new_x)
         #  the correct space
         NS = WebModFormSpace(self._k, new_level, ix, self._prec)
@@ -855,222 +924,222 @@ class WebNewForm_computing_class(WebNewForm):
 ###
 
 
-def my_latex_from_qexp(s):
-    r"""
-    Make LaTeX from string. in particular from parts of q-expansions.
-    """
-    ss = ""
-    ss += re.sub('x\d', 'x', s)
-    ss = re.sub("\^(\d+)", "^{\\1}", ss)
-    ss = re.sub('\*', '', ss)
-    ss = re.sub('zeta(\d+)', 'zeta_{\\1}', ss)
-    ss = re.sub('zeta', '\zeta', ss)
-    ss += ""
-    # wmf_logger.debug("ss=",ss
-    return ss
+# def my_latex_from_qexp(s):
+#     r"""
+#     Make LaTeX from string. in particular from parts of q-expansions.
+#     """
+#     ss = ""
+#     ss += re.sub('x\d', 'x', s)
+#     ss = re.sub("\^(\d+)", "^{\\1}", ss)
+#     ss = re.sub('\*', '', ss)
+#     ss = re.sub('zeta(\d+)', 'zeta_{\\1}', ss)
+#     ss = re.sub('zeta', '\zeta', ss)
+#     ss += ""
+#     # wmf_logger.debug("ss=",ss
+#     return ss
 
 
-def break_line_at(s, brpt=20):
-    r"""
-    Breaks a line containing math 'smartly' at brpt characters.
-    With smartly we mean that we break at + or - but keep brackets
-    together
-    """
-    sl = list()
-    stmp = ''
-    left_par = 0
-    #wmf_logger.debug('Break at line, Input ={0}'.format(s))
-    for i in range(len(s)):
-        if s[i] == '(':  # go to the matching case
-            left_par = 1
-        elif s[i] == ')' and left_par == 1:
-            left_par = 0
-        if left_par == 0 and (s[i] == '+' or s[i] == '-'):
-            sl.append(stmp)
-            stmp = ''
-        stmp = stmp + s[i]
-        if i == len(s) - 1:
-            sl.append(stmp)
-    wmf_logger.debug('sl={0}'.format(sl))
+# def break_line_at(s, brpt=20):
+#     r"""
+#     Breaks a line containing math 'smartly' at brpt characters.
+#     With smartly we mean that we break at + or - but keep brackets
+#     together
+#     """
+#     sl = list()
+#     stmp = ''
+#     left_par = 0
+#     #wmf_logger.debug('Break at line, Input ={0}'.format(s))
+#     for i in range(len(s)):
+#         if s[i] == '(':  # go to the matching case
+#             left_par = 1
+#         elif s[i] == ')' and left_par == 1:
+#             left_par = 0
+#         if left_par == 0 and (s[i] == '+' or s[i] == '-'):
+#             sl.append(stmp)
+#             stmp = ''
+#         stmp = stmp + s[i]
+#         if i == len(s) - 1:
+#             sl.append(stmp)
+#     wmf_logger.debug('sl={0}'.format(sl))
 
-    # sl now contains a split  e.g. into terms in the q-expansion
-    # we now have to join as many as fits on the line
-    res = list()
-    stmp = ''
-    for j in range(len(sl)):
-        l = len_as_printed(stmp) + len_as_printed(sl[j])
-        #wmf_logger.debug("l={0}".format(l))
-        if l < brpt:
-            stmp = join([stmp, sl[j]])
-        else:
-            res.append(stmp)
-            stmp = sl[j]
-        if j == len(sl) - 1:
-            res.append(stmp)
-    return res
-
-
-def _get_newform(N, k, chi, fi=None):
-    r"""
-    Get an element of the space of newforms, incuding some error handling.
-
-    INPUT:
-
-     - ''k'' -- positive integer : the weight
-     - ''N'' -- positive integer (default 1) : level
-     - ''chi'' -- non-neg. integer (default 0) use character nr. chi
-     - ''fi'' -- integer (default 0) We want to use the element nr. fi f=Newforms(N,k)[fi]. fi=-1 returns the whole list
-     - ''prec'' -- integer (the number of coefficients to get)
-
-    OUTPUT:
-
-    -''t'' -- bool, returning True if we succesfully created the space and picked the wanted f
-    -''f'' -- equals f if t=True, otherwise contains an error message.
-
-    EXAMPLES::
+#     # sl now contains a split  e.g. into terms in the q-expansion
+#     # we now have to join as many as fits on the line
+#     res = list()
+#     stmp = ''
+#     for j in range(len(sl)):
+#         l = len_as_printed(stmp) + len_as_printed(sl[j])
+#         #wmf_logger.debug("l={0}".format(l))
+#         if l < brpt:
+#             stmp = join([stmp, sl[j]])
+#         else:
+#             res.append(stmp)
+#             stmp = sl[j]
+#         if j == len(sl) - 1:
+#             res.append(stmp)
+#     return res
 
 
-        sage: _get_newform(16,10,1)
-        (False, 'Could not construct space $S^{new}_{16}(10)$')
-        sage: _get_newform(10,16,1)
-        (True, q - 68*q^3 + 1510*q^5 + O(q^6))
-        sage: _get_newform(10,16,3)
-        (True, q + 156*q^3 + 870*q^5 + O(q^6))
-        sage: _get_newform(10,16,4)
-        (False, '')
+# def _get_newform(N, k, chi, fi=None):
+#     r"""
+#     Get an element of the space of newforms, incuding some error handling.
 
-     """
-    t = False
-    try:
-        if(chi == 0):
-            wmf_logger.debug("EXPLICITLY CALLING NEWFORMS!")
-            S = Newforms(N, k, names='x')
-        else:
-            S = Newforms(DirichletGroup(N)[chi], k, names='x')
-        if(fi >= 0 and fi < len(S)):
-            f = S[fi]
-            t = True
-        elif(fi == -1 or fi is None):
-            t = True
-            return (t, S)
-        else:
-            f = ""
-    except RuntimeError:
-        if(chi == 0):
-            f = "Could not construct space $S^{new}_{%s}(%s)$" % (k, N)
-        else:
-            f = "Could not construct space $S^{new}_{%s}(%s,\chi_{%s})$" % (k, N, chi)
-    return (t, f)
+#     INPUT:
+
+#      - ''k'' -- positive integer : the weight
+#      - ''N'' -- positive integer (default 1) : level
+#      - ''chi'' -- non-neg. integer (default 0) use character nr. chi
+#      - ''fi'' -- integer (default 0) We want to use the element nr. fi f=Newforms(N,k)[fi]. fi=-1 returns the whole list
+#      - ''prec'' -- integer (the number of coefficients to get)
+
+#     OUTPUT:
+
+#     -''t'' -- bool, returning True if we succesfully created the space and picked the wanted f
+#     -''f'' -- equals f if t=True, otherwise contains an error message.
+
+#     EXAMPLES::
 
 
-def _degree(K):
-    r"""
-    Returns the degree of the number field K
-    """
-    return K.absolute_degree()
+#         sage: _get_newform(16,10,1)
+#         (False, 'Could not construct space $S^{new}_{16}(10)$')
+#         sage: _get_newform(10,16,1)
+#         (True, q - 68*q^3 + 1510*q^5 + O(q^6))
+#         sage: _get_newform(10,16,3)
+#         (True, q + 156*q^3 + 870*q^5 + O(q^6))
+#         sage: _get_newform(10,16,4)
+#         (False, '')
+
+#      """
+#     t = False
+#     try:
+#         if(chi == 0):
+#             wmf_logger.debug("EXPLICITLY CALLING NEWFORMS!")
+#             S = Newforms(N, k, names='x')
+#         else:
+#             S = Newforms(DirichletGroup(N)[chi], k, names='x')
+#         if(fi >= 0 and fi < len(S)):
+#             f = S[fi]
+#             t = True
+#         elif(fi == -1 or fi is None):
+#             t = True
+#             return (t, S)
+#         else:
+#             f = ""
+#     except RuntimeError:
+#         if(chi == 0):
+#             f = "Could not construct space $S^{new}_{%s}(%s)$" % (k, N)
+#         else:
+#             f = "Could not construct space $S^{new}_{%s}(%s,\chi_{%s})$" % (k, N, chi)
+#     return (t, f)
 
 
-def unpickle_wnf_v1(N, k,chi, label, fi, prec, bitprec, display_bprec,parent,data):
-    F = WebNewForm(N=N,k=k, chi=chi, label=label, fi=fi, prec=prec, bitprec=bitprec, display_bprec=display_bprec,parent=parent, data=data)
-    return F
+# def _degree(K):
+#     r"""
+#     Returns the degree of the number field K
+#     """
+#     return K.absolute_degree()
 
 
-def unpickle_wmfs_v1(N, k,chi, cuspidal, prec, bitprec, data):
-    M = WebModFormSpace(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec, data=data)
-    return M
+# def unpickle_wnf_v1(N, k,chi, label, fi, prec, bitprec, display_bprec,parent,data):
+#     F = WebNewForm(N=N,k=k, chi=chi, label=label, fi=fi, prec=prec, bitprec=bitprec, display_bprec=display_bprec,parent=parent, data=data)
+#     return F
 
 
-def pol_to_html(p):
-    r"""
-    Convert polynomial p to html.
-    """
-    s = str(p)
-    s = re.sub("\^(\d*)", "<sup>\\1</sup>", s)
-    s = re.sub("\_(\d*)", "<sub>\\1</sub>", s)
-    s = re.sub("\*", "", s)
-    s = re.subst("x", "<i>x</i>", s)
-    return s
-
-def pol_to_latex(p):
-    r"""
-    Convert polynomial in string format to latex.
-    """
-    s = str(p)
-    s = re.sub("\^(\d*)", "^{\\1}", s)
-    s = re.sub("\_(\d*)", "_{\\1}", s)
-    s = re.sub("\*", "", s)
-    s = re.sub("zeta(\d+)", "\zeta_{\\1}", s)
-    return s
+# def unpickle_wmfs_v1(N, k,chi, cuspidal, prec, bitprec, data):
+#     M = WebModFormSpace(N=N, k=k, chi=chi, cuspidal=cuspidal, prec=prec, bitprec=bitprec, data=data)
+#     return M
 
 
-def number_field_to_dict(F):
+# def pol_to_html(p):
+#     r"""
+#     Convert polynomial p to html.
+#     """
+#     s = str(p)
+#     s = re.sub("\^(\d*)", "<sup>\\1</sup>", s)
+#     s = re.sub("\_(\d*)", "<sub>\\1</sub>", s)
+#     s = re.sub("\*", "", s)
+#     s = re.subst("x", "<i>x</i>", s)
+#     return s
 
-    r"""
-    INPUT:
-    - 'K' -- Number Field
-    - 't' -- (p,gens) where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
-
-    OUTPUT:
-
-    - 'F' -- Number field extending K with relative minimal polynomial p.
-    """
-    if F.base_ring().absolute_degree()==1:
-        K = 'QQ'
-    else:
-        K = number_field_to_dict(F.base_ring())
-    if F.absolute_degree() == 1:
-        p = 'x'
-        g = ('x',)
-    else:
-        p = F.relative_polynomial()
-        g = str(F.gen())
-        x = p.variables()[0]
-        p = str(p).replace(str(x),str(g))
-    return {'base':K,'relative polynomial':p,'gens':g}
+# def pol_to_latex(p):
+#     r"""
+#     Convert polynomial in string format to latex.
+#     """
+#     s = str(p)
+#     s = re.sub("\^(\d*)", "^{\\1}", s)
+#     s = re.sub("\_(\d*)", "_{\\1}", s)
+#     s = re.sub("\*", "", s)
+#     s = re.sub("zeta(\d+)", "\zeta_{\\1}", s)
+#     return s
 
 
-def number_field_from_dict(d):
-    r"""
-    INPUT:
+# def number_field_to_dict(F):
 
-    - 'd' -- {'base':F,'p':p,'g':g } where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
+#     r"""
+#     INPUT:
+#     - 'K' -- Number Field
+#     - 't' -- (p,gens) where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
 
-    OUTPUT:
+#     OUTPUT:
 
-    - 'F' -- Number field extending K with relative minimal polynomial p.
-    """
-    K = d['base']; p=d['relative polynomial']; g=d['gens']
-    if K=='QQ':
-        K = QQ
-    elif isinstance(K,dict):
-        K = number_field_from_dict(K)
-    else:
-        raise ValueError,"Could not construct number field!"
-    F = NumberField(K[g](p),names=g)
-    if F.absolute_degree()==1:
-        F = QQ
-    return F
+#     - 'F' -- Number field extending K with relative minimal polynomial p.
+#     """
+#     if F.base_ring().absolute_degree()==1:
+#         K = 'QQ'
+#     else:
+#         K = number_field_to_dict(F.base_ring())
+#     if F.absolute_degree() == 1:
+#         p = 'x'
+#         g = ('x',)
+#     else:
+#         p = F.relative_polynomial()
+#         g = str(F.gen())
+#         x = p.variables()[0]
+#         p = str(p).replace(str(x),str(g))
+#     return {'base':K,'relative polynomial':p,'gens':g}
 
-def my_complex_latex(c,bitprec):
-    x = c.real().n(bitprec)
-    y = c.imag().n(bitprec)
-    d = floor(bitprec/3.4)
-    if x >= 0:
-        prefx = "\\hphantom{-}"
-    else:
-        prefx = ""
-    if y < 0:
-        prefy = ""
-    else:
-        prefy = "+"
-    xi,xf = str(x).split(".")
-    xstr = "{0}.{1:0<{d}}".format(xi,xf,d=d)
-    #print "xstr=",xstr
-    yi,yf = str(y).split(".")
-    ystr = "{0}.{1:0<{d}}".format(yi,yf,d=d)
-    t = "{prefx}{x}{prefy}{y}i".format(prefx=prefx,x=xstr,prefy=prefy,y=ystr)
-    return t
-#     d = 
-#     if y ==0:
-#         return "{0:.df}
+
+# def number_field_from_dict(d):
+#     r"""
+#     INPUT:
+
+#     - 'd' -- {'base':F,'p':p,'g':g } where p is a polynomial in the variable(s) xN with coefficients in K. (The 'x' is just a convention)
+
+#     OUTPUT:
+
+#     - 'F' -- Number field extending K with relative minimal polynomial p.
+#     """
+#     K = d['base']; p=d['relative polynomial']; g=d['gens']
+#     if K=='QQ':
+#         K = QQ
+#     elif isinstance(K,dict):
+#         K = number_field_from_dict(K)
+#     else:
+#         raise ValueError,"Could not construct number field!"
+#     F = NumberField(K[g](p),names=g)
+#     if F.absolute_degree()==1:
+#         F = QQ
+#     return F
+
+# def my_complex_latex(c,bitprec):
+#     x = c.real().n(bitprec)
+#     y = c.imag().n(bitprec)
+#     d = floor(bitprec/3.4)
+#     if x >= 0:
+#         prefx = "\\hphantom{-}"
+#     else:
+#         prefx = ""
+#     if y < 0:
+#         prefy = ""
+#     else:
+#         prefy = "+"
+#     xi,xf = str(x).split(".")
+#     xstr = "{0}.{1:0<{d}}".format(xi,xf,d=d)
+#     #print "xstr=",xstr
+#     yi,yf = str(y).split(".")
+#     ystr = "{0}.{1:0<{d}}".format(yi,yf,d=d)
+#     t = "{prefx}{x}{prefy}{y}i".format(prefx=prefx,x=xstr,prefy=prefy,y=ystr)
+#     return t
+# #     d = 
+# #     if y ==0:
+# #         return "{0:.df}
  
