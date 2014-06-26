@@ -695,7 +695,7 @@ class CompMF(MongoMF):
                 clogger.debug("Dimension of space is: {0}".format(d1))                    
                 if d <> d1:
                     res['factors'] = False
-                    clogger.warning("Dimensions of all factors do not sum up to the total dimension!")
+                    clogger.warning("Dimensions of all factors do not sum up to the total dimension! n,k,chi={0}".format((N,k,i)))
         ### Check ap's
         if check_content:
             aps = self.get_aps(N,k,i)
@@ -773,11 +773,11 @@ class CompMF(MongoMF):
         elif ncpus >= 8:
             check = list(self.check_record8(args))                    
         else:
-            check = list(self.check_record(args))                    
+            check = list(self.check_record(args))
         #check = self.check_record(args)
         for arg,val in check:
             if val.values().count(False)>0:
-                res[arg[0:2]] = val
+                res[arg[0][0:3]] = val
         return res
 
     def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False):
@@ -799,7 +799,7 @@ class CompMF(MongoMF):
             if not chi is None and i<>chi:
                 continue
             args.append((N,k,i))
-        clogger.debug("Completing {0} spaces!".format(len(args)))
+        clogger.info("Completing {0} spaces!".format(len(args)))
         self.get_or_compute_spaces(args,ncpus=ncpus)
         return True
         
