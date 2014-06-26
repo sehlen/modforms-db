@@ -607,26 +607,26 @@ class CompMF(MongoMF):
  
     
 
-    def check_records(self,N,k,i='all',check_content=False):
+    def check_records(self,nrange,krange,irange='all',check_content=False):
         r"""
         We check if the records corresponding to M(N_i,k_i,i_i) is complete or not.
         
         """
         args = []
-        if not isinstance(N,list):
-            N = [N]
-            for n in N:
-                if not isinstance(k,list):
-                    k = [k]
-                for l in k:                    
-                    if i == 'all':
-                        i = range(euler_phi(N))
-                    elif not isinstance(i,list):
-                        i = [i]
-                    for ii in i:
-                        args.append((N,k,i,check_content))
+        if not isinstance(nrange,(list,tuple)):
+            nranfge = [nrange]
+        if not isinstance(krange,(list,tuple)):
+            krange = [krange]        
+        for n in nrange:
+            if irange == 'all':
+                irange = range(euler_phi(n))
+            elif not isinstance(irange,(list,tuple)):
+                irange = [irange]
+            for k in krange:                                    
+                for i in irange:
+                    args.append((n,k,i,check_content))
                         
-        return list(check_record(args))
+        return list(self.check_record(args))
     
     @parallel(ncpus=8)        
     def check_record(self,N,k,i,check_content=False):
@@ -734,13 +734,16 @@ class CompMF(MongoMF):
             s['N'] = {"$lt":int(nrange[-1]+1), "$gt":int(nrange[0]-1)}
         if krange <> []:
             s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
+        args = []
         for r in self._modular_symbols.find(s):
             N = r['N']; k=r['k']; chi = r['chi']
             clogger.debug("r = {0}".format((N,k,chi)))
+            args.append((N,k,chi,check_content))
 
-            check = self.check_record(N,k,chi,check_content)
-            if check.values().count(False)>0:
-                res[(N,k,chi)] = check
+        check = self.check_record(args)
+        for arg,val in check:
+            if val.values().count(False)>0:
+                res[(N,k,chi)] = val
         return res
 
     def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False):
