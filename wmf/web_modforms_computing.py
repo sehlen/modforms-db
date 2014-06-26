@@ -95,12 +95,18 @@ class WebNewForm_computing_class(WebNewForm):
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
-        self.base_ring = QQ
+        #self.base_ring = QQ
         self.get_aps()
 #        self.check_parent()
 #        self.set_newform_number()
 #        self.compute_additional_properties()
         #self.insert_into_db()
+
+    def __repr__(self):
+        r"""
+        """
+        s = "WebNewform for computing in S_{0}({1},{2})".format(self.weight,self.level,self.character.number)
+        return s
         
         
     def compute_additional_properties(self):
