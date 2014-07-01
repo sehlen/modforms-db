@@ -28,7 +28,7 @@ import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
-from compmf.character_conversions import conrey_from_sage_character_number,sage_character_galois_orbit_rep_from_number
+from compmf.character_conversions import conrey_from_sage_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
 from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
 
 
@@ -70,7 +70,7 @@ class MongoMF(object):
         r"""
         String representation of self.
         """
-        s="Modular forms database at mongodb: {1}".format(self._db._data,self._mongo_conn)
+        s="Modular forms database at mongodb: {0}".format(self._mongo_conn)
         return s
 
 
