@@ -51,7 +51,7 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
-from compmf.character_conversions import sage_character_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
+from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
 
 from compmf import clogger
 
