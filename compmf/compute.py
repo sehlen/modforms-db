@@ -51,7 +51,7 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
-from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
+from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep,dirichlet_character_sage_galois_orbits_reps
 
 from compmf import clogger
 
@@ -102,7 +102,7 @@ class ComputeMFData(object):
         filename = self.files().ambient(N, k, i)
         if self.files().path_exists(filename):
             return
-        eps = sage_character_galois_orbit_rep_from_number(N, i)
+        eps = dirichlet_character_sage_galois_orbit_rep(N, i)
         t = cputime()
         M = kwds.get('M',None)
         if M ==  None or M.sign()<>N or M.weight()<>k or M.level()<>N or M.character()<> eps or not is_ModularSymbolsSpace(M):

@@ -24,6 +24,7 @@ Programs for inserting modular forms data into a mongo database. By default we a
 
 import sage.all
 import os,re
+from string import join
 import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
@@ -157,6 +158,7 @@ class MongoMF(object):
             s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
         if not d is None:
             s['newform']=int(d)
+        clogger.debug("find aps with s={0}".format(s))
         res = {}
         for r in self._aps.find(s):
             fid=r['_id']
@@ -556,14 +558,18 @@ class CompMF(MongoMF):
             r"""
             Insert aps (of the same format as above) into the files database.
             """
-            for (N,k,i,d),(E,v,meta) in aps.itervalues():
+            for key,val in aps.iteritems():
+                clogger.debug("key={0}".format(key))
+                clogger.debug("val={0}".format(val))
+                N,k,i,d = key
+                E,v,meta = val[0]
                 aplist_file = self._db.factor_aplist(N, k, i, d, False, pprec)
                 apdir = join(aplist_file.split("/")[0:-1],"/")
                 if not self._db.isdir(apdir):
                     self._db.makedirs(apdir)
                 clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
                 save((E,v), aplist_file)
-                save(meta, self._computedb._db.meta(aplist_file))
+                save(meta, self._db.meta(aplist_file))
                     
         # See if we have the coefficients in a file or not
         q = self._db.known("N={0} and k={1} and i={2}".format(N,k,i))

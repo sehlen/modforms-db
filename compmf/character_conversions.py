@@ -30,7 +30,7 @@ from sage.all import cached_function,QQ,trivial_character,ModularSymbols,Mod
 from dirichlet_conrey import *
 import sage 
 from sage.structure.sequence import Sequence
-
+from compmf import clogger
 ## The Dirichlet group
 
 @cached_function
@@ -147,14 +147,16 @@ def dirichlet_character_sage_galois_orbit_rep(N,xi):
     """
     if N == 1:
         return 1
-    x = conrey_character_from_number(N,xi)
-    reps = sage_dirichlet_character_galois_orbits_reps(N)
+    x = conrey_character_from_number(N,xi).sage_character()
+    reps = dirichlet_character_sage_galois_orbits_reps(N)
+    #clogger.debug("reps={0}".format(reps))
+    clogger.debug("reps={0}".format(reps))
     if x in reps:
-        return reps.index(x)
+        return x #reps.index(x)
     else: 
-        for i in len(reps):
+        for i in range(len(reps)):
             if x in reps[i].galois_orbit():
-                return i
+                return reps[i]
     raise ArithmeticError("Could not find representative of Galois orbit of {0}".format(x))
 
 
