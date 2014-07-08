@@ -58,7 +58,7 @@ class MongoMF(object):
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
         self._aps_collection = 'ap'
-        self._atkin_lehner_collection = 'Atkin_lehner'
+        self._atkin_lehner_collection = 'Atkin_Lehner'
         self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
         self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
         self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
@@ -889,6 +889,8 @@ class CompMF(MongoMF):
         clogger.debug("Completing {0} spaces!".format(len(args)))
         self.get_or_compute_spaces(args,ncpus=ncpus)
         return True
+
+    
         
     
 def precision_needed_for_L(N,k,**kwds):
