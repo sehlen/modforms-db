@@ -24,6 +24,11 @@ AUTHORS: Fredrik Stromberg, Stephan Ehlen (code base from William Stein's mfdb m
 
 TODO: Do we want to store characters in a database instead of a simple cache? 
 
+Available functions:
+
+
+
+
 """
 
 from sage.all import cached_function,QQ,trivial_character,ModularSymbols,Mod
@@ -38,13 +43,24 @@ def dirichlet_group_conrey(n):
     r"""
     Return DirichletGroup_conrey(n) 
     """
-    return DirichletGroup_conrey(n)
+    if n > 0:
+        return DirichletGroup_conrey(n)
+    raise ValueError,"No Dirichlet Group of modulus 0!"
+    
 @cached_function
 def dirichlet_group_sage(n):
     r"""
     Return DirichletGroup(n) 
     """
-    return DirichletGroup(n)
+    if n>0:
+        return DirichletGroup(n)
+    raise ValueError,"No Dirichlet Group of modulus 0!"        
+
+# Characters to and from number
+# Note that Conrey character correspond to their actual number, i.e.
+# x <---> x.number()
+# And Sage characters correspond to their index in their associated DirichletGroup
+# x <---> DirichletGroup(N).index(x)
 @cached_function    
 def conrey_character_from_number(n,i):
     r"""
@@ -52,17 +68,49 @@ def conrey_character_from_number(n,i):
     """
     return dirichlet_group_conrey(n)[i]
     
-@cached_function    
-def conrey_from_sage_character_number(n,i):
+def conrey_character_to_number(x):
     r"""
-    Return x in DirichletGroup_conrey(n) corresponding to y=DirichletGroup(n).galois_orbits()[i][0]
+    Return the odulus and number of the character nr. x
     """
-    D = dirichlet_group_sage(n)
-    x = D.galois_orbits()[i][0]
-    for c in dirichlet_group_conrey(n):
-        if c.sage_character() == x:
-            return c
+    return x.modulus(),x.number()
 
+@cached_function    
+def sage_character_from_number(n,i):
+    r"""
+    Return character nr. i in DirichletGroup_conrey(n) 
+    """
+    return dirichlet_group_sage(n)[i]
+
+def sage_character_to_number(x):
+    r"""
+    Return the odulus and number of the character nr. x
+    """
+    try:
+        n = x.modulus()
+        i = dirichlet_group_sage(n).list().index(x)
+    except Exception as e:
+        raise ValueError,"{0} is not a sage character! Error:{1}".format(x,e.message)
+    return n,i
+
+def sage_character_to_galois_orbit_number(x):
+    r"""
+    Return the number of the (Sage) galois orbit which contains x
+    """
+    if x.is_trivial():
+        return int(0)
+    orbit = x.galois_orbit()
+    i = 0
+    for c in dirichlet_character_sage_galois_orbits_reps(x.modulus()):
+        if c in orbit:
+            return i
+        i+=1
+    raise ValueError,"Could not find Galois orbit of {0}".format(x)
+
+
+
+
+
+    
 ## Galois orbit representatives
         
 @cached_function
@@ -92,43 +140,97 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
         for xx in orbit_of_x:
             Dl.remove(xx)
     return reps
+    
+
+## Representatives as numbers
 
 @cached_function
-def dirichlet_character_conrey_galois_orbit_numbers(n,xi):
+def dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi):
     r"""
     Return the numbers of the characters in the galois orbit of the conrey character chi(n,xi)
     """
     if n==1:
         return [int(1)]
     x = conrey_character_from_number(n,xi)
-    return [y.number() for y in x.galois_orbit()]
-
-## Finding Galois orbit representatives
+    orbit = [y.number() for y in x.galois_orbit()]
+    orbit.sort()
+    return orbit
 
 @cached_function    
-def dirichlet_character_conrey_galois_orbit_rep_from_number(N,i):
+def dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,xi):
     r"""
     Return the representative of the Galois orbit nr. i modulo N
     """    
-    D = dirichlet_character_conrey_galois_orbits_reps(N)
-    if i>=0 and i < len(D):
-        return D[i]
+    D = dirichlet_character_conrey_galois_orbits_reps(n)
+    orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi)
+    for x in D:
+        if x.number() in orbit:
+            return x
     else:
-        raise ValueError,"Galois orbit nr. {0} does not exist in DirichletGroup({1})!".format(i,N)
+        raise ValueError,"Character nr {0},{1} does not have a rep!".format(i,n)
 
-def dirichlet_character_conrey_galois_orbit_rep(x):
-    """
-    Return a representative of the Galois orbit of the Dirichlet character x
-    """
-    N = x.modulus()
-    if N == 1:
-        return x
-    reps = dirichlet_character_conrey_galois_orbits_reps(N)
-    for i in range(len(reps)):
-        if x in reps[i].galois_orbit():
-            return reps[i]
-    raise ArithmeticError('Did not find representative of {0}'.format(x))
 
+### Conversions between the two types 
+
+
+
+@cached_function    
+def dirichlet_character_conrey_from_sage_character_number(n,i):
+    r"""
+    Return x in DirichletGroup_conrey(n) corresponding to y=DirichletGroup(n).galois_orbits()[i][0]
+    """
+    x = sage_character_from_number(n,i)
+    for c in dirichlet_group_conrey(n):
+        if c.sage_character() == x:
+            return c
+
+@cached_function
+def dirichlet_character_conrey_from_sage_character(x):
+    r"""
+    Return the Conrey character corresponding to DirichletGroup(n)[xi]
+    """
+    n,xi = sage_character_to_number(x)
+    return dirichlet_character_conrey_from_sage_character_number(n,xi)
+
+@cached_function    
+def dirichlet_character_conrey_from_sage_galois_orbit_number(n,i):
+    r"""
+    Return x in DirichletGroup_conrey(n) corresponding to y=DirichletGroup(n).galois_orbits()[i][0]
+    """
+    D = dirichlet_group_sage(n)
+    x = D.galois_orbits()[i][0]
+    for c in dirichlet_group_conrey(n):
+        if c.sage_character() == x:
+            return c
+    raise ValueError,"No Conrey character for {0},{1}".format(n,i)
+    
+def dirichlet_character_sage_from_conrey_character(x):
+    r"""
+    Return the Conrey character corresponding to DirichletGroup(n)[xi]
+    """
+    n,xi = conrey_character_to_number(x)
+    return dirichlet_character_sage_from_conrey_character_number(n,xi)
+
+@cached_function    
+def dirichlet_character_sage_from_conrey_character_number(n,i):
+    r"""
+    Return x in DirichletGroup_conrey(n) corresponding to y=DirichletGroup(n).galois_orbits()[i][0]
+    """
+    x = conrey_character_from_number(n,i)
+    for c in dirichlet_group_sage(n):
+        if c==x.sage_character():
+            return c
+    raise ValueError,"No rep for Conrey number {0},{1}".format(n,i)
+    
+def dirichlet_character_conrey_galois_orbit_rep_from_sage_character(x):
+    r"""
+    Return the representative of the Galois orbit nr. i modulo N
+    """    
+    n,i = sage_character_to_number(x)
+    y = dirichlet_character_conrey_from_sage_character_number(n,i)
+    rep = dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,x.number())
+    return rep
+    
 @cached_function    
 def dirichlet_character_sage_galois_orbit_rep_from_number(N,i):
     r"""
@@ -159,16 +261,29 @@ def dirichlet_character_sage_galois_orbit_rep(N,xi):
                 return reps[i]
     raise ArithmeticError("Could not find representative of Galois orbit of {0}".format(x))
 
+@cached_function
+def conrey_character_number_from_sage_galois_orbit_number(n,i):
+    r"""
+    Get the number of the character x corresponding to the (Sage) Galois orbit nr. i in DirichletGroup(n)
+    """
+    return dirichlet_character_conrey_from_sage_galois_orbit_number(n,i).number()
+
+
 
 @cached_function
-def dirichlet_character_sage_to_conrey(n,xi):
+def sage_character_number_from_conrey_number(n,i):
     r"""
-    Return the Conrey character corresponding to DirichletGroup(n)[xi]
+    Get the number of the orbit of the character x corresponding to the Conrey character nr. i.
     """
-    x = conrey_from_sage_character_number(n,xi)
-    for y in dirichlet_group_conrey(n):
-        if y.sage_character()==x:
-            return y
+    x = dirichlet_character_sage_from_conrey_character_number(n,i)
+    orbit = x.galois_orbit()
+    i = 0
+    for c in dirichlet_character_sage_galois_orbits_reps(n):
+        if c in orbit:
+            return i
+        i+=1
+    raise ArithmeticError("Could not find sage character number of COnrey character {0},{1}".format(n,i))
+    
 
 @cached_function
 def dirichlet_character_conrey_used_in_computation(N,xi):
@@ -234,3 +349,15 @@ def dirichlet_character_to_int(chi,convention='Conrey'):
         raise ValueError("convention must be one of 'Sage' or 'Conrey' ")
 
 
+def test_conversion(nmax=10):
+    r"""
+
+    """
+    for n in range(1,nmax):
+        D = dirichlet_group_sage(n)
+        for x in D:
+            y = dirichlet_character_conrey_from_sage_character(x)
+            z = dirichlet_character_sage_from_conrey_character(y)
+            if x<>z:
+                raise ArithmetiError,"Problem in n={0}, x={1}".format(n,x)
+    return True      
