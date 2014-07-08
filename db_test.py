@@ -2161,34 +2161,84 @@ def find_multiple_records(DB,col='webmodformspace',key='filename'):
     return res
 
 from compmf.character_conversions import sage_character_to_galois_orbit_number,conrey_character_number_from_sage_galois_orbit_number
-    
-def fix_character_numbers(DB,dryrun=0):
-    for r in DB._modular_symbols.find():
-        id = r['_id']; N=r['N']
+import sage
+def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose=1,files_separately=0):
+    problems = []
+    ms = gridfs.GridFS(DB._mongodb,'Modular_symbols')
+    aps = gridfs.GridFS(DB._mongodb,'aps')
+    factors = gridfs.GridFS(DB._mongodb,'Newform_factors')
+    al = gridfs.GridFS(DB._mongodb,'Atkin-Lehner')
+    for r in DB._modular_symbols.find({'N':{"$lt":int(maxn),"$gt":int(minn)},'k':{"$lt":int(maxk),"$gt":int(mink)}}).sort('N',int(1)).sort('chi',int(1)):
+        sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        id = r['_id']; N=r['N']; k=r['k']
         M = DB.load_from_mongo(DB._modular_symbols_collection,id)
         x = M.character()
+        ra = DB._aps.find_one({'ambient_id':id})
+        if ra <> None:
+            chi = ra['chi'];cchi = ra['cchi']
+        else:
+            chi = r['chi'];cchi = r['cchi']
         if N == 1:
             si = 0
             ci = 1
         else:
             si = sage_character_to_galois_orbit_number(x)
             ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
-        if si <> r['chi']:
+        if si <> chi or ci<>cchi:
+            problems.append((N,k,chi))
             print "Chi is wrong! Should be {0}".format(si)
-            if dryrun <> 1:
-                DB._modular_symbols.update({'_id':id},{"$set":{'chi':int(si)}})
-            print r,x
-            #return
-        if ci <> r['cchi']:
             print "CChi is wrong! Should be {0}".format(ci)
-            if dryrun<>1:
-                DB._modular_symbols.update({'_id':id},{"$set":{'cchi':int(ci)}})
-            print r,x
-        fname = unicode("gamma0-ambient-modsym-{0:0>5}-{1:0>3}-{2:0>3}".format(r['N'],r['k'],si))
-        if r['filename']<>fname:
-            print "Filename is wrong! Should be {0}".format(fname)
-            print r
-            if dryrun <> 1:
-                DB._modular_symbols.update({'_id':id},{"$set":{'filename':fname}})
-            
+            if remove == 1:
+                # First delete from mongo
+                ms.delete(id)
+                # delete aps
+                for rf in  DB._aps.find({'_ambient_id':id},fields=['_id']):
+                    aps.delete(rf['_id'])
+                # delete factors
+                for rf in  DB._newform_factors.find({'_ambient_id':id},fields=['_id','newform']):
+                    fid = rf['_id']
+                    factors.delete(fid) # Delete factor
+                    dname = DB._db.factor(N,k,chi,rf['newform'])
+                    for fname in DB._db.listdir(dname):
+                        DB._db.delete_file(fname)
+                aname = DB._db.ambient(N,k,chi)
+                for fname in DB._db.listdir(aname):
+                    DB._db.delete_file(fname)
+                os.removedirs(aname)
+    for N,k,chi,d,prec in DB._db.known(""):
+        if N < minn or N>maxn or k<mink or k>maxk:
+            continue
+        sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        if not files_separately==1 or (N,k,chi) in problems:
+            continue
+        if not DB._db.path_exists(DB._db.ambient(N,k,chi)):
+            continue
+        M = DB._db.load_ambient_space(N,k,chi)
+        x = M.character()
+        if N == 1:
+            si = 0
+        else:
+            si = sage_character_to_galois_orbit_number(x)
+        if si <> chi:
+            if (N,k,chi) not in problems:
+                problems.append((N,k,chi))
+            print "Chi is wrong! Should be {0}".format(si)
+            if remove == 1:
+                dname = DB._db.factor(N,k,chi,d)
+                for fname in DB._db.listdir(dname):
+                    DB._db.delete_file(fname)
+                aname = DB._db.ambient(N,k,chi)
+                for fname in DB._db.listdir(aname):
+                    DB._db.delete_file(fname)
+                os.removedirs(aname)
+                if verbose>0:
+                    print "removed directory {0}".format(aname)
+    if remove == 1:
+        print "Removed {0} records!".format(len(problems))
+    return problems
 
+
+def delete_problems(DB,problems):
+    
+    for N,k,chi in problems:
+        r = DB._mongodb
