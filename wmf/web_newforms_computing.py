@@ -217,8 +217,8 @@ class WebNewForm_computing(WebNewForm):
         r"""
         Get the representative of the Galois orbit of the character of self.
         """
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep
-        self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep_from_number(self.character.modulus,self.character.number)
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep_from_character_number
+        self._character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep_from_ncharacter_umber(self.character.modulus,self.character.number)
         
     def prec_needed_for_lfunctions(self):
         r"""

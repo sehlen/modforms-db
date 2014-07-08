@@ -24,6 +24,7 @@ AUTHORS:
 
 import re
 import yaml
+import pymongo
 from flask import url_for
 
 
@@ -76,7 +77,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         super(WebModFormSpace_computing,self).__init__(level,weight,character,cuspidal,prec,bitprec,update_from_db)
         try: 
             self._db = MongoMF(host,port,db)
-        except ConnectionFailure as e:
+        except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
         self.compute_additional_properties()
@@ -114,12 +115,12 @@ class WebModFormSpace_computing(WebModFormSpace):
         Get a list of numbers of the characters in the Galois orbit of the character of self.
 
         """
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_numbers
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_numbers_from_character_number
         if self._character_galois_orbit is None or self._character_galois_orbit == []:
             if self.level==1:
                 self._character_galois_orbit=[int(1)]
             else:
-                self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers(self.character.modulus,self.character.number)
+                self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(self.character.modulus,self.character.number)
 
     def set_galois_orbit_embeddings(self):
         r"""
@@ -133,7 +134,6 @@ class WebModFormSpace_computing(WebModFormSpace):
         Returns canonical representative of the Galois orbit of the character of self.
 
         """
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep_from_number
         self.character_orbit_rep = self.character.character.galois_orbit()[0]
 
     def set_character_used_in_computation(self):
