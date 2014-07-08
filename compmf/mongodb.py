@@ -391,7 +391,7 @@ class CompMF(MongoMF):
             return []
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
-        orbit = dirichlet_character_conrey_galois_orbit_numbers(N,ci)
+        orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
         if len(al_in_mongo)==0:
             ambient = self.get_ambient(N,k,i,**kwds)
             number_of_factors = self.number_of_factors(N,k,i)

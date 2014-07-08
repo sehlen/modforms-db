@@ -620,7 +620,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             ambient = load(fname)
             if not ambient is None:
                 M = dict_to_ambient(ambient)
-                clogger.debug("Constructed space: {0}".format(M))
+                #clogger.debug("Constructed space: {0}".format(M))
                 return M
         s = "ambient space (%s,%s,%s) not yet computed"%(N,k,i)
         clogger.warning(s)
@@ -780,7 +780,7 @@ def dict_to_ambient(modsym):
     r"""
     Convert a dictionary (as stored in ambient.sobj) to a modular symbols space.
     """
-    clogger.debug("Converting dict to ambient!")
+    #clogger.debug("Converting dict to ambient!")
     N,k,i = modsym['space']
     eps   = modsym['eps']
     manin = modsym['manin']
