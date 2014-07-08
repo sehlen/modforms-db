@@ -2039,23 +2039,22 @@ from dirichlet_conrey import *
 
 from sage.all import cached_function
 
-from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_embeddings
+from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_embeddings,dirichlet_group_conrey,dirichlet_group_sage,dirichlet_character_conrey_from_sage_character_number
 
-@cached_function
-def dirichlet_group_conrey(n):
-    return DirichletGroup_conrey(n)
-@cached_function
-def dirichlet_group_sage(n):
-    return DirichletGroup(n)
-
-    
-@cached_function    
-def conrey_from_sage_character(n,i):
-    D = dirichlet_group_sage(n)
-    x = D.galois_orbits()[i][0]
-    for c in dirichlet_group_conrey(n):
-        if c.sage_character() == x:
-            return c
+#@cached_function
+#def dirichlet_group_conrey(n):
+#    return DirichletGroup_conrey(n)
+#@cached_function
+#def dirichlet_group_sage(n):
+#    return DirichletGroup(n)
+#   
+#@cached_function    
+#def conrey_from_sage_character(n,i):
+#    D = dirichlet_group_sage(n)
+#    x = D.galois_orbits()[i][0]
+#    for c in dirichlet_group_conrey(n):
+#        if c.sage_character() == x:
+#            return c
 
 def add_all_conrey_labels(DB):
     add_conrey_character_numbers(DB,'ap.files')
@@ -2072,25 +2071,25 @@ def add_conrey_character_numbers(DB,collection='ap.files'):
         N = r['N']
         k = r['k']
         chi = r['chi']
-        x = conrey_from_sage_character(N,chi)
-        DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':x.number()}})
+        #x = conrey_from_sage_character(N,chi)
+        print N,chi
+        c = dirichlet_character_conrey_from_sage_character_number(N,chi)
+        ci = c.number()
+        DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':ci}})
 
 collections = ['ap.files']
 def add_conrey_orbits(DB,collection='ap.files'):
     i = 0
     #for r in DB._mongodb[collection].find().sort('N',int(1)):
+
     for r in DB._mongodb[collection].find({'character_galois_orbit':{'$exists':False}}).sort('N',int(1)):
         rid = r['_id']
         N = r['N']
         k = r['k']
         chi = r['chi']
         #cchi = r['cchi']
-        if chi==0 or N==1:
-            orbit = [int(1)]
-        else: # There is a bug in Conrey character mod 1
-            c = conrey_from_sage_character(N,chi)
-            orbit = [x.number() for x in c.galois_orbit()]
-            orbit.sort()
+        ci = dirichlet_character_conrey_from_sage_character_number(N,chi).number()
+        orbit = dirichlet_character_conrey_galois_orbit_numbers(N,ci)
         cchi = orbit[0]
         DB._mongodb[collection].update({'_id':rid},{"$set":{'cchi':cchi}})
         DB._mongodb[collection].update({'_id':rid},{"$set":{'character_galois_orbit':orbit}})
@@ -2129,7 +2128,7 @@ def add_names_to_aps(DB):
         chi=r['chi']
         cchi=r.get('cchi')
         if cchi==None:
-            cchi = conrey_from_sage_character(N,chi)
+            cchi = dirichlet_character_conrey_from_sage_character_number(N,chi)
             DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
         #d=r['newform']
         #label = orbit_label(d)
@@ -2160,3 +2159,36 @@ def find_multiple_records(DB,col='webmodformspace',key='filename'):
         if r.count()>1:
             res.extend(list(r))
     return res
+
+from compmf.character_conversions import sage_character_to_galois_orbit_number,conrey_character_number_from_sage_galois_orbit_number
+    
+def fix_character_numbers(DB,dryrun=0):
+    for r in DB._modular_symbols.find():
+        id = r['_id']; N=r['N']
+        M = DB.load_from_mongo(DB._modular_symbols_collection,id)
+        x = M.character()
+        if N == 1:
+            si = 0
+            ci = 1
+        else:
+            si = sage_character_to_galois_orbit_number(x)
+            ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
+        if si <> r['chi']:
+            print "Chi is wrong! Should be {0}".format(si)
+            if dryrun <> 1:
+                DB._modular_symbols.update({'_id':id},{"$set":{'chi':int(si)}})
+            print r,x
+            #return
+        if ci <> r['cchi']:
+            print "CChi is wrong! Should be {0}".format(ci)
+            if dryrun<>1:
+                DB._modular_symbols.update({'_id':id},{"$set":{'cchi':int(ci)}})
+            print r,x
+        fname = unicode("gamma0-ambient-modsym-{0:0>5}-{1:0>3}-{2:0>3}".format(r['N'],r['k'],si))
+        if r['filename']<>fname:
+            print "Filename is wrong! Should be {0}".format(fname)
+            print r
+            if dryrun <> 1:
+                DB._modular_symbols.update({'_id':id},{"$set":{'filename':fname}})
+            
+
