@@ -29,7 +29,7 @@ import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
-from compmf.character_conversions import conrey_from_sage_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
+from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number
 from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
 
 
@@ -55,16 +55,31 @@ class MongoMF(object):
         self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
 
         ## Our databases
-      
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
         self._aps_collection = 'ap'
-        self._atkin_lehner_collection = 'Atkin_Lehner'
+        self._atkin_lehner_collection = 'Atkin_lehner'
         self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
         self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
         self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
         self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
 
+        self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
+
+
+        ## The indices we use for the collections given above
+        self._indices = {'Modular_symbols.files' :  {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
+                                               'unique':True,'name':"N_k_cchi"},
+                         'Newform_factors.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+                                             ("newform",pymongo.ASCENDING)],
+                                               'unique':True,'name':"N_k_cchi_d"},
+                         'ap': {'keys.files':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+                                                  ("newform",pymongo.ASCENDING)],
+                                         'unique':True,'name':"N_k_cchi_d"}, 
+                         'Atkin_lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+                                                    ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
+                                           'unique':True,'name':"N_k_cchi_d"}
+                         }
         self._sage_version = sage.version.version
 
     def __repr__(self):
@@ -74,7 +89,48 @@ class MongoMF(object):
         s="Modular forms database at mongodb: {0}".format(self._mongo_conn)
         return s
 
+    def create_indices(self):
+        r"""
+        Creates indices for our databases
+        """
+        for col in self._file_collections:
+            if 'files' not in col:
+                col = "{0}.files".format(col)
+            ix = self._indices[col]
+            print "Creating index for collection ",col
+            try: 
+                self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
+            except pymongo.errors.DuplicateKeyError:
+                print "Removing duplicates!"
+                self.remove_duplicates(col,ix['keys'])
+            # remove duplicates
+            
 
+    def remove_duplicates(self,col,keys,dryrun=1):
+        r"""
+        Remove duplicate records in collection col for which keys are not unique.
+        """
+        from sage.all import deepcopy
+        keys = [x[0] for x in keys]
+        print "keys=",keys
+        fs = gridfs.GridFS(self._mongodb,col)
+        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
+        print "flds=",flds
+        for r in self._mongodb[col].find(fields=flds).sort('uploadDate',-1):
+            id=r['_id']
+            s = {}
+            for k in keys:
+                s[k]=r[k]
+            print "s=",s
+            for rnew in self._mongodb[col].find(s,fields=['uploadDate','filename','_id','N','k','chi','cchi']).sort('uploadDate',1):
+                if rnew['_id']==id:
+                    continue
+                if dryrun:
+                    print "Removing record {0} in collection {1}".format(rnew,col)
+                    print "Duplicate of {0}".format(r)
+                else:
+                    fs.delete(rnew['_id'])
+        
     def show_existing_mongo(self,db='fr'):
         r"""
         Display an overview of the existing records in the mongo db.
@@ -94,6 +150,22 @@ class MongoMF(object):
 
           ### Routines for accessing the objects stored in the mongo database.
 
+    def existing_records_mongo(self,nrange=[],krange=[],complete=True):
+        r"""
+
+        Return a list of tuples (N,k,i) corresponding to (complete) records in the mongo database
+        and where N is in nrange, k in krange.
+        """
+        s = {'complete':{"$gt":int(0)}}
+        if nrange <> []:
+            s['N'] = {"$gt": int(nrange[0]-1), "$lt": int(nrange[1])}
+        if krange <> []:
+            s['k'] = {"$gt": int(krange[0]-1), "$lt": int(krange[1])}
+        q = self._modular_symbols.find(s).sort('N',1).sort('k',1)
+        res = [ (r['N'],r['k'],r['cchi']) for r in q]
+        
+        return res
+        
     def load_from_mongo(self,col,fid):
         r"""
         Load a file from gridfs collection col and id nr. fid.
@@ -313,12 +385,13 @@ class CompMF(MongoMF):
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
         """
         verbose = kwds.get('verbose',0)
-        c = conrey_from_sage_character_number(N,i)
+        c = dirichlet_character_conrey_from_sage_character_number(N,i)
         ci = c.number()
         if not c.is_trivial(): #or c.multiplicative_order()==2):
             return []
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
+        orbit = dirichlet_character_conrey_galois_orbit_numbers(N,ci)
         if len(al_in_mongo)==0:
             ambient = self.get_ambient(N,k,i,**kwds)
             number_of_factors = self.number_of_factors(N,k,i)
@@ -339,6 +412,7 @@ class CompMF(MongoMF):
                 fname = 'atkin_lehner_evs-{0:>5}-{1:>3}-{2:>3}-{3:>3}'.format(N,k,i,d)
                 fid = fs.put(dumps(atkin_lehner),filename=fname,
                              N=int(N),k=int(k),chi=int(i),newform=int(d),cchi=int(ci),
+                             character_galois_orbit = orbit,
                              cputime = meta.get("cputime",""),
                              sage_version = meta.get("version",""))
                 al_in_mongo.append(fid)
@@ -352,7 +426,7 @@ class CompMF(MongoMF):
         files_ms = self._modular_symbols
         fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
         verbose = kwds.get('verbose',0)
-        ci = conrey_from_sage_character_number(N,i).number()
+        ci = dirichlet_character_conrey_from_sage_character_number(N,i).number()
         save_in_file = kwds.get('save_in_file',True)
         compute = kwds.get('compute',self._do_computations)
         # We first see if this space is already in the mongo database.
@@ -396,8 +470,10 @@ class CompMF(MongoMF):
                 meta={}
             fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
             ## Note that we have to update the number of orbits.
+            orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             fid = fs_ms.put(dumps(ambient),filename=fname,
                             N=int(N),k=int(k),chi=int(i),orbits=0,
+                            character_galois_orbit=orbit,
                             cchi=int(ci),
                             cputime = meta.get("cputime",""),
                             sage_version = meta.get("version",""))
@@ -416,7 +492,7 @@ class CompMF(MongoMF):
         compute = kwds.get('compute',self._do_computations)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,i,**kwds)
-        ci = conrey_from_sage_character_number(N,i).number()
+        ci = dirichlet_character_conrey_from_sage_character_number(N,i).number()
         if ambient_id is None:
             clogger.debug("No ambient space!")
             ambient_id = self.compute_ambient(N,k,i,**kwds)
@@ -440,6 +516,8 @@ class CompMF(MongoMF):
             clogger.debug("Inserting factors into mongo! fname={0}".format(fname))
             num_factors_in_file = self._db.number_of_known_factors(N,k,i)
             ambient = self.get_ambient(N,k,i,ambient_id=ambient_id)
+            orbit = dirichlet_character_conrey_galois_orbit_numbers(N,ci)
+
             for d in range(num_factors_in_file):
                 try: 
                     factor = self._db.load_factor(N,k,i,d,M=ambient)
@@ -465,6 +543,7 @@ class CompMF(MongoMF):
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=int(i),
                                     cchi=int(ci),
+                                    character_galois_orbit=orbit,
                                     newform=int(d),
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),
@@ -501,13 +580,9 @@ class CompMF(MongoMF):
 
         compute = kwds.get('compute',self._do_computations)
         verbose = kwds.get('verbose')
-        c = conrey_from_sage_character_number(N,i)
+        c = dirichlet_character_conrey_from_sage_character_number(N,i)
         ci = c.number()        
-        if N > 1: # There is a bug in Conrey character mod 1
-            orbit = [int(x.number()) for x in c.galois_orbit()]
-            orbit.sort()
-        else:
-            orbit = [int(1)]
+        orbit = dirichlet_character_conrey_galois_orbit_numbers(N,xi)
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')              
         key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
@@ -524,7 +599,7 @@ class CompMF(MongoMF):
             """
             if not isinstance(aps,dict):
                 clogger.warning("Trying to insert non-dict aps:{0}".format(aps))
-                return 
+                return
             for key,value in aps.iteritems():
                 N,k,i,d = key
                 E,v,meta = value
