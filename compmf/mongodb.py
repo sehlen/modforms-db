@@ -365,7 +365,7 @@ class CompMF(MongoMF):
         If data for the given space M(N,k,i) exists in either mongo or files database we fetch this data (and possible complete if e.g. more coefficients are needed) and then insert the result into both databases unless explicitly told not to.
 
         """
-        clogger.debug("converting {0}".format(N,k,i))
+        clogger.debug("converting {0}".format((N,k,i)))
         clogger.debug("Computing ambient modular symbols")
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
             return 
@@ -848,9 +848,13 @@ class CompMF(MongoMF):
                                         clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
                                     if prime_pi(prec) > E.nrows():  ### The coefficients in the database are not as many as assumed!
                                         clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
-                                        fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,t[3],E.nrows())
-                                        q = self._aps.update({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)},
-                                                             {"$set":{'prec':int(E.nrows()),'filename':fname}},multi=True)
+                                        for r in self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)}):
+                                            id =r['_id']; d=r['newform']
+                                            E,v,m = load(fs_ap.get(id).read())
+                                            fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,E.nrows())
+                                            if E.nrows() < prec:
+                                                q = self._aps.update({'_id':id},
+                                                                     {"$set":{'prec':int(E.nrows()),'filename':fname}},multi=True)
                                         clogger.debug("changed prec!")
                                     clogger.debug("done checking coeffs!")
         else:
