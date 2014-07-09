@@ -2164,10 +2164,6 @@ from compmf.character_conversions import sage_character_to_galois_orbit_number,c
 import sage
 def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose=1,files_separately=0):
     problems = []
-    ms = gridfs.GridFS(DB._mongodb,'Modular_symbols')
-    aps = gridfs.GridFS(DB._mongodb,'aps')
-    factors = gridfs.GridFS(DB._mongodb,'Newform_factors')
-    al = gridfs.GridFS(DB._mongodb,'Atkin-Lehner')
     args = []
     for r in DB._modular_symbols.find({'N':{"$lt":int(maxn),"$gt":int(minn)},'k':{"$lt":int(maxk),"$gt":int(mink)}}).sort('N',int(1)).sort('chi',int(1)):
         id = r['_id']; N=r['N']; k=r['k']; chi = r['chi']
@@ -2178,13 +2174,17 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
 def check_character(DB,id,N,k,chi,remove=0,files_separately=0):
     problems=[]
     sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+    ms = gridfs.GridFS(DB._mongodb,'Modular_symbols')
+    aps = gridfs.GridFS(DB._mongodb,'aps')
+    factors = gridfs.GridFS(DB._mongodb,'Newform_factors')
+    al = gridfs.GridFS(DB._mongodb,'Atkin-Lehner')
     M = DB.load_from_mongo(DB._modular_symbols_collection,id)
     x = M.character()
-    ra = DB._aps.find_one({'ambient_id':id})
-    if ra <> None:
-        chi = ra['chi'];cchi = ra['cchi']
-    else:
-        chi = r['chi'];cchi = r['cchi']
+    #ra = DB._aps.find_one({'ambient_id':id})
+    #if ra <> None:
+    #    chi = ra['chi'];cchi = ra['cchi']
+    #else:
+    #    chi = r['chi'];cchi = r['cchi']
     if N == 1:
         si = 0
         ci = 1
@@ -2195,6 +2195,7 @@ def check_character(DB,id,N,k,chi,remove=0,files_separately=0):
         problems.append((N,k,chi))
         print "Chi is wrong! Should be {0}".format(si)
         print "CChi is wrong! Should be {0}".format(ci)
+        print "r=",r
         if remove == 1:
             # First delete from mongo
             ms.delete(id)
@@ -2230,7 +2231,7 @@ def check_character(DB,id,N,k,chi,remove=0,files_separately=0):
         if si <> chi:
             if (N1,k1,chi1) not in problems:
                 problems.append((N1,k1,chi1))
-            print "Chi is wrong! Should be {0}".format(si)
+            print "in file: Chi is wrong! Should be {0}".format(si)
             if remove == 1:
                 dname = DB._db.factor(N1,k1,chi1,d)
                 for fname in DB._db.listdir(dname):
@@ -2241,7 +2242,7 @@ def check_character(DB,id,N,k,chi,remove=0,files_separately=0):
                 os.removedirs(aname)
                 if verbose>0:
                     print "removed directory {0}".format(aname)
-    if remove == 1:
+    if remove == 1 and problems<>[]:
         print "Removed {0} records!".format(len(problems))
     return problems
 
