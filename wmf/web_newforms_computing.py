@@ -225,7 +225,7 @@ class WebNewForm_computing(WebNewForm):
         Calculates the number of coefficients needed for the L-function
         main page (formula taken from their pages)
         """
-        self._prec_needed_for_lfunctions = 22 + int(RR(5)*RR(self.weight)*RR(self.level).sqrt())
+        self._prec_needed_for_lfunctions = int(22 + int(RR(5)*RR(self.weight)*RR(self.level).sqrt()) + 1)
         return self._prec_needed_for_lfunctions 
     
     def set_q_expansion_embeddings(self, prec=10, bitprec=53,format='numeric',display_bprec=26,insert_in_db=True):
