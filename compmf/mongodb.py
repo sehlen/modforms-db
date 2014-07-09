@@ -29,7 +29,7 @@ import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
-from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number,sage_character_galois_orbit_rep_from_number
+from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
 from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
 
 
@@ -793,7 +793,7 @@ class CompMF(MongoMF):
                 clogger.debug("Sum of dimensions of factors: {0}".format(d))
                 #if M is None:
                 if i <> 0:
-                    d1 = dimension_new_cusp_forms(sage_character_galois_orbit_rep_from_number(N,i),k)
+                    d1 = dimension_new_cusp_forms(dirichlet_character_sage_galois_orbit_rep_from_number(N,i),k)
                 else:
                     d1 = dimension_new_cusp_forms(N,k)
                 clogger.debug("Dimension of space is: {0}".format(d1))                    
