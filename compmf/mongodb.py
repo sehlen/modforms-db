@@ -903,7 +903,7 @@ class CompMF(MongoMF):
         return True
 
     
-    def check_character(self,N,k,chi,remove=0,files_separately=0):
+    def check_character(self,N,k,chi,remove=1,files_separately=0):
         if N % 10 == 0:
             clogger.debug("Checking N={0}".format(N))
         
@@ -983,7 +983,7 @@ class CompMF(MongoMF):
                             print "removed directory {0}".format(aname)
             if remove == 1 and problems<>[]:
                 print "Removed {0} records!".format(len(problems))
-    return problems            
+        return problems            
     
 def precision_needed_for_L(N,k,**kwds):
     r"""
