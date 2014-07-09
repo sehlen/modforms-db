@@ -2172,7 +2172,11 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
             print "We don't have a Conrey character for r={0}".format(r)
             c = dirichlet_character_conrey_from_sage_character_number(N,chi)
             ci = c.number()
-            DB._mongodb[collection].update({'_id':id},{"$set":{'cchi':ci}})
+            for col in DB._file_collections:
+                if col=='Modular_symbols':
+                    DB._mongodb[col].update({'_id':id},{"$set":{'cchi':ci}})
+                else:
+                    DB._mongodb[col].update({'ambient_id':id},{"$set":{'cchi':ci}})
         args.append((DB,id,N,k,chi,cchi,remove,files_separately))
     return list(check_character(args))
 
