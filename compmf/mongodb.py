@@ -246,8 +246,8 @@ class MongoMF(object):
             E,v = self.load_from_mongo('ap',fid)
             t = (int(N),int(k),int(i),int(d))
             if not res.has_key(t):
-                res[t]=[]
-            res[t].append({prec:(E,v,meta)})
+                res[t]={}
+            res[t][prec]=(E,v,meta)
         return res
         
 class CompMF(MongoMF):
