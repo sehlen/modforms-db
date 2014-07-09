@@ -716,9 +716,11 @@ class CompMF(MongoMF):
             check_level = 1
         for r in self._modular_symbols.find({'complete':{"$lt":check_level+int(1)}},fields=['N','k','chi']).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             n = r['N']; k=r['chi']; chi=r['chi']
-            if n < nrange[0] or n > nrange[-1] or k < krange[-1] or k > krange[0]:
+            if nrange<>[] and (n < nrange[0] or n > nrange[-1]):
                 continue
-            if irange <> 'all' and chi < irange[0] or chi >irange[-1]:
+            if krange<> [] and (k < krange[-1] or k > krange[0]):
+                continue
+            if irange <> 'all' and irange<>[] and (chi < irange[0] or chi >irange[-1]):
                 continue
             args.append((n,k,chi,check_content))
         if ncpus >= 32:
@@ -865,7 +867,7 @@ class CompMF(MongoMF):
         args = []
         for r in self._modular_symbols.find(s):
             N = r['N']; k=r['k']; i = r['chi']
-            clogger.debug("r = {0}".format((N,k,i)))
+            #clogger.debug("r = {0}".format((N,k,i)))
             args.append((N,k,i,check_content,recheck))
         if ncpus >= 32:
             check = list(self.check_record32(args))
