@@ -2174,9 +2174,9 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
             ci = c.number()
             for col in DB._file_collections:
                 if col=='Modular_symbols':
-                    DB._mongodb[col].update({'_id':id},{"$set":{'cchi':ci}})
+                    DB._mongodb['{0}.files'.format(col)].update({'_id':id},{"$set":{'cchi':ci}})
                 else:
-                    DB._mongodb[col].update({'ambient_id':id},{"$set":{'cchi':ci}})
+                    DB._mongodb['{0}.files'.format(col)].update({'ambient_id':id},{"$set":{'cchi':ci}})
         if r.get('complete')>=3:
             continue
         args.append((DB,id,N,k,chi,cchi,remove,verbose,files_separately))
@@ -2228,8 +2228,7 @@ def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
                 DB._db.delete_file(fname)
             os.removedirs(aname)
     else:
-        col='Modular_symbols'
-        r = DB._mongodb[col].find_one({'_id':id})
+        r = DB._modular_symbols.find_one({'_id':id})
         if r.get('complete') is None or r.get('complete')<2:
             DB.check_record(N,k,chi,check_content=True)
         DB._mongodb[col].update({'_id':id},{"$set":{'complete':int(3)}})
