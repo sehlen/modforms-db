@@ -920,6 +920,16 @@ class CompMF(MongoMF):
             factors = gridfs.GridFS(self._mongodb,'Newform_factors')
             al = gridfs.GridFS(self._mongodb,'Atkin-Lehner')
             id = r['_id']
+            cchi = r.get('cchi')
+            if cchi is None:
+                print "We don't have a Conrey character for r={0}".format(r)
+                c = dirichlet_character_conrey_from_sage_character_number(N,chi)
+                cchi = c.number()
+                for col in self._file_collections:
+                    if col=='Modular_symbols':
+                        self._mongodb['{0}.files'.format(col)].update({'_id':id},{"$set":{'cchi':cchi}})
+                    else:
+                        self._mongodb['{0}.files'.format(col)].update({'ambient_id':id},{"$set":{'cchi':cchi}})            
             M = self.load_from_mongo(self._modular_symbols_collection,id)
             x = M.character()
             if N == 1:
