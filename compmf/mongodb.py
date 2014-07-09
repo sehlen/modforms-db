@@ -918,9 +918,9 @@ class CompMF(MongoMF):
             aps = gridfs.GridFS(self._mongodb,'aps')
             factors = gridfs.GridFS(self._mongodb,'Newform_factors')
             al = gridfs.GridFS(self._mongodb,'Atkin-Lehner')
+            id = r['_id']
             M = self.load_from_mongo(self._modular_symbols_collection,id)
             x = M.character()
-            id = r['_id']
             if N == 1:
                 si = 0
                 ci = 1
