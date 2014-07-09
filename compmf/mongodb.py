@@ -641,7 +641,7 @@ class CompMF(MongoMF):
             """
             for key,val in aps.iteritems():
                 clogger.debug("key={0}".format(key))
-                clogger.debug("val={0}".format(val))
+                #clogger.debug("val={0}".format(val))
                 N,k,i,d = key
                 E,v,meta = val[0]
                 aplist_file = self._db.factor_aplist(N, k, i, d, False, pprec)
