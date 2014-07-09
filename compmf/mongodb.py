@@ -851,7 +851,7 @@ class CompMF(MongoMF):
                                         clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                                         for r in self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)}):
                                             id =r['_id']; d=r['newform']
-                                            E,v,m = loads(fs_ap.get(id).read())
+                                            E,v = loads(fs_ap.get(id).read())
                                             fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,E.nrows())
                                             if E.nrows() < prec:
                                                 q = self._aps.update({'_id':id},
