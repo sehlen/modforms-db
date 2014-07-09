@@ -241,12 +241,13 @@ class MongoMF(object):
         for r in self._aps.find(s):
             fid=r['_id']
             d = r['newform']
+            prec = r['prec']
             meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
             E,v = self.load_from_mongo('ap',fid)
             t = (int(N),int(k),int(i),int(d))
             if not res.has_key(t):
                 res[t]=[]
-            res[t].append((E,v,meta))
+            res[t].append({prec:(E,v,meta)})
         return res
         
 class CompMF(MongoMF):
@@ -377,9 +378,9 @@ class CompMF(MongoMF):
         # Necessary for L-function computations.
         
         pprec = precision_needed_for_L(N,k,pprec=100)
-        clogger.debug("Computing aps to prec {0}".format(pprec))
+        clogger.debug("Computing aps to prec {0} for i = {1}".format(pprec,i))
         aps = self.compute_aps(N,k,i,pprec,**kwds)
-        clogger.debug("Computing atkin lehner to prec {0} for i={0}".format(pprec,i))
+        clogger.debug("Computing atkin lehner for i={0}".format(i))
         try:
             atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
         except:
@@ -415,7 +416,7 @@ class CompMF(MongoMF):
                     meta = load(self._db.meta(atkin_lehner_file))
                 except IOError:
                     meta = {}
-                fname = 'atkin_lehner_evs-{0:>5}-{1:>3}-{2:>3}-{3:>3}'.format(N,k,i,d)
+                fname = 'atkin_lehner_evs-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}'.format(N,k,i,d)
                 fid = fs.put(dumps(atkin_lehner),filename=fname,
                              N=int(N),k=int(k),chi=int(i),newform=int(d),cchi=int(ci),
                              character_galois_orbit = orbit,
@@ -807,16 +808,17 @@ class CompMF(MongoMF):
                     dim = M.dimension()
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})            
         ### Check ap's
-        if check_content:
-            aps = self.get_aps(N,k,i)
-        else:
-            newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
-            aps = {(N,k,i,x) :True  for x in newforms}
-            
         # Necessary for L-function computations (rounded to nearest 100).        
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
         pprec = max(pprec,100)
         pprec = ceil(RR(pprec)/RR(100))*100
+
+        if check_content:
+            aps = self.get_aps(N,k,i)
+        else:
+            newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
+            aps = {(N,k,i,x) : {pprec: True}  for x in newforms}
+            
         res['aps']=False
         clogger.debug("facts={0}, numf={1}".format(facts,numf))
         clogger.debug("aps.keys={0}".format(aps.keys()))
@@ -826,24 +828,30 @@ class CompMF(MongoMF):
                 for t in facts.keys():
                     clogger.debug("t={0}".format(t))
                     apd = aps.get(t,[])
-                    clogger.debug("APs[{0}]= len: {1}".format(t,len(apd)))
-                    if apd == None:
+                    clogger.debug("APs[{0}] has lens: {1}".format(t,apd.keys()))
+                    if apd == []:
                         res['aps']=False
                     else:
                         if len(apd)>0:
                             res['aps']=False
                             if check_content:
                                 #clogger.debug("checking coefficients! len(apd[0])={0}".format(len(apd[0])))                                
-                                for E,v,meta in apd:
-                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec)))
+                                for prec,tt in apd.iteritems():
+                                    E,v,meta  = tt
+                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
                                     #a = E*v
                                     ##  Check that we have the correct number of primes.
-                                    
                                     if (not (E[0,0] is 0)) and len(v)==E.ncols() and  E.nrows()>=prime_pi(pprec):
                                         res['aps'] = True
                                         break
-                                    elif E.nrows()<prime_pi(pprec):
+                                    elif E.nrows()< prime_pi(pprec):
                                         clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
+                                    if prime_pi(prec) > E.nrows():  ### The coefficients in the database are not as many as assumed!
+                                        clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
+                                        fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,t[3],E.nrows())
+                                        q = self._aps.update({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)},
+                                                             {"$set":{'prec':int(E.nrows()),'filename':fname}},multi=True)
+                                        clogger.debug("changed prec!")
                                     clogger.debug("done checking coeffs!")
         else:
             if len(aps.keys())==numf:
