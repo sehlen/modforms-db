@@ -709,15 +709,18 @@ class CompMF(MongoMF):
         if not isinstance(nrange,(list,tuple)):
             nranfge = [nrange]
         if not isinstance(krange,(list,tuple)):
-            krange = [krange]        
-        for n in nrange:
-            if irange == 'all':
-                irange = range(euler_phi(n))
-            elif not isinstance(irange,(list,tuple)):
-                irange = [irange]
-            for k in krange:                                    
-                for i in irange:
-                    args.append((n,k,i,check_content))
+            krange = [krange]
+        if check_content:
+            check_level = 2
+        else:
+            check_level = 1
+        for r in self._modular_symbols.find({'complete':{"$lt":check_level+int(1)}},fields=['N','k','chi']).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
+            n = r['N']; k=r['chi']; chi=r['chi']
+            if n < nrange[0] or n > nrange[-1] or k < krange[-1] or k > krange[0]:
+                continue
+            if irange <> 'all' and chi < irange[0] or chi >irange[-1]:
+                continue
+            args.append((n,k,chi,check_content))
         if ncpus >= 32:
             return list(self.check_record32(args))
         elif ncpus >= 16:
@@ -747,17 +750,16 @@ class CompMF(MongoMF):
         res = {}
         ### Check the ambient space
         check_level = int(2) if check_content else int(1)
-        #clogger.debug("Checking at level {0}".format(check_level))
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
-                
         ### Might as well check the character here as well.
         #x = M.character()
         #si = sage_character_to_galois_orbit_number(x)
         #if si <> i:
         #    clogger.warning("Character for this record is wrong!")
         M = self.get_ambient(N,k,i,compute=False)
+        clogger.debug("Checking N,k,i={0}".format((N,k,i)))
         if M is None:
             res['modular_symbols']=False
             numf = 0
