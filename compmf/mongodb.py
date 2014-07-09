@@ -909,7 +909,7 @@ class CompMF(MongoMF):
         
         problems=[]
         i = 0 
-        for r in self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(chi)})
+        for r in self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(chi)}):
             if i>1:
                 clogger.warning("Multiple records for {0}!".format((N,k,chi)))
             i=i+1
