@@ -827,7 +827,7 @@ class CompMF(MongoMF):
             if check_content:
                 for t in facts.keys():
                     clogger.debug("t={0}".format(t))
-                    apd = aps.get(t,[])
+                    apd = aps.get(t,{})
                     clogger.debug("APs[{0}] has lens: {1}".format(t,apd.keys()))
                     if apd == []:
                         res['aps']=False
