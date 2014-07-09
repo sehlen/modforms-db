@@ -2170,7 +2170,7 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
     al = gridfs.GridFS(DB._mongodb,'Atkin-Lehner')
     args = []
     for r in DB._modular_symbols.find({'N':{"$lt":int(maxn),"$gt":int(minn)},'k':{"$lt":int(maxk),"$gt":int(mink)}}).sort('N',int(1)).sort('chi',int(1)):
-        id = r['_id']; N=r['N']; k=r['k']
+        id = r['_id']; N=r['N']; k=r['k']; chi = r['chi']
         args.append((DB,id,N,k,chi,remove,files_separately))
     return list(check_character(args))
 
