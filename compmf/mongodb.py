@@ -835,7 +835,7 @@ class CompMF(MongoMF):
                             if check_content:
                                 #clogger.debug("checking coefficients! len(apd[0])={0}".format(len(apd[0])))                                
                                 for E,v,meta in apd:
-                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}".format(len(v),E.ncols(),E.nrows(),E[0,0] is 0))
+                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_p(pprec)))
                                     #a = E*v
                                     ##  Check that we have the correct number of primes.
                                     
