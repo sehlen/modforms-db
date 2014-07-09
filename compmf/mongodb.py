@@ -904,6 +904,7 @@ class CompMF(MongoMF):
 
     
     def check_character(self,N,k,chi,remove=1,files_separately=0):
+        from compmf.character_conversions import sage_character_to_galois_orbit_number,conrey_character_number_from_sage_galois_orbit_number
         if N % 10 == 0:
             clogger.debug("Checking N={0}".format(N))
         
