@@ -2166,7 +2166,13 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
     problems = []
     args = []
     for r in DB._modular_symbols.find({'N':{"$lt":int(maxn),"$gt":int(minn)},'k':{"$lt":int(maxk),"$gt":int(mink)}}).sort('N',int(1)).sort('chi',int(1)):
-        id = r['_id']; N=r['N']; k=r['k']; chi = r['chi']; cchi=r['cchi']
+        id = r['_id']; N=r['N']; k=r['k']; chi = r['chi']
+        cchi=r.get('cchi')
+        if cchi is None:
+            print "We don't have a Conrey character for r={0}".format(r)
+            c = dirichlet_character_conrey_from_sage_character_number(N,chi)
+            ci = c.number()
+            DB._mongodb[collection].update({'_id':id},{"$set":{'cchi':ci}})
         args.append((DB,id,N,k,chi,cchi,remove,files_separately))
     return list(check_character(args))
 
