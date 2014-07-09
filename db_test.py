@@ -2231,7 +2231,7 @@ def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
         r = DB._modular_symbols.find_one({'_id':id})
         if r.get('complete') is None or r.get('complete')<2:
             DB.check_record(N,k,chi,check_content=True)
-        DB._mongodb[col].update({'_id':id},{"$set":{'complete':int(3)}})
+        DB._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
     for N1,k1,chi1,d,prec in DB._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
         #if N < minn or N>maxn or k<mink or k>maxk:
         #    continue
