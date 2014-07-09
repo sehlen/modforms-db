@@ -839,9 +839,11 @@ class CompMF(MongoMF):
                                     #a = E*v
                                     ##  Check that we have the correct number of primes.
                                     
-                                    if (not (E[0,0] is 0)) and len(v)==E.ncols() and   E.nrows()>=prime_pi(pprec):
+                                    if (not (E[0,0] is 0)) and len(v)==E.ncols() and  E.nrows()>=prime_pi(pprec):
                                         res['aps'] = True
                                         break
+                                    elif E.nrows()<prime_pi(pprec):
+                                        clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows())
                                     clogger.debug("done checking coeffs!")
         else:
             if len(aps.keys())==numf:
