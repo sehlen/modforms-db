@@ -752,11 +752,17 @@ class CompMF(MongoMF):
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
                 
+        ### Might as well check the character here as well.
+        #x = M.character()
+        #si = sage_character_to_galois_orbit_number(x)
+        #if si <> i:
+        #    clogger.warning("Character for this record is wrong!")
         M = self.get_ambient(N,k,i,compute=False)
         if M is None:
             res['modular_symbols']=False
             numf = 0
         else:
+            self.check_character(N,k,i)
             if check_content and not 'modsym.ambient' in str(M.__class__):
                 clogger.warning("Space is reconstructed with wrong class!")
                 clogger.warning("type(M)={0}".format(type(M)))
@@ -897,7 +903,87 @@ class CompMF(MongoMF):
         return True
 
     
+    def check_character(self,N,k,chi,remove=0,files_separately=0):
+        if N % 10 == 0:
+            clogger.debug("Checking N={0}".format(N))
         
+        problems=[]
+        i = 0 
+        for r in self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(chi)})
+            if i>1:
+                clogger.warning("Multiple records for {0}!".format((N,k,chi)))
+            i=i+1
+            sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+            ms = gridfs.GridFS(self._mongodb,'Modular_symbols')
+            aps = gridfs.GridFS(self._mongodb,'aps')
+            factors = gridfs.GridFS(self._mongodb,'Newform_factors')
+            al = gridfs.GridFS(self._mongodb,'Atkin-Lehner')
+            M = self.load_from_mongo(self._modular_symbols_collection,id)
+            x = M.character()
+            if N == 1:
+                si = 0
+                ci = 1
+            else:
+                si = sage_character_to_galois_orbit_number(x)
+                ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
+            if si <> chi or ci<>cchi:
+                problems.append((N,k,chi))
+                print "Chi is wrong! Should be {0}".format(si)
+                print "CChi is wrong! Should be {0}".format(ci)
+                print "r=",r
+                if remove == 1:
+                    # First delete from mongo
+                    ms.delete(id)
+                    # delete aps
+                    for rf in  self._aps.find({'_ambient_id':id},fields=['_id']):
+                        aps.delete(rf['_id'])
+                    # delete factors
+                    for rf in  self._newform_factors.find({'_ambient_id':id},fields=['_id','newform']):
+                        fid = rf['_id']
+                        factors.delete(fid) # Delete factor
+                        dname = self._db.factor(N,k,chi,rf['newform'])
+                        for fname in self._db.listdir(dname):
+                            self._db.delete_file(fname)
+                    aname = self._db.ambient(N,k,chi)
+                    for fname in self._db.listdir(aname):
+                        self._db.delete_file(fname)
+                    os.removedirs(aname)
+            else:
+                r = self._modular_symbols.find_one({'_id':id})
+                if r.get('complete') is None or r.get('complete')<2:
+                    self.check_record(N,k,chi,check_content=True)
+                self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
+            for N1,k1,chi1,d,prec in self._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
+                #if N < minn or N>maxn or k<mink or k>maxk:
+                #    continue
+                sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+                if not files_separately==1 or (N1,k1,chi1) in problems:
+                    continue
+                if not self._db.path_exists(self._db.ambient(N1,k1,chi1)):
+                    continue
+                M = self._db.load_ambient_space(N1,k1,chi1)
+                x = M.character()
+                if N1 == 1:
+                    si = 0
+                else:
+                    si = sage_character_to_galois_orbit_number(x)
+                if si <> chi:
+                    if (N1,k1,chi1) not in problems:
+                        problems.append((N1,k1,chi1))
+                    print "in file: Chi is wrong! Should be {0}".format(si)
+                    if remove == 1:
+                        dname = self._db.factor(N1,k1,chi1,d)
+                        for fname in self._db.listdir(dname):
+                            self._db.delete_file(fname)
+                        aname = self._db.ambient(N1,k1,chi1)
+                        for fname in self._db.listdir(aname):
+                            self._db.delete_file(fname)
+                        os.removedirs(aname)
+                        if verbose>0:
+                            print "removed directory {0}".format(aname)
+            if remove == 1 and problems<>[]:
+                print "Removed {0} records!".format(len(problems))
+    return problems            
     
 def precision_needed_for_L(N,k,**kwds):
     r"""
