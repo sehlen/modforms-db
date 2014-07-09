@@ -843,7 +843,7 @@ class CompMF(MongoMF):
                                         res['aps'] = True
                                         break
                                     elif E.nrows()<prime_pi(pprec):
-                                        clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows())
+                                        clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
                                     clogger.debug("done checking coeffs!")
         else:
             if len(aps.keys())==numf:
