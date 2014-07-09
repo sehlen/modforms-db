@@ -2177,11 +2177,15 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
                     DB._mongodb[col].update({'_id':id},{"$set":{'cchi':ci}})
                 else:
                     DB._mongodb[col].update({'ambient_id':id},{"$set":{'cchi':ci}})
-        args.append((DB,id,N,k,chi,cchi,remove,files_separately))
+        if r.get('complete')>=3:
+            continue
+        args.append((DB,id,N,k,chi,cchi,remove,verbose,files_separately))
     return list(check_character(args))
 
 @parallel(ncpus=8)
-def check_character(DB,id,N,k,chi,cchi,remove=0,files_separately=0):
+def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
+    if N % 10 == 0:
+        print "Checking N={0}".format(N)
     problems=[]
     sage.modular.modsym.modsym.ModularSymbols_clear_cache()
     ms = gridfs.GridFS(DB._mongodb,'Modular_symbols')
@@ -2223,7 +2227,12 @@ def check_character(DB,id,N,k,chi,cchi,remove=0,files_separately=0):
             for fname in DB._db.listdir(aname):
                 DB._db.delete_file(fname)
             os.removedirs(aname)
-
+    else:
+        col='Modular_symbols'
+        r = DB._mongodb[col].find_one({'_id':id})
+        if r.get('complete') is None or r.get('complete')<2:
+            DB.check_record(N,k,chi,check_content=True)
+        DB._mongodb[col].update({'_id':id},{"$set":{'complete':int(3)}})
     for N1,k1,chi1,d,prec in DB._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
         #if N < minn or N>maxn or k<mink or k>maxk:
         #    continue
