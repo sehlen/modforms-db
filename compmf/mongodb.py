@@ -920,6 +920,7 @@ class CompMF(MongoMF):
             al = gridfs.GridFS(self._mongodb,'Atkin-Lehner')
             M = self.load_from_mongo(self._modular_symbols_collection,id)
             x = M.character()
+            id = r['_id']
             if N == 1:
                 si = 0
                 ci = 1
