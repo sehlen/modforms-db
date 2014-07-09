@@ -803,6 +803,9 @@ class CompMF(MongoMF):
                 if d <> d1:
                     res['factors'] = False
                     clogger.warning("Dimensions of all factors do not sum up to the total dimension! n,k,chi={0}".format((N,k,i)))
+                if not M is None:
+                    dim = M.dimension()
+                    self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})            
         ### Check ap's
         if check_content:
             aps = self.get_aps(N,k,i)
@@ -832,7 +835,7 @@ class CompMF(MongoMF):
                             if check_content:
                                 #clogger.debug("checking coefficients! len(apd[0])={0}".format(len(apd[0])))                                
                                 for E,v,meta in apd:
-                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]={3}".format(len(v),E.ncols(),E.nrows(),E[0,0] is 0))
+                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}".format(len(v),E.ncols(),E.nrows(),E[0,0] is 0))
                                     #a = E*v
                                     ##  Check that we have the correct number of primes.
                                     
