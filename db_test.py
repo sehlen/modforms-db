@@ -2181,7 +2181,7 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
     return list(check_character(args))
 
 @parallel(ncpus=8)
-def check_character(DB,id,N,k,chi,remove=0,files_separately=0):
+def check_character(DB,id,N,k,chi,cchi,remove=0,files_separately=0):
     problems=[]
     sage.modular.modsym.modsym.ModularSymbols_clear_cache()
     ms = gridfs.GridFS(DB._mongodb,'Modular_symbols')
