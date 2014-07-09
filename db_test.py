@@ -2162,7 +2162,7 @@ def find_multiple_records(DB,col='webmodformspace',key='filename'):
 
 from compmf.character_conversions import sage_character_to_galois_orbit_number,conrey_character_number_from_sage_galois_orbit_number
 import sage
-def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose=1,files_separately=0):
+def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose=1,files_separately=0,ncpus=1):
     problems = []
     args = []
     for r in DB._modular_symbols.find({'N':{"$lt":int(maxn),"$gt":int(minn)},'k':{"$lt":int(maxk),"$gt":int(mink)}}).sort('N',int(1)).sort('chi',int(1)):
@@ -2180,9 +2180,27 @@ def fix_character_numbers(DB,minn=0,maxn=10000,mink=0,maxk=1000,remove=0,verbose
         if r.get('complete')>=3:
             continue
         args.append((DB,id,N,k,chi,cchi,remove,verbose,files_separately))
+    if ncpus>=32:
+        return list(check_character32(args))
+    if ncpus>=16:
+        return list(check_character32(args))
+    if ncpus>=8:
+        return list(check_character32(args))
     return list(check_character(args))
-
+    
 @parallel(ncpus=8)
+def check_character8(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
+    return check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0)
+    
+@parallel(ncpus=16)
+def check_character16(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
+    return check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0)
+    
+@parallel(ncpus=32)
+def check_character32(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
+    return check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0)
+    
+@parallel(ncpus=1)    
 def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
     if N % 10 == 0:
         print "Checking N={0}".format(N)
