@@ -724,6 +724,7 @@ class CompMF(MongoMF):
             if irange <> 'all' and irange<>[] and (chi < irange[0] or chi >irange[-1]):
                 continue
             args.append((n,k,chi,check_content))
+        clogger.debug("args={0}".format(args))
         if ncpus >= 32:
             return list(self.check_record32(args))
         elif ncpus >= 16:
@@ -741,6 +742,7 @@ class CompMF(MongoMF):
     @parallel(ncpus=32)        
     def check_record32(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
+        
     @parallel(ncpus=1)            
     def check_record(self,N,k,i,check_content=False,recheck=False):
         r"""
@@ -753,7 +755,7 @@ class CompMF(MongoMF):
         s = {'N':int(N),'k':int(k),'chi':int(i)}
         res = {}
         ### Check the ambient space
-        check_level = int(2) if check_content else int(1)
+        check_level = int(3) if check_content else int(1)
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
@@ -966,11 +968,11 @@ class CompMF(MongoMF):
                     for fname in self._db.listdir(aname):
                         self._db.delete_file(fname)
                     os.removedirs(aname)
-            else:
-                r = self._modular_symbols.find_one({'_id':id})
-                if r.get('complete') is None or r.get('complete')<2:
-                    self.check_record(N,k,chi,check_content=True)
-                self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
+            #else:
+            #    r = self._modular_symbols.find_one({'_id':id})
+            #    #if r.get('complete') is None or r.get('complete')<2:
+            #self.check_record(N,k,chi,check_content=True)
+            #    self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
             for N1,k1,chi1,d,prec in self._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
