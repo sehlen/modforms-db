@@ -822,6 +822,7 @@ class CompMF(MongoMF):
         res['aps']=False
         clogger.debug("facts={0}, numf={1}".format(facts,numf))
         clogger.debug("aps.keys={0}".format(aps.keys()))
+        fs_ap = gridfs.GridFS(self._mongodb,self._aps_collection)
         if res['factors'] is True:
             res['aps'] = len(aps.keys())==numf
             if check_content:
