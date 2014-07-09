@@ -588,7 +588,7 @@ class CompMF(MongoMF):
         verbose = kwds.get('verbose')
         c = dirichlet_character_conrey_from_sage_character_number(N,i)
         ci = c.number()        
-        orbit = dirichlet_character_conrey_galois_orbit_numbersfrom_character_number(N,xi)
+        orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,xi)
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')              
         key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
