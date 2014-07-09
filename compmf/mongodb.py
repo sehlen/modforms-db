@@ -102,7 +102,8 @@ class MongoMF(object):
                 self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
             except pymongo.errors.DuplicateKeyError:
                 print "Removing duplicates!"
-                self.remove_duplicates(col,ix['keys'])
+                keys =  [x[0] for x in ix['keys']]
+                self.remove_duplicates(col,keys)
             # remove duplicates
             
 
@@ -111,17 +112,22 @@ class MongoMF(object):
         Remove duplicate records in collection col for which keys are not unique.
         """
         from sage.all import deepcopy
-        keys = [x[0] for x in keys]
+        #keys = [x[0] for x in keys]
         print "keys=",keys
         fs = gridfs.GridFS(self._mongodb,col)
         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         print "flds=",flds
-        for r in self._mongodb[col].find(fields=flds).sort('uploadDate',-1):
+        if 'files' not in col:
+            ccol='{0}.files'.format(col)
+        else:
+            ccol = col
+        print "ccol=",ccol
+        for r in self._mongodb[ccol].find({},fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
             id=r['_id']
             s = {}
             for k in keys:
                 s[k]=r[k]
-            print "s=",s
+            #print "s=",s
             for rnew in self._mongodb[col].find(s,fields=['uploadDate','filename','_id','N','k','chi','cchi']).sort('uploadDate',1):
                 if rnew['_id']==id:
                     continue
