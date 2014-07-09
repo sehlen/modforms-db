@@ -30,7 +30,7 @@ import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
-from sage.all import prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
+from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
 
 
 from compmf import clogger
@@ -852,10 +852,11 @@ class CompMF(MongoMF):
                                         for r in self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)}):
                                             id =r['_id']; d=r['newform']
                                             E,v = loads(fs_ap.get(id).read())
-                                            fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,E.nrows())
                                             if E.nrows() < prec:
+                                                prec_new = int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
+                                                fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_new)
                                                 q = self._aps.update({'_id':id},
-                                                                     {"$set":{'prec':int(E.nrows()),'filename':fname}},multi=True)
+                                                                     {"$set":{'prec':prec_new,'filename':fname}},multi=True)
                                         clogger.debug("changed prec!")
                                     clogger.debug("done checking coeffs!")
         else:
