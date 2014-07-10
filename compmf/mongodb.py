@@ -121,7 +121,7 @@ class MongoMF(object):
         args = []
         for j in range(ceil (RR(nmax)/32.0)):
             args.append((col,keys,flds,dryrun,j*32,(j+1)*32))
-        return list(remove_duplicates32(args))
+        return list(self.remove_duplicates32(args))
         
     @parallel(ncpus=32)
     def remove_duplicates32(self,col,keys,flds,dryrun=1,nmin=0,nmax=10000):
