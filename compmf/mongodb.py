@@ -104,6 +104,10 @@ class MongoMF(object):
                 print "Removing duplicates!"
                 keys =  [x[0] for x in ix['keys']]
                 self.remove_duplicates(col,keys,dryrun=noremove)
+                try: 
+                    self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
+                except pymongo.errors.DuplicateKeyError:
+                    clogger.critical("We could not remove all duplicates!")
             # remove duplicates
 
 
@@ -169,6 +173,7 @@ class MongoMF(object):
                 if dryrun:
                     clogger.debug("Not really deleting!")
                 else:
+                    clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs))
                     fs.delete(rnew['_id'])
         
     def show_existing_mongo(self,db='fr'):
