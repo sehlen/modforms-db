@@ -308,7 +308,7 @@ class ComputeMFData(object):
             t = cputime()
             A = self.files().load_factor(N, k, i, d, M)
             clogger.debug("A={0}".format(A))
-            aplist, _ = A.compact_system_of_eigenvalues(prime_range(n0,n1), 'a')
+            aplist, v = A.compact_system_of_eigenvalues(prime_range(n0,n1), 'a')
             clogger.debug("got aplist!")
             #print aplist, aplist_file
             tm = cputime(t)
@@ -317,6 +317,9 @@ class ComputeMFData(object):
             if kwds.get('save',True):
                 save(aplist, aplist_file)
                 save(meta, self.files().meta(aplist_file))
+                vname = self.factor_dual_eigenvector(N, k, i, d)
+                if not self.path_exists(vname):
+                    save(v,vname)
             else:
                 res[(N,k,i,d)]=aplist,meta
             

@@ -655,7 +655,11 @@ class CompMF(MongoMF):
                     if not self._db.isdir(apdir):
                         self._db.makedirs(apdir)
                     clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
-                    save((E,v), aplist_file)
+                    save(E, aplist_file)
+                    
+                    vname = self.factor_dual_eigenvector(N, k, i, d)
+                    if not self.path_exists(vname):
+                        save(v,vname)
                     save(meta, self._db.meta(aplist_file))
                     
         # See if we have the coefficients in a file or not

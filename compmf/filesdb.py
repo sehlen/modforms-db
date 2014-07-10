@@ -702,7 +702,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 E = E[0]
             if prime_pi(numap) > E.nrows():
                 clogger.debug("Have only {0} aps. Claim that we have {1}".format(E.nrows(),numap))
-                
+                ## Rename the file:
+                new_prec = nth_prime(E.nrows()+1)-1
+                save(E,self.factor_aplist(N,k,i,d,False,0,new_prec)
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
