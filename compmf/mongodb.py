@@ -853,14 +853,17 @@ class CompMF(MongoMF):
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
                     fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,i,d,prec_in_db)
+                    clogger.debug("updating record with prec = prec_in_db={0}".format(prec_in_db))                                  
                     q = self._aps.update({'_id':id},
                                          {"$set":{'prec':prec_in_db,'filename':fname}},multi=True)
+                    ## Also check the file system:
+                    
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
             maxprec = max(precs)
             if maxprec < pprec:
-                clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,maxprec))
+                clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
             clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
