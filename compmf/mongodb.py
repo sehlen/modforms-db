@@ -140,13 +140,14 @@ class MongoMF(object):
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
-            for rnew in self._mongodb[col].find(s,fields=['uploadDate','filename','_id','N','k','chi','cchi','newform']).sort('uploadDate',1):
+            clogger.debug("s = {0}".format(s))
+            for rnew in self._mongodb[col].find(s,fields=flds).sort('uploadDate',1):
                 if rnew['_id']==id:
                     continue
-                print "Removing record {0} in collection {1}".format(rnew,col)
-                print "Duplicate of {0}".format(r)
+                clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
+                clogger.debug("Duplicate of {0}".format(r))
                 if dryrun:
-                    print "Not really deleting!"
+                    clogger.debug("Not really deleting!")
                 else:
                     fs.delete(rnew['_id'])
         
