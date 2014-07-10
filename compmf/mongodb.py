@@ -855,7 +855,6 @@ class CompMF(MongoMF):
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
-                    break
             maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,maxprec))
