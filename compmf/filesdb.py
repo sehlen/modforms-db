@@ -676,7 +676,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     numap = int(fname.split("-")[2])
                     aplist_meta_files.append((numap,fname))
                 else:
-                    numap = int(fname.split("-")[1].split(".")[0])
+                    numap = int(fname.split("-")[2].split(".")[0])
                     aplist_files.append((numap,fname))
         if aplist_files == []:
             return
