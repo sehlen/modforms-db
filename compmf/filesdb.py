@@ -691,7 +691,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     numap,fname = n,c
                     break
         if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
-            raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,numap)
+            maxc = max(aplist_files)[0]
+            raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,maxc)
         metaname = fname.split(".")[0]+"-meta.sobj"
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
