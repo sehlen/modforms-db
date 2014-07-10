@@ -853,7 +853,7 @@ class CompMF(MongoMF):
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                     break
-            max_prec = max(precs)
+            maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
                 res['aps'] = False
