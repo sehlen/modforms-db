@@ -136,7 +136,7 @@ class MongoMF(object):
                         clogger.warning("rec without cchi: r={0}".format(r))
                         c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
                         ci = c.number()
-                        DB._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
+                        self._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
