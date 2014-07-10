@@ -698,8 +698,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         metaname = fname.split(".")[0]+"-meta.sobj"
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
+            if isinstance(E,tuple):
+                E = E[0]
             if prime_pi(numap) > E.nrows():
                 clogger.debug("Have only {0} aps. Claim that we have {1}".format(E.nrows(),numap))
+                
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
