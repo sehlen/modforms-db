@@ -122,7 +122,10 @@ class MongoMF(object):
         else:
             ccol = col
         print "ccol=",ccol
-        for r in self._mongodb[ccol].find({},fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
+        s = {}
+        if ccol=='Newform_factors.files':
+            s = {'N':{"$lt":int(100)}}
+        for r in self._mongodb[ccol].find(s,fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
             id=r['_id']
             s = {}
             for k in keys:
