@@ -855,7 +855,7 @@ class CompMF(MongoMF):
                     break
             maxprec = max(precs)
             if maxprec < pprec:
-                clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
+                clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
             clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
