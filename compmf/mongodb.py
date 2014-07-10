@@ -610,6 +610,8 @@ class CompMF(MongoMF):
             for key,value in aps.iteritems():
                 N,k,i,d = key
                 E,v,meta = value
+                if isinstance(E,tuple):
+                    E,v = E
                 clogger.debug("E={0}".format(E))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))

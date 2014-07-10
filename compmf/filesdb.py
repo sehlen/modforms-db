@@ -690,6 +690,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 if c >= numc:
                     numap,fname = n,c
                     break
+        clogger.debug("want numc={0} and have: {1}".format(numc,numap))
         if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
             maxc = max(aplist_files)[0]
             print "aplist_files=",aplist_files
@@ -697,6 +698,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         metaname = fname.split(".")[0]+"-meta.sobj"
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
+            if prime_pi(numap) > E.nrows():
+                clogger.debug("Have only {0} aps. Claim that we have {1}".format(E.nrows(),numap))
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
