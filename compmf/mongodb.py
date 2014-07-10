@@ -120,7 +120,7 @@ class MongoMF(object):
         nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
         for j in range(ceil (RR(nmax)/32.0)):
-            args.append(col,keys,flds,dryrun,j*32,(j+1)*32)
+            args.append((col,keys,flds,dryrun,j*32,(j+1)*32))
         return list(remove_duplicates32(args))
         
     @parallel(ncpus=32)
