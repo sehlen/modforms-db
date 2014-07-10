@@ -140,8 +140,8 @@ class MongoMF(object):
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
-            clogger.debug("s = {0}".format(s))
             for rnew in self._mongodb[col].find(s,fields=flds).sort('uploadDate',1):
+                clogger.debug("s = {0}".format(s))
                 if rnew['_id']==id:
                     continue
                 clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
