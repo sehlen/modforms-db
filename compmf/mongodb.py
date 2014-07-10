@@ -117,7 +117,7 @@ class MongoMF(object):
         clogger.debug("keys={0}".format(keys))
         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         clogger.debug("flds={0}".format(flds))
-        nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct(N))
+        nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
         for j in range(ceil (RR(nmax)/32.0)):
             args.append(col,keys,flds,dryrun,j*32,(j+1)*32)
