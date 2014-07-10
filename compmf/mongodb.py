@@ -129,7 +129,12 @@ class MongoMF(object):
             id=r['_id']
             s = {}
             for k in keys:
-                s[k]=r[k]
+                try:
+                    s[k]=r[k]
+                except KeyError as e:
+                    if k=='cchi':
+                        clogger.warning("rec without cchi: r={0}".format(r))
+                    raise KeyError,e.message
             #print "s=",s
             for rnew in self._mongodb[col].find(s,fields=['uploadDate','filename','_id','N','k','chi','cchi']).sort('uploadDate',1):
                 if rnew['_id']==id:
