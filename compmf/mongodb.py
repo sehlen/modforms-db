@@ -643,6 +643,8 @@ class CompMF(MongoMF):
             for key,val in aps.iteritems():
                 clogger.debug("key={0}".format(key))
                 clogger.debug("type(val)={0}".format(type(val)))
+                if isinstance(val,dict):
+                    clogger.debug("val.keys()={0}".format(val.keys()))
                 N,k,i,d = key
                 E,v,meta = val[0]
                 aplist_file = self._db.factor_aplist(N, k, i, d, False, pprec)
@@ -833,6 +835,7 @@ class CompMF(MongoMF):
                 res['aps']=False
                 break
             precs = []
+            clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
             for r in q:
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
@@ -842,7 +845,7 @@ class CompMF(MongoMF):
                 nprimes_assumed = prime_pi(prec)
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
                 precs.append(prec_in_db)
-
+                clogger.debug("prec_in_db={0}".format(prec_in_db))                                  
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
