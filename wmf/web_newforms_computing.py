@@ -123,14 +123,21 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
-        aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
-        wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
-        if len(aps)>0:
-            E,v,meta = aps.values()[0][0]
+        try:
+            aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
+            wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+            available_prec = aps.values()[0].keys()
+            use_prec = available_prec[0]
+            for prec in available_prec:
+                if prec >= self.prec:
+                    use_prec = prec
+            
+            E,v,meta = aps.values()[0][use_prec]
             self.eigenvalues.E = E
             self.eigenvalues.v = v
             self.eigenvalues.init_dynamic_properties()
-            
+        except Exception as e:
+            wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
 
     def set_q_expansion(self):
         r"""

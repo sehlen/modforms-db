@@ -58,7 +58,7 @@ class MongoMF(object):
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
         self._aps_collection = 'ap'
-        self._atkin_lehner_collection = 'Atkin_Lehner'
+        self._atkin_lehner_collection = 'Atkin_lehner'
         self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
         self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
         self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
@@ -119,9 +119,10 @@ class MongoMF(object):
         clogger.debug("flds={0}".format(flds))
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
-        h = RR(nnmax)/32.0
-        for j in range(32):
-            nmin = floor(h*j); nmax = ceil(h*(j+1))
+        maxn = 100
+        #h = RR(nnmax)/32.0
+        for j in range(RR(nnmax)/100):
+            nmin = j*100; nmax = (j+1)*100
             args.append((col,keys,flds,dryrun,nmin,nmax))
         return list(self.remove_duplicates32(args))
         
