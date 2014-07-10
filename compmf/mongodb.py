@@ -114,6 +114,7 @@ class MongoMF(object):
             ccol = col
         clogger.debug("ccol={0}".format(ccol))
         clogger.debug("keys={0}".format(keys))
+        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         clogger.debug("flds={0}".format(flds))
         nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct(N))
         args = []
@@ -122,7 +123,7 @@ class MongoMF(object):
         return list(remove_duplicates32(args))
         
     @parallel(ncpus=32)
-    def remove_duplicates32(self,col,keys,dryrun=1,nmin=0,nmax=10000):
+    def remove_duplicates32(self,col,keys,flds,dryrun=1,nmin=0,nmax=10000):
         r"""
         Remove duplicate records in collection col for which keys are not unique.
         """
@@ -131,7 +132,6 @@ class MongoMF(object):
 
         #keys = [x[0] for x in keys]
         fs = gridfs.GridFS(self._mongodb,col)
-        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         if 'files' not in col:
             ccol='{0}.files'.format(col)
         else:
