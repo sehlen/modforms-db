@@ -832,6 +832,7 @@ class CompMF(MongoMF):
             if q.count()==0:
                 res['aps']=False
                 break
+            precs = []
             for r in q:
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
@@ -839,23 +840,24 @@ class CompMF(MongoMF):
                 clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
                 nprimes_in_db = E.nrows()
                 nprimes_assumed = prime_pi(prec)
+                prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
+                precs.append(prec_in_db)
+
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
-                    prec_new = int(nth_prime(nprimes_in_db+1)-1)
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
-                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_new)
+                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_in_db)
                     q = self._aps.update({'_id':id},
-                                         {"$set":{'prec':prec_new,'filename':fname}},multi=True)
+                                         {"$set":{'prec':prec_in_db,'filename':fname}},multi=True)
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
-                if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_new == prec:
+                if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                     break
-                elif nprimes_in_db < prime_pi(pprec):
-                    clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
-                    res['aps'] = False
-                if res['aps'] is True:
-                    continue
-            clogger.debug("done checking coeffs!")
+            max_prec = max(precs)
+            if maxprec < pprec:
+                clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
+                res['aps'] = False
+            clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
