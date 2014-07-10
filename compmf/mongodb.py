@@ -117,10 +117,12 @@ class MongoMF(object):
         clogger.debug("keys={0}".format(keys))
         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         clogger.debug("flds={0}".format(flds))
-        nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
+        nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
-        for j in range(ceil (RR(nmax)/32.0)):
-            args.append((col,keys,flds,dryrun,j*32,(j+1)*32))
+        h = RR(nnmax)/32.0
+        for j in range(32):
+            nmin = h*j; nmax = h*(j+1)
+            args.append((col,keys,flds,dryrun,nmin,nmax))
         return list(self.remove_duplicates32(args))
         
     @parallel(ncpus=32)
