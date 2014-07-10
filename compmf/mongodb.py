@@ -847,6 +847,7 @@ class CompMF(MongoMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
+                clogger.debug("type(E)={0}".format(type(E)))                                                  
                 res['aps']=False
                 clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
                 nprimes_in_db = E.nrows()
@@ -857,7 +858,6 @@ class CompMF(MongoMF):
                 clogger.debug("prec_in_db={0}".format(prec_in_db))
                 clogger.debug("nprimes_in_db={0}".format(nprimes_in_db))
                 clogger.debug("nprimes_assumed={0}".format(nprimes_assumed))
-                clogger.debug("type(E)={0}".format(type(E)))                                                  
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
