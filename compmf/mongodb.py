@@ -657,7 +657,7 @@ class CompMF(MongoMF):
                     clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
                     save(E, aplist_file)
                     
-                    vname = self.factor_dual_eigenvector(N, k, i, d)
+                    vname = self._db.factor_dual_eigenvector(N, k, i, d)
                     if not self.path_exists(vname):
                         save(v,vname)
                     save(meta, self._db.meta(aplist_file))
