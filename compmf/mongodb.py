@@ -812,56 +812,50 @@ class CompMF(MongoMF):
         pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
         pprec = max(pprec,100)
         pprec = ceil(RR(pprec)/RR(100))*100
-
-        if check_content:
-            aps = self.get_aps(N,k,i)
-        else:
-            newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
-            aps = {(N,k,i,x) : {pprec: True}  for x in newforms}
-            
+        #if check_content:
+        #    #aps = self.get_aps(N,k,i)
+        #else:
+        #    newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
+        #    #aps = {(N,k,i,x) : {pprec: True}  for x in newforms}
         res['aps']=False
+        if not check_content and res['factors']:
+            newforms_with_aps = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
+            res['aps'] = len(newform_with_aps) == numf
         clogger.debug("facts={0}, numf={1}".format(facts,numf))
-        clogger.debug("aps.keys={0}".format(aps.keys()))
         fs_ap = gridfs.GridFS(self._mongodb,self._aps_collection)
-        if res['factors'] is True:
-            res['aps'] = len(aps.keys())==numf
-            if check_content:
-                for t in facts.keys():
-                    clogger.debug("t={0}".format(t))
-                    apd = aps.get(t,{})
-                    clogger.debug("APs[{0}] has lens: {1}".format(t,apd.keys()))
-                    if apd == []:
-                        res['aps']=False
-                    else:
-                        if len(apd)>0:
-                            res['aps']=False
-                            if check_content:
-                                #clogger.debug("checking coefficients! len(apd[0])={0}".format(len(apd[0])))                                
-                                for prec,tt in apd.iteritems():
-                                    E,v,meta  = tt
-                                    clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
-                                    #a = E*v
-                                    ##  Check that we have the correct number of primes.
-                                    if (not (E[0,0] is 0)) and len(v)==E.ncols() and  E.nrows()>=prime_pi(pprec):
-                                        res['aps'] = True
-                                        break
-                                    elif E.nrows()< prime_pi(pprec):
-                                        clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
-                                    if prime_pi(prec) > E.nrows():  ### The coefficients in the database are not as many as assumed!
-                                        clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
-                                        for r in self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'prec':int(prec)}):
-                                            id =r['_id']; d=r['newform']
-                                            E,v = loads(fs_ap.get(id).read())
-                                            if E.nrows() < prec:
-                                                prec_new = int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
-                                                fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_new)
-                                                q = self._aps.update({'_id':id},
-                                                                     {"$set":{'prec':prec_new,'filename':fname}},multi=True)
-                                        clogger.debug("changed prec!")
-                                    clogger.debug("done checking coeffs!")
-        else:
-            if len(aps.keys())==numf:
-                res['aps'] = True
+        if res['factors'] is False:
+            facts = {}
+        for t in facts.keys():
+            clogger.debug("t={0}".format(t))
+            N,k,i,d=t
+            q = self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'newform':int(d)})
+            if q.count()==0:
+                res['aps']=False
+                break
+            for r in q:
+                id =r['_id']; prec=r['prec']
+                E,v = loads(fs_ap.get(id).read())                    
+                res['aps']=False
+                clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
+                nprimes_in_db = E.nrows()
+                nprimes_assumed = prime_pi(prec)
+                if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
+                    clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
+                    prec_new = int(nth_prime(nprimes_in_db+1)-1)
+                    #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
+                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_new)
+                    q = self._aps.update({'_id':id},
+                                         {"$set":{'prec':prec_new,'filename':fname}},multi=True)
+                    ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
+                if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_new == prec:
+                    res['aps'] = True
+                    break
+                elif nprimes_in_db < prime_pi(pprec):
+                    clogger.debug("have coefficients but not enough! Need {0} and got {1}".format(pprec,E.nrows()))
+                    res['aps'] = False
+                if res['aps'] is True:
+                    continue
+            clogger.debug("done checking coeffs!")
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
