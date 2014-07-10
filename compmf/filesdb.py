@@ -673,7 +673,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         for fname in tmp:
             if "aplist" in fname:
                 if "meta" in fname:
-                    numap = int(fname.split("-")[1])
+                    numap = int(fname.split("-")[2])
                     aplist_meta_files.append((numap,fname))
                 else:
                     numap = int(fname.split("-")[1].split(".")[0])
