@@ -712,6 +712,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 self.delete_file("{0}/{1}".format(factor_dir,metaname))
                 self.delete_file("{0}/{1}".format(factor_dir,fname))
                 metaname = new_metaname.split("/")[-1]
+                raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
