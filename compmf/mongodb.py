@@ -30,7 +30,7 @@ import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
-from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi
+from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor
 
 
 from compmf import clogger
@@ -121,7 +121,7 @@ class MongoMF(object):
         args = []
         h = RR(nnmax)/32.0
         for j in range(32):
-            nmin = h*j; nmax = h*(j+1)
+            nmin = floor(h*j); nmax = ceil(h*(j+1))
             args.append((col,keys,flds,dryrun,nmin,nmax))
         return list(self.remove_duplicates32(args))
         
