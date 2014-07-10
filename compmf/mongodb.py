@@ -855,6 +855,8 @@ class CompMF(MongoMF):
                 precs.append(prec_in_db)
                 clogger.debug("claimed prec ={0}".format(prec))                                  
                 clogger.debug("prec_in_db={0}".format(prec_in_db))
+                clogger.debug("nprimes_in_db={0}".format(nprimes_in_db))
+                clogger.debug("nprimes_assumed={0}".format(nprimes_assumed))
                 clogger.debug("type(E)={0}".format(type(E)))                                                  
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
