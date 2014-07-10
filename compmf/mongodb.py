@@ -73,7 +73,7 @@ class MongoMF(object):
                          'Newform_factors.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
                                              ("newform",pymongo.ASCENDING)],
                                                'unique':True,'name':"N_k_cchi_d"},
-                         'ap': {'keys.files':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+                         'ap.files': {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
                                                   ("newform",pymongo.ASCENDING)],
                                          'unique':True,'name':"N_k_cchi_d"}, 
                          'Atkin_lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
@@ -105,26 +105,40 @@ class MongoMF(object):
                 keys =  [x[0] for x in ix['keys']]
                 self.remove_duplicates(col,keys,dryrun=noremove)
             # remove duplicates
-            
 
-    def remove_duplicates(self,col,keys,dryrun=1):
-        r"""
-        Remove duplicate records in collection col for which keys are not unique.
-        """
-        from sage.all import deepcopy
-        #keys = [x[0] for x in keys]
-        print "keys=",keys
-        fs = gridfs.GridFS(self._mongodb,col)
-        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
-        print "flds=",flds
+
+    def remove_duplicates32(self,col,keys,dryrun=1):
         if 'files' not in col:
             ccol='{0}.files'.format(col)
         else:
             ccol = col
-        print "ccol=",ccol
+        clogger.debug("ccol={0}".format(ccol))
+        clogger.debug("keys={0}".format(keys))
+        clogger.debug("flds={0}".format(flds))
+        nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct(N))
+        args = []
+        for j in range(ceil (RR(nmax)/32.0)):
+            args.append(col,keys,dryrun,j*32,(j+1)*32)
+        return list(remove_duplicates32(args))
+        
+    @parallel(ncpus=32)
+    def remove_duplicates32(self,col,keys,dryrun=1,nmin=0,nmax=10000):
+        r"""
+        Remove duplicate records in collection col for which keys are not unique.
+        """
+        from sage.all import deepcopy
+        clogger.debug("nmin = {0} \t nmax= {1}".format(nmin,nmax))
+
+        #keys = [x[0] for x in keys]
+        fs = gridfs.GridFS(self._mongodb,col)
+        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
+        if 'files' not in col:
+            ccol='{0}.files'.format(col)
+        else:
+            ccol = col
         s = {}
         if ccol=='Newform_factors.files':
-            s = {'N':{"$lt":int(100)}}
+            s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
         for r in self._mongodb[ccol].find(s,fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
             id=r['_id']
             s = {}
