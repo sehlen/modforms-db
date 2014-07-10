@@ -107,7 +107,7 @@ class MongoMF(object):
             # remove duplicates
 
 
-    def remove_duplicates32(self,col,keys,dryrun=1):
+    def remove_duplicates(self,col,keys,dryrun=1):
         if 'files' not in col:
             ccol='{0}.files'.format(col)
         else:
