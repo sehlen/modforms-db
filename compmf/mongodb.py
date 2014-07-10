@@ -646,14 +646,15 @@ class CompMF(MongoMF):
                 if isinstance(val,dict):
                     clogger.debug("val.keys()={0}".format(val.keys()))
                 N,k,i,d = key
-                E,v,meta = val[0]
-                aplist_file = self._db.factor_aplist(N, k, i, d, False, pprec)
-                apdir = join(aplist_file.split("/")[0:-1],"/")
-                if not self._db.isdir(apdir):
-                    self._db.makedirs(apdir)
-                clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
-                save((E,v), aplist_file)
-                save(meta, self._db.meta(aplist_file))
+                for prec in val.keys():
+                    E,v,meta = val[prec]
+                    aplist_file = self._db.factor_aplist(N, k, i, d, False, prec)
+                    apdir = join(aplist_file.split("/")[0:-1],"/")
+                    if not self._db.isdir(apdir):
+                        self._db.makedirs(apdir)
+                    clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
+                    save((E,v), aplist_file)
+                    save(meta, self._db.meta(aplist_file))
                     
         # See if we have the coefficients in a file or not
         q = self._db.known("N={0} and k={1} and i={2}".format(N,k,i))
@@ -830,7 +831,8 @@ class CompMF(MongoMF):
         for t in facts.keys():
             clogger.debug("t={0}".format(t))
             N,k,i,d=t
-            q = self._aps.find({'N':int(N),'k':int(k),'chi':int(i),'newform':int(d)})
+            s = {'N':int(N),'k':int(k),'chi':int(i),'newform':int(d)}
+            q = self._aps.find(s)
             if q.count()==0:
                 res['aps']=False
                 break
@@ -845,11 +847,12 @@ class CompMF(MongoMF):
                 nprimes_assumed = prime_pi(prec)
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
                 precs.append(prec_in_db)
+                clogger.debug("claimed prec ={0}".format(prec))                                  
                 clogger.debug("prec_in_db={0}".format(prec_in_db))                                  
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
-                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{2:0>3}-{3:0>3}".format(N,k,i,d,prec_in_db)
+                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,i,d,prec_in_db)
                     q = self._aps.update({'_id':id},
                                          {"$set":{'prec':prec_in_db,'filename':fname}},multi=True)
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
