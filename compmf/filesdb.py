@@ -707,10 +707,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 apfname = self.factor_aplist(N,k,i,d,False,0,new_prec)
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
-                save(meta,self.meta(apfname))
+                new_metaname = self.meta(apfname)
+                save(meta,new_metaname)
                 self.delete_file("{0}/{1}".format(factor_dir,metaname))
                 self.delete_file("{0}/{1}".format(factor_dir,fname))
-
+                metaname = new_metaname
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
