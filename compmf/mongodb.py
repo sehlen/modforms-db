@@ -848,6 +848,9 @@ class CompMF(MongoMF):
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
                 clogger.debug("type(E)={0}".format(type(E)))                                                  
+                if isinstance(E,tuple):
+                    print "r=",r
+                    raise ValueError,"Wrong format of E!"
                 res['aps']=False
                 clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
                 nprimes_in_db = E.nrows()
