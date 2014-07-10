@@ -123,6 +123,7 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
+        wmf_logger.debug("Setting aps!")
         try:
             aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
             wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
