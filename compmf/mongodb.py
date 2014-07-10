@@ -854,7 +854,8 @@ class CompMF(MongoMF):
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
                 precs.append(prec_in_db)
                 clogger.debug("claimed prec ={0}".format(prec))                                  
-                clogger.debug("prec_in_db={0}".format(prec_in_db))                                  
+                clogger.debug("prec_in_db={0}".format(prec_in_db))
+                clogger.debug("type(E)={0}".format(type(E)))                                                  
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
