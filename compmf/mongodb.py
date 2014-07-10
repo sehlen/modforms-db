@@ -108,6 +108,7 @@ class MongoMF(object):
 
 
     def remove_duplicates(self,col,keys,dryrun=1):
+        from sage.all import deepcopy
         if 'files' not in col:
             ccol='{0}.files'.format(col)
         else:
@@ -119,7 +120,7 @@ class MongoMF(object):
         nmax = max(self._mongodb[ccol].find({},fields=['N']).distinct(N))
         args = []
         for j in range(ceil (RR(nmax)/32.0)):
-            args.append(col,keys,dryrun,j*32,(j+1)*32)
+            args.append(col,keys,flds,dryrun,j*32,(j+1)*32)
         return list(remove_duplicates32(args))
         
     @parallel(ncpus=32)
@@ -127,7 +128,6 @@ class MongoMF(object):
         r"""
         Remove duplicate records in collection col for which keys are not unique.
         """
-        from sage.all import deepcopy
         clogger.debug("nmin = {0} \t nmax= {1}".format(nmin,nmax))
 
         #keys = [x[0] for x in keys]
