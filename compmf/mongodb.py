@@ -141,9 +141,9 @@ class MongoMF(object):
                     #raise KeyError,e.message
             #print "s=",s
             for rnew in self._mongodb[col].find(s,fields=flds).sort('uploadDate',1):
-                clogger.debug("s = {0}".format(s))
                 if rnew['_id']==id:
                     continue
+                clogger.debug("s = {0}".format(s))
                 clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
                 clogger.debug("Duplicate of {0}".format(r))
                 if dryrun:
