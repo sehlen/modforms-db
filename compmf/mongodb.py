@@ -89,7 +89,7 @@ class MongoMF(object):
         s="Modular forms database at mongodb: {0}".format(self._mongo_conn)
         return s
 
-    def create_indices(self):
+    def create_indices(self,noremove=1):
         r"""
         Creates indices for our databases
         """
@@ -103,7 +103,7 @@ class MongoMF(object):
             except pymongo.errors.DuplicateKeyError:
                 print "Removing duplicates!"
                 keys =  [x[0] for x in ix['keys']]
-                self.remove_duplicates(col,keys)
+                self.remove_duplicates(col,keys,dryrun=noremove)
             # remove duplicates
             
 
@@ -134,14 +134,19 @@ class MongoMF(object):
                 except KeyError as e:
                     if k=='cchi':
                         clogger.warning("rec without cchi: r={0}".format(r))
-                    raise KeyError,e.message
+                        c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
+                        ci = c.number()
+                        DB._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
+                        clogger.debug("Added cchi!")
+                    #raise KeyError,e.message
             #print "s=",s
             for rnew in self._mongodb[col].find(s,fields=['uploadDate','filename','_id','N','k','chi','cchi']).sort('uploadDate',1):
                 if rnew['_id']==id:
                     continue
+                print "Removing record {0} in collection {1}".format(rnew,col)
+                print "Duplicate of {0}".format(r)
                 if dryrun:
-                    print "Removing record {0} in collection {1}".format(rnew,col)
-                    print "Duplicate of {0}".format(r)
+                    print "Not really deleting!"
                 else:
                     fs.delete(rnew['_id'])
         
