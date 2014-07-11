@@ -124,7 +124,7 @@ class MongoMF(object):
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
         if 'ap' in col:
-            step=10
+            step=5
         else:
             step = 100
         #h = RR(nnmax)/32.0
@@ -138,7 +138,6 @@ class MongoMF(object):
         r"""
         Remove duplicate records in collection col for which keys are not unique.
         """
-        clogger.debug("nmin = {0} \t nmax= {1}".format(nmin,nmax))
 
         #keys = [x[0] for x in keys]
         fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
@@ -147,6 +146,7 @@ class MongoMF(object):
         else:
             ccol = col
         s = {}
+        clogger.debug("nmin = {0} \t nmax= {1} \t col={2} \t ccol={3}".format(nmin,nmax,col,ccol))
         if ccol=='Newform_factors.files':
             s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
         for r in self._mongodb[ccol].find(s,fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
@@ -164,7 +164,7 @@ class MongoMF(object):
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
-            q = self._mongodb[col].find(s,fields=flds).sort('uploadDate',1)
+            q = self._mongodb[ccol].find(s,fields=flds).sort('uploadDate',1)
             if q.count()==1:
                 continue
             for rnew in q: 
