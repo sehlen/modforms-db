@@ -77,6 +77,7 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
+        self._available_precisions = []
         self._newform_number = None
         self._satake = {}
         self._twist_info = None
@@ -133,6 +134,7 @@ class WebNewForm_computing(WebNewForm):
         ev_set = 0
         for prec in aps.values()[0].keys():
             E,v,meta = aps.values()[0][prec]
+            self._available_precisions.append(prec)
             evs = WebEigenvalues(self.hecke_orbit_label,prec)
             evs.E = E
             evs.v = v
@@ -297,8 +299,8 @@ class WebNewForm_computing(WebNewForm):
         
         if not ((self.character.is_trivial() or self.character.order == 2) and not self._atkin_lehner_eigenvalues is None):
             return None
-        C = connect_to_modularforms_db('Atkin-Lehner.files')
-        fs = get_files_from_gridfs('Atkin-Lehner')
+        C = connect_to_modularforms_db('Atkin_Lehner.files')
+        fs = get_files_from_gridfs('Atkin_Lehner')
         s = {'N':int(self.level),'k':int(self.weight),
              'cchi':int(self.character.number),'newform':int(self.newform_number())}
         res = C.find_one(s)

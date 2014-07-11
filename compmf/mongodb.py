@@ -58,7 +58,7 @@ class MongoMF(object):
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
         self._aps_collection = 'ap'
-        self._atkin_lehner_collection = 'Atkin_lehner'
+        self._atkin_lehner_collection = 'Atkin_Lehner'
         self._modular_symbols = self._mongodb["{0}.files".format(self._modular_symbols_collection)]
         self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
         self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
@@ -76,7 +76,7 @@ class MongoMF(object):
                          'ap.files': {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
                                                   ("newform",pymongo.ASCENDING)],
                                          'unique':True,'name':"N_k_cchi_d"}, 
-                         'Atkin_lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+                         'Atkin_Lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
                                                     ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
                                            'unique':True,'name':"N_k_cchi_d"}
                          }
@@ -1004,7 +1004,7 @@ class CompMF(MongoMF):
             ms = gridfs.GridFS(self._mongodb,'Modular_symbols')
             aps = gridfs.GridFS(self._mongodb,'aps')
             factors = gridfs.GridFS(self._mongodb,'Newform_factors')
-            al = gridfs.GridFS(self._mongodb,'Atkin-Lehner')
+            al = gridfs.GridFS(self._mongodb,'Atkin_Lehner')
             id = r['_id']
             cchi = r.get('cchi')
             if cchi is None:
