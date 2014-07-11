@@ -124,7 +124,7 @@ class MongoMF(object):
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
         if 'ap' in col:
-            step=50
+            step=10
         else:
             step = 100
         #h = RR(nnmax)/32.0
