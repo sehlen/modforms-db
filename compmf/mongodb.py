@@ -74,10 +74,10 @@ class MongoMF(object):
                                              ("newform",pymongo.ASCENDING)],
                                                'unique':True,'name':"N_k_cchi_d"},
                          'ap.files': {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-                                                  ("newform",pymongo.ASCENDING)],
+                                                ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
                                          'unique':True,'name':"N_k_cchi_d"}, 
                          'Atkin_Lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-                                                    ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
+                                                    ("newform",pymongo.ASCENDING)],
                                            'unique':True,'name':"N_k_cchi_d"}
                          }
         self._sage_version = sage.version.version
