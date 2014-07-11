@@ -259,7 +259,9 @@ def orbit_index_from_label(label):
     res = 0
     A = AlphabeticStrings()
     x = A.gens()
+    label = str(label)
     l = list(label)
+    
     su = A(l.pop().upper())
     res = x.index(su)
     l.reverse()

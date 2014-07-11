@@ -138,7 +138,7 @@ class MongoMF(object):
         clogger.debug("nmin = {0} \t nmax= {1}".format(nmin,nmax))
 
         #keys = [x[0] for x in keys]
-        fs = gridfs.GridFS(self._mongodb,col)
+        fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
         if 'files' not in col:
             ccol='{0}.files'.format(col)
         else:
@@ -562,7 +562,7 @@ class CompMF(MongoMF):
             clogger.debug("Inserting factors into mongo! fname={0}".format(fname))
             num_factors_in_file = self._db.number_of_known_factors(N,k,i)
             ambient = self.get_ambient(N,k,i,ambient_id=ambient_id)
-            orbit = dirichlet_character_conrey_galois_orbit_numbers(N,ci)
+            orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
 
             for d in range(num_factors_in_file):
                 try: 
@@ -617,6 +617,7 @@ class CompMF(MongoMF):
         """       
         if pprec is None:
             pprec = precision_needed_for_L(N,k)
+        pprec = int(pprec)
         ambient_id = kwds.get('ambient_id',None)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,i,**kwds)
@@ -868,7 +869,7 @@ class CompMF(MongoMF):
         res['aps']=False
         if not check_content and res['factors']:
             newforms_with_aps = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
-            res['aps'] = len(newform_with_aps) == numf
+            res['aps'] = len(newforms_with_aps) == numf
         clogger.debug("facts={0}, numf={1}".format(facts,numf))
         fs_ap = gridfs.GridFS(self._mongodb,self._aps_collection)
         if res['factors'] is False:

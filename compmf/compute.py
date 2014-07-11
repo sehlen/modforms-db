@@ -317,7 +317,7 @@ class ComputeMFData(object):
             if kwds.get('save',True):
                 save(aplist, aplist_file)
                 save(meta, self.files().meta(aplist_file))
-                vname = self.factor_dual_eigenvector(N, k, i, d)
+                vname = self.files().factor_dual_eigenvector(N, k, i, d)
                 if not self.path_exists(vname):
                     save(v,vname)
             else:

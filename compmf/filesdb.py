@@ -673,10 +673,10 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         for fname in tmp:
             if "aplist" in fname:
                 if "meta" in fname:
-                    numap = int(fname.split("-")[2])
+                    numap = int(fname.split("-")[-2])
                     aplist_meta_files.append((numap,fname))
                 else:
-                    numap = int(fname.split("-")[2].split(".")[0])
+                    numap = int(fname.split("-")[-1].split(".")[0])
                     aplist_files.append((numap,fname))
         if aplist_files == []:
             return
@@ -687,7 +687,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         else:
             numap,fname = aplist_files[0]
             for n,c in aplist_files[1:]:
-                if c >= numc:
+                if n >= numc:
                     numap,fname = n,c
                     break
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))

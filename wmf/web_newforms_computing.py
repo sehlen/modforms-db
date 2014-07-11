@@ -42,7 +42,11 @@ from lmfdb.modular_forms.elliptic_modular_forms import emf_logger,emf_version
 
 from sage.rings.number_field.number_field_base import NumberField as NumberField_class
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
-from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm,WebEigenvalues
+
+
+from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label
+
 from wmf import wmf_logger
 from compmf import MongoMF
 
@@ -61,7 +65,9 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
+        
         super(WebNewForm_computing,self).__init__(level,weight,character,label,prec,bitprec,parent)
+        self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:
@@ -96,9 +102,6 @@ class WebNewForm_computing(WebNewForm):
         self.set_base_ring()       
         self.set_coefficient_field()
 
-        self.set_sturm_bound()
-
-        
         self.set_twist_info()
         self.set_is_cm()
         self.compute_satake_parameters_numeric()
@@ -115,8 +118,8 @@ class WebNewForm_computing(WebNewForm):
         The dimension of this galois orbit is not necessarily equal to the degree of the number field, when we have a character....
         We therefore need this routine to distinguish between the two cases...
         """
-        if self.dimension is None:
-            self._dimension = self.as_factor().dimension()
+        if not self._properties['dimension'].has_been_set():
+            self.dimension = self.as_factor().dimension()
             
     def set_aps(self):
         r"""
@@ -124,21 +127,24 @@ class WebNewForm_computing(WebNewForm):
         
         """
         wmf_logger.debug("Setting aps!")
-        try:
-            aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
-            wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
-            available_prec = aps.values()[0].keys()
-            use_prec = available_prec[0]
-            for prec in available_prec:
-                if prec >= self.prec:
-                    use_prec = prec
-            
-            E,v,meta = aps.values()[0][use_prec]
-            self.eigenvalues.E = E
-            self.eigenvalues.v = v
-            self.eigenvalues.init_dynamic_properties()
-        except Exception as e:
-            wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
+        #try:
+        aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
+        wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+        ev_set = 0
+        for prec in aps.values()[0].keys():
+            E,v,meta = aps.values()[0][prec]
+            evs = WebEigenvalues(self.hecke_orbit_label,prec)
+            evs.E = E
+            evs.v = v
+            evs.meta = meta
+            evs.init_dynamic_properties()
+            evs.save_to_db()
+            if prec >= self.prec and ev_set == 0:
+                self.eigenvalues = evs
+                ev_set = 1
+            wmf_logger.debug("Got ap's with prec={0}".format(prec))
+        #except Exception as e:
+        #wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
 
     def set_q_expansion(self):
         r"""
@@ -218,6 +224,7 @@ class WebNewForm_computing(WebNewForm):
         """
         from wmf.web_modform_space_computing import orbit_index_from_label
         if self._newform_number is None:
+            print "label=",self.label,type(self.label)
             self._newform_number = orbit_index_from_label(self.label)
         return self._newform_number
 
