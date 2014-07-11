@@ -703,7 +703,7 @@ class CompMF(MongoMF):
                     save(E, aplist_file)
                     
                     vname = self._db.factor_dual_eigenvector(N, k, i, d)
-                    if not self.path_exists(vname):
+                    if not self._db.path_exists(vname):
                         save(v,vname)
                     save(meta, self._db.meta(aplist_file))
                     
