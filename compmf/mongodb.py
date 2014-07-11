@@ -123,7 +123,10 @@ class MongoMF(object):
         clogger.debug("flds={0}".format(flds))
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
-        maxn = 100
+        if 'ap' in col:
+            maxn=50
+        else:
+            maxn = 100
         #h = RR(nnmax)/32.0
         for j in range(RR(nnmax)/100):
             nmin = j*100; nmax = (j+1)*100
