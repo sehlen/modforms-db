@@ -120,6 +120,7 @@ class MongoMF(object):
         clogger.debug("ccol={0}".format(ccol))
         clogger.debug("keys={0}".format(keys))
         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
+        
         clogger.debug("flds={0}".format(flds))
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
@@ -127,6 +128,7 @@ class MongoMF(object):
             step=50
         else:
             step = 100
+            flds.append('prec')
         #h = RR(nnmax)/32.0
         for j in range(RR(nnmax)/RR(step)):
             nmin = j*step; nmax = (j+1)*step
