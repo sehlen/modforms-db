@@ -124,7 +124,7 @@ class MongoMF(object):
         nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
         args = []
         if 'ap' in col:
-            step=5
+            step=50
         else:
             step = 100
         #h = RR(nnmax)/32.0
@@ -147,8 +147,8 @@ class MongoMF(object):
             ccol = col
         s = {}
         clogger.debug("nmin = {0} \t nmax= {1} \t col={2} \t ccol={3}".format(nmin,nmax,col,ccol))
-        if ccol=='Newform_factors.files':
-            s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
+        #if ccol=='Newform_factors.files':
+        s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
         for r in self._mongodb[ccol].find(s,fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
             id=r['_id']
             s = {}
