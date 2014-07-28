@@ -318,7 +318,7 @@ class ComputeMFData(object):
                 save(aplist, aplist_file)
                 save(meta, self.files().meta(aplist_file))
                 vname = self.files().factor_dual_eigenvector(N, k, i, d)
-                if not self.path_exists(vname):
+                if not self.files().path_exists(vname):
                     save(v,vname)
             else:
                 res[(N,k,i,d)]=aplist,meta
