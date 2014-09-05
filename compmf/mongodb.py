@@ -963,8 +963,11 @@ class CompMF(MongoMF):
             check = list(self.check_record(args))
         #check = self.check_record(args)
         for arg,val in check:
-            if val.values().count(False)>0:
-                res[arg[0][0:3]] = val
+            try: 
+                if val.values().count(False)>0:
+                    res[arg[0][0:3]] = val
+            except AttributeError:
+                print "arg,val=",arg,val
         return res
 
     def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False):
