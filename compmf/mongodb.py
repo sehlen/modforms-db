@@ -200,13 +200,13 @@ class MongoMF(object):
 
           ### Routines for accessing the objects stored in the mongo database.
 
-    def existing_records_mongo(self,nrange=[],krange=[],complete=True):
+    def existing_records_mongo(self,nrange=[],krange=[],complete=1):
         r"""
 
         Return a list of tuples (N,k,i) corresponding to (complete) records in the mongo database
         and where N is in nrange, k in krange.
         """
-        s = {'complete':{"$gt":int(0)}}
+        s = {'complete':{"$ge":int(complete)}}
         if nrange <> []:
             s['N'] = {"$gt": int(nrange[0]-1), "$lt": int(nrange[1])}
         if krange <> []:
