@@ -690,7 +690,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 if n >= numc:
                     numap,fname = n,c
                     break
-        clogger.debug("aplist_files={0}".format(aplist_files))
+        #clogger.debug("aplist_files={0}".format(aplist_files))
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))
         if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
             maxc = max(aplist_files)[0]
@@ -714,7 +714,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 self.delete_file("{0}/{1}".format(factor_dir,metaname))
                 self.delete_file("{0}/{1}".format(factor_dir,fname))
                 metaname = new_metaname.split("/")[-1]
-                raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
+                if numc > new_prec:
+                    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
