@@ -930,6 +930,8 @@ class CompMF(MongoMF):
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
+        else:
+            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         clogger.debug("done checking!")
         return res
 
