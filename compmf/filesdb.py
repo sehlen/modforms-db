@@ -690,10 +690,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 if n >= numc:
                     numap,fname = n,c
                     break
+        clogger.debug("aplist_files={0}".format(aplist_files))
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))
         if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
             maxc = max(aplist_files)[0]
-            print "aplist_files=",aplist_files
+            clogger.debug("aplist_files={0}".format(aplist_files))
             raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,maxc)
         metaname = fname.split(".")[0]+"-meta.sobj"
         try:
@@ -701,7 +702,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             if isinstance(E,tuple):
                 E = E[0]
             if prime_pi(numap) > E.nrows():
-                clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),numap))
+                
+                clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),prime_pi(numap)))
                 ## Rename the file:
                 new_prec = nth_prime(E.nrows()+1)-1
                 apfname = self.factor_aplist(N,k,i,d,False,0,new_prec)
