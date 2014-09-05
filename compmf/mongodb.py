@@ -770,11 +770,11 @@ class CompMF(MongoMF):
         else:
             check_level = 1
         clogger.debug("check_record with level: {0}".format(check_level))
-        s = fields=['N','k','chi']
+        s = {'fields':['N','k','chi']}
         if recheck is False:
             s['complete']={"$lt":check_level+int(1)}
         clogger.debug("s = {0}".format(s))
-        for r in self._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
+        for r in self._modular_symbols.find().sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             n = r['N']; k=r['k']; chi=r['chi']
             if nrange<>[] and (n < nrange[0] or n > nrange[-1]):
                 continue
