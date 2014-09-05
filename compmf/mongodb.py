@@ -206,7 +206,7 @@ class MongoMF(object):
         Return a list of tuples (N,k,i) corresponding to (complete) records in the mongo database
         and where N is in nrange, k in krange.
         """
-        s = {'complete':{"$ge":int(complete)}}
+        s = {'complete':{"$gt":int(complete)-1}}
         if nrange <> []:
             s['N'] = {"$gt": int(nrange[0]-1), "$lt": int(nrange[1])}
         if krange <> []:
