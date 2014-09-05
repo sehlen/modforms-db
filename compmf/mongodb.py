@@ -875,7 +875,10 @@ class CompMF(MongoMF):
         #else:
         #    newforms = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
         #    #aps = {(N,k,i,x) : {pprec: True}  for x in newforms}
-        res['aps']=False
+        if d==d1 and d==0:
+            res['aps']=True
+        else:
+            res['aps']=False
         if not check_content and res['factors']:
             newforms_with_aps = self._aps.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('newform')
             res['aps'] = len(newforms_with_aps) == numf
