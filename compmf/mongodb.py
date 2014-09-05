@@ -755,7 +755,7 @@ class CompMF(MongoMF):
  
     
 
-    def check_records(self,nrange,krange,irange='all',check_content=False,ncpus=8):
+    def check_records(self,nrange,krange,irange='all',check_content=False,recheck=False,ncpus=8):
         r"""
         We check if the records corresponding to M(N_i,k_i,i_i) is complete or not.
         
@@ -778,7 +778,7 @@ class CompMF(MongoMF):
                 continue
             if irange <> 'all' and irange<>[] and (chi < irange[0] or chi >irange[-1]):
                 continue
-            args.append((n,k,chi,check_content))
+            args.append((n,k,chi,check_content,recheck))
         clogger.debug("args={0}".format(args))
         if ncpus >= 32:
             return list(self.check_record32(args))
