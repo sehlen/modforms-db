@@ -308,8 +308,12 @@ class WebNewForm_computing(WebNewForm):
         if not res is None:
             alid = res['_id']
             al = loads(fs.get(alid).read())
+            wmf_logger.debug("al = {0}".format(al))
+            i = 0 
             for d in prime_divisors(self.level):
-                self._atkin_lehner_eigenvalues[d] = 1 if al[d]=='+' else -1
+                wmf_logger.debug("d = {0}".format(d))
+                self._atkin_lehner_eigenvalues[d] = 1 if al[i]=='+' else -1
+                i+=1
         else: # We compute them
             A = self.as_factor()
             for p in prime_divisors(self.level):
