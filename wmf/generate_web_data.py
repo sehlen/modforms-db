@@ -107,7 +107,8 @@ def generate_one_webmodform_space1(level,weight,chi):
 #    print "generate:",level,weight,chi
     M = WebModFormSpace_computing(level,weight,chi)
 
-
+from sage.all import dimension_new_cusp_forms
+from compmf import character_conversions
 def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,host='localhost',only_new=True,port=int(37010)):
     r"""
     Generates a table of the available (computed) WebModFormSpaces.
@@ -119,28 +120,73 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         D  = MongoMF(host,port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
-#    M = WebNewForm(1,12,1)
-#    q = D.['
     try:
         webmodformspace = WebModFormSpace_computing._collection_name
     except AttributeError:
         webmodformspace = 'webmodformspace_test'
+    ## If we have an old table we load it.
     ## Do Gamma0 data first
-    tbl0 = {}
-    q = D._mongodb[webmodformspace].find({'character':int(1)})
-    for n in level_range:
+    r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    tbl0 = loads(r0.get('data',dumps({})))
+    ## Do Gamma1    
+    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    tbl1 = loads(r1.get('data',dumps({})))
+    for n in range(level_range[0],level_range[1]):
         tbl0[n]={}
-        for k in weight_range:
+        for k in range(weight_range[0],weight_range[1]):
+            if tbl0.has_key(n):
+                if tbl0[n].has_key(k):
+                    continue
             tbl0[n][k]=0,dimension_new_cusp_forms(n,k)
+    q = D._mongodb[webmodformspace].find({'character':int(1)})
     for r in q:
         n = r['level']; k = r['weight']
-        if n > level_range(1):
-            tbl0['level'][n] = {}
+        if not tbl0.has_key(n):
+            tbl0[n] = {}
         if tbl0[n].has_key(k):
-            t,d = tbl0[n][k]
+            d,t = tbl0[n][k]
         else:
             d = r['dimension_new_cusp_forms']
-        tbl0[n][k] = 1,d
+        tbl0[n][k] = d,1
+    id0 = r0['_id']
+    rec0 = {'group':'gamma0','data':tbl0}
+    # remove the old record
+    D._mongodb['webmodformspace_dimension'].remove(id0)
+    D._mongodb['webmodformspace_dimension'].insert(rec0)
+    # Now compute the gamma1 data
+    for n in range(level_range[0],level_range[1]):
+        tbl1[n]={}
+        for k in range(weight_range[0],weight_range[1]):
+            tbl1[n][k]={}
+            for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
+                xi = x.number()
+                if (k % 2)==0 and not x.is_even():
+                    d = 0
+                elif (k % 2)==1 and not x.is_odd():
+                    d = 0
+                else:
+                    d = dimension_new_cusp_forms(x.sage_character(),k)
+                tbl0[n][k][xi]=0,d
+
+    q = D._mongodb[webmodformspace].find({'character':int(1)})
+    for r in q:
+        n = r['level']; k = r['weight']
+        i = r['character_orbit_rep']
+        if not tbl1.has_key(n):
+            tbl1[n] = {}
+        if not tbl1[n].has_key(k):
+            tbl1[n][k] = {}
+        if  tbl1[n][k].has_key(i):
+            d,t = tbl1[n][k][i]
+        else:
+            d = r['dimension_new_cusp_forms']
+        tbl0[n][k] = d,1
         
+    id1 = r1['_id']
+    rec1 = {'group':'gamma1','data':tbl1}
+    D._mongodb['webmodformspace_dimension'].remove(id1)
+    D._mongodb['webmodformspace_dimension'].insert(rec1)
+        
+    return tbl0
 
     
