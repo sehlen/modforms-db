@@ -57,7 +57,10 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['chi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
     s['complete']=int(3)
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
-    webmodformspace = WebModFormSpace_computing._collection_name
+    try:
+        webmodformspace = WebModFormSpace_computing._collection_name
+    except AttributeError:
+        webmodformspace = 'webmodformspace_test'
     for r in q:
         N = r['N']; k=r['k']; chi=r['cchi']
         if recompute is False:
@@ -118,7 +121,10 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
 #    M = WebNewForm(1,12,1)
 #    q = D.['
-    webmodformspace = WebModFormSpace_computing._collection_name
+    try:
+        webmodformspace = WebModFormSpace_computing._collection_name
+    except AttributeError:
+        webmodformspace = 'webmodformspace_test'
     ## Do Gamma0 data first
     tbl0 = {}
     q = D._mongodb[webmodformspace].find({'character':int(1)})
