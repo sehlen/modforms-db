@@ -77,13 +77,13 @@ def conrey_character_to_number(x):
 @cached_function    
 def sage_character_from_number(n,i):
     r"""
-    Return character nr. i in DirichletGroup_conrey(n) 
+    Return character nr. i in DirichletGroup(n) 
     """
     return dirichlet_group_sage(n)[i]
 
 def sage_character_to_number(x):
     r"""
-    Return the odulus and number of the character nr. x
+    Return the modulus and number of the character nr. x
     """
     try:
         n = x.modulus()
