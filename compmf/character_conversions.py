@@ -138,6 +138,8 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
         orbit_of_x = sorted(x.galois_orbit())
         reps.append(orbit_of_x[0])
         for xx in orbit_of_x:
+            if xx not in Dl:
+                continue
             Dl.remove(xx)
     return reps
     
