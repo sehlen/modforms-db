@@ -62,18 +62,19 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
         args.append((N,k,chi))
     print "s=",s
     print "args=",args
-    
+    print "ncpus=",ncpus
     if ncpus>=32:
-        generate_one_webmodform_space32(args)
+        l = generate_one_webmodform_space32(args)
     elif ncpus>=16:
-        generate_one_webmodform_space16(args)        
+        l = generate_one_webmodform_space16(args)        
     elif ncpus>=8:
-        generate_one_webmodform_space8(args)
+        l = generate_one_webmodform_space8(args)
     elif ncpus>=4:
-        generate_one_webmodform_space4(args)
+        l = generate_one_webmodform_space4(args)
     else:
-        generate_one_webmodform_space1_par(args)
-        
+        l =  generate_one_webmodform_space1_par(args)
+    return list(l)
+    
 @parallel(ncpus=32)
 def generate_one_webmodform_space32(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
@@ -96,5 +97,22 @@ def generate_one_webmodform_space1(level,weight,chi):
     Generates one modform space.
 
     """
-    print "generate:",level,weight,chi
+#    print "generate:",level,weight,chi
     M = WebModFormSpace_computing(level,weight,chi)
+
+
+def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,host='localhost',port=int(37010)):
+    r"""
+    Generates a table of the available (computed) WebModFormSpaces.
+    In addition we also add data for (level,weight,chi) with
+    level in level_range, weight in weight_range and chi in chi_range
+    
+    """
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+#    M = WebNewForm(1,12,1)
+#    q = D.['
+    webmodformspace = WebModFormSpace._collection_name
+    q = D._mongodb[webmodformspace].find()
