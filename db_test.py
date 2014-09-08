@@ -1420,7 +1420,7 @@ def generate_dimension_table_gamma_01(DB,maxN=100, maxk=12, mink=2,db='to',old_d
             if k not in old_dims[N]:
                 data[N][k] = dict()
             in_db_all = True
-            for xi, x in enumerate(G):                
+            for xi, x in enumerate(G):
                 mult = len(x)
                 x = x[0]
                 if xi == 0 or is_even(x):
