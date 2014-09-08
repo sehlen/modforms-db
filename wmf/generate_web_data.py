@@ -28,7 +28,7 @@ from sage.all import parallel
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF
 
-def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,host='localhost',port=int(37010)):
+def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010)):
     r"""
     Compute and insert objects of type WebModFormSpace with levels in the given range.
 
@@ -57,8 +57,12 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['chi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
     s['complete']=int(3)
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
+    webmodformspace = WebModFormSpace._collection_name
     for r in q:
         N = r['N']; k=r['k']; chi=r['cchi']
+        if recompute is False:
+            if D._mongodb['webmodformspace'].find({'level':int(N),'weight':int(k),'character':int(chi)}).count()>0:
+                continue
         args.append((N,k,chi))
     print "s=",s
     print "args=",args
@@ -101,7 +105,7 @@ def generate_one_webmodform_space1(level,weight,chi):
     M = WebModFormSpace_computing(level,weight,chi)
 
 
-def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,host='localhost',port=int(37010)):
+def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,host='localhost',only_new=True,port=int(37010)):
     r"""
     Generates a table of the available (computed) WebModFormSpaces.
     In addition we also add data for (level,weight,chi) with
@@ -115,4 +119,22 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
 #    M = WebNewForm(1,12,1)
 #    q = D.['
     webmodformspace = WebModFormSpace._collection_name
-    q = D._mongodb[webmodformspace].find()
+    ## Do Gamma0 data first
+    tbl0 = {}
+    q = D._mongodb[webmodformspace].find({'character':int(1)})
+    for n in level_range:
+        tbl0[n]={}
+        for k in weight_range:
+            tbl0[n][k]=0,dimension_new_cusp_forms(n,k)
+    for r in q:
+        n = r['level']; k = r['weight']
+        if n > level_range(1):
+            tbl0['level'][n] = {}
+        if tbl0[n].has_key(k):
+            t,d = tbl0[n][k]
+        else:
+            d = r['dimension_new_cusp_forms']
+        tbl0[n][k] = 1,d
+        
+
+    
