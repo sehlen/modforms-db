@@ -73,7 +73,7 @@ class WebNewForm_computing(WebNewForm):
         except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
-            
+        self.sturm_bound = None            
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
