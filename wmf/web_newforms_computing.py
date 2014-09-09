@@ -82,6 +82,7 @@ class WebNewForm_computing(WebNewForm):
         self._satake = {}
         self._twist_info = None
         self.compute_additional_properties()
+        self.save_to_db()
 
     def __repr__(self):
         r"""
