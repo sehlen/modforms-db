@@ -184,12 +184,9 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tbl1 = my_loads(r1.get('data'))
             level_max_in_db = r1.get('level_max',0)
             weight_max_in_db = r1.get('weight_max',0)
-    print "level_max_in_db=",level_max_in_db
+    wmf_loger.debug("level_max_in_db={0}".format(level_max_in_db))
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
-        print "here!"
         for n in range(level_range[0],level_range[1]+1):
-            if n==190:
-                print "n=190!"
             tbl1[n]={}
             for k in range(weight_range[0],weight_range[1]+1):
                 tbl1[n][k]={}
@@ -224,9 +221,9 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tot_dim = dimension_new_cusp_forms(Gamma1(n),k)
             if n <= level_range[1] and k<=weight_range[1]:
                 d = sum(map(lambda x:x[0],tbl1[n][k].values()))
-                if d <> tot_dim and n==190:
+                if d <> tot_dim:
                     wmf_logger.warning("The sum of the computed dimensions does not add up at N,k={0} d={1}, tot_dim={2}".format((n,k),d,tot_dim))
-                    wmf_logger.warning("tbl1[n][k]={0}".format(tbl1[n][k]))
+#                    wmf_logger.warning("tbl1[n][k]={0}".format(tbl1[n][k]))
             tbl1[n][k][-1] = (int(tot_dim),int(1))
     ### Also add the total dimensions...
     rec1 = {'group':'gamma1','data':my_dumps(tbl1),
