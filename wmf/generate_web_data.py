@@ -127,6 +127,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     In addition we also add data for (level,weight,chi) with
     level in level_range, weight in weight_range and chi in chi_range
     
+
+    We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
     """
     try: 
         D  = MongoMF(host,port)
@@ -141,24 +143,23 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
     id0 = None; id1 = None
     tbl0 = {}; tbl1={}
+    level_max_in_db = 0;weight_max_in_db = 0
     if r0:
         if r0.get('data'):
             #print r0.get('data')
             tbl0 = my_loads(r0.get('data'))
             id0 = r0.get('_id')
-    ## Do Gamma1    
-    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
-    if r1:
-        if r1.get('_id'):
-            tbl1 = my_loads(r1.get('data'))
-    for n in range(level_range[0],level_range[1]):
-        tbl0[n]={}
-        for k in range(weight_range[0],weight_range[1]):
-            if tbl0.has_key(n):
-                if tbl0[n].has_key(k):
-                    continue
-            tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
-    q = D._mongodb[webmodformspace].find({'character':int(1)})
+            level_max_in_db = r0.get('level_max',0)
+            weight_max_in_db = r0.get('weight_max',0)
+    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+        for n in range(level_range[0],level_range[1]):
+            tbl0[n]={}
+            for k in range(weight_range[0],weight_range[1]):
+                if tbl0.has_key(n):
+                    if tbl0[n].has_key(k):
+                        continue
+                tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
+    q = D._mongodb[webmodformspace].find({'character':int(1)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
         n = r['level']; k = r['weight']
         if not tbl0.has_key(n):
@@ -168,28 +169,41 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         else:
             d = r['dimension_new_cusp_forms']
         tbl0[n][k] = (int(d),int(1))
-    rec0 = {'group':'gamma0','data':my_dumps(tbl0)}
+        if n > level_max:
+            level_max = n
+    level_max = max(tbl0.keys())
+    rec0 = {'group':'gamma0','data':my_dumps(tbl0),
+            'level_max':level_range[1],
+            'weight_max':level_range[1]}
     # remove the old record
     if id0:
         D._mongodb['webmodformspace_dimension'].remove(id0)
     D._mongodb['webmodformspace_dimension'].insert(rec0)
     # Now compute the gamma1 data
-    for n in range(level_range[0],level_range[1]):
-        tbl1[n]={}
-        for k in range(weight_range[0],weight_range[1]):
-            tbl1[n][k]={}
-            ds = 0
-            for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
-                xi = x.number()
-                if (k % 2)==0 and not x.is_even():
-                    d = 0
-                elif (k % 2)==1 and not x.is_odd():
-                    d = 0
-                else:
-                    d = dimension_new_cusp_forms(x.sage_character(),k)
-                tbl1[n][k][xi]=(int(d),int(0))
-                ds+=d
-            tbl1[n][k][-1]=(int(ds),int(0))
+    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    level_max_in_db = 0; weight_max_in_db = 0
+    if r1:
+        if r1.get('_id'):
+            tbl1 = my_loads(r1.get('data'))
+            level_max_in_db = r1.get('level_max',0)
+            weight_max_in_db = r1.get('weight_max',0)
+    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+        for n in range(level_range[0],level_range[1]):
+            tbl1[n]={}
+            for k in range(weight_range[0],weight_range[1]):
+                tbl1[n][k]={}
+                ds = 0
+                for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
+                    xi = x.number()
+                    if (k % 2)==0 and not x.is_even():
+                        d = 0
+                    elif (k % 2)==1 and not x.is_odd():
+                        d = 0
+                    else:
+                        d = dimension_new_cusp_forms(x.sage_character(),k)
+                    tbl1[n][k][xi]=(int(d),int(0))
+                    ds+=d
+                tbl1[n][k][-1]=(int(ds),int(0))
     q = D._mongodb[webmodformspace].find({'character':int(1)})
     for r in q:
         n = r['level']; k = r['weight']
@@ -209,7 +223,9 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
                 emf_log.warning("The sum of the computed dimensions does not ad up at N,k={0}".format((N,k)))
             tbl1[n][k][-1] = (int(tot_dim),int(1))
     ### Also add the total dimensions...
-    rec1 = {'group':'gamma1','data':my_dumps(tbl1)}
+    rec1 = {'group':'gamma1','data':my_dumps(tbl1),
+            'level_max':level_range[1],
+            'weight_max':level_range[1]}
     if id1:
         D._mongodb['webmodformspace_dimension'].remove(id1)
     D._mongodb['webmodformspace_dimension'].insert(rec1)
