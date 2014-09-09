@@ -177,7 +177,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         D._mongodb['webmodformspace_dimension'].remove(id0)
     D._mongodb['webmodformspace_dimension'].insert(rec0)
     # Now compute the gamma1 data
-    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})
     level_max_in_db = 0; weight_max_in_db = 0
     if r1:
         if r1.get('_id'):
