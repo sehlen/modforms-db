@@ -219,7 +219,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         tbl1[n][k][i] = (int(d),int(1))
         if not tbl1[n][k].has_key(-1):
             tot_dim = dimension_new_cusp_forms(Gamma1(n))
-            if sum(tbl1[n][k].values()) <> tot_dim:
+            d = sum(filter(lambda x:x[0],tbl1[n][k].values()))
+            if d <> tot_dim:
                 emf_log.warning("The sum of the computed dimensions does not ad up at N,k={0}".format((N,k)))
             tbl1[n][k][-1] = (int(tot_dim),int(1))
     ### Also add the total dimensions...
