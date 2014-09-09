@@ -201,6 +201,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
                     tbl1[n][k][xi]=(int(d),int(0))
                     ds+=d
                 tbl1[n][k][-1]=(int(ds),int(0))
+                if n==190 and k==12:
+                    wmf_logger.warning("tbl[190][12]={0}".format(tbl1[n][k]))
     q = D._mongodb[webmodformspace].find({'character':int(1)})
     for r in q:
         n = r['level']; k = r['weight']
