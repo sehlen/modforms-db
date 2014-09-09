@@ -184,7 +184,9 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tbl1 = my_loads(r1.get('data'))
             level_max_in_db = r1.get('level_max',0)
             weight_max_in_db = r1.get('weight_max',0)
+    print "level_max_in_db=",level_max_in_db
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+        print "here!"
         for n in range(level_range[0],level_range[1]+1):
             if n==190:
                 print "n=190!"
