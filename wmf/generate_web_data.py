@@ -186,6 +186,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             weight_max_in_db = r1.get('weight_max',0)
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
         for n in range(level_range[0],level_range[1]+1):
+            if n==190:
+                print "n=190!"
             tbl1[n]={}
             for k in range(weight_range[0],weight_range[1]+1):
                 tbl1[n][k]={}
@@ -201,8 +203,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
                     tbl1[n][k][xi]=(int(d),int(0))
                     ds+=d
                 tbl1[n][k][-1]=(int(ds),int(0))
-                if n==190 and k==12:
-                    wmf_logger.warning("tbl[190][12]={0}".format(tbl1[n][k]))
+                if n==190:
+                    wmf_logger.warning("tbl[190][{0}]={1}".format(k,tbl1[n][k]))
     q = D._mongodb[webmodformspace].find({'character':int(1)})
     for r in q:
         n = r['level']; k = r['weight']
@@ -217,7 +219,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             d = r['dimension_new_cusp_forms']
         tbl1[n][k][i] = (int(d),int(1))
         if not tbl1[n][k].has_key(-1):
-            tot_dim = dimension_new_cusp_forms(Gamma1(n))
+            tot_dim = dimension_new_cusp_forms(Gamma1(n),k)
             if n <= level_range[1] and k<=weight_range[1]:
                 d = sum(map(lambda x:x[0],tbl1[n][k].values()))
                 if d <> tot_dim and n==190:
