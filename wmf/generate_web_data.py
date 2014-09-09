@@ -220,7 +220,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tot_dim = dimension_new_cusp_forms(Gamma1(n))
             if n <= level_range[1] and k<=weight_range[1]:
                 d = sum(map(lambda x:x[0],tbl1[n][k].values()))
-                if d <> tot_dim:
+                if d <> tot_dim and n==190:
                     wmf_logger.warning("The sum of the computed dimensions does not add up at N,k={0} d={1}, tot_dim={2}".format((n,k),d,tot_dim))
                     wmf_logger.warning("tbl1[n][k]={0}".format(tbl1[n][k]))
             tbl1[n][k][-1] = (int(tot_dim),int(1))
