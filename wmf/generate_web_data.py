@@ -169,9 +169,6 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         else:
             d = r['dimension_new_cusp_forms']
         tbl0[n][k] = (int(d),int(1))
-        if n > level_max:
-            level_max = n
-    level_max = max(tbl0.keys())
     rec0 = {'group':'gamma0','data':my_dumps(tbl0),
             'level_max':level_range[1],
             'weight_max':level_range[1]}
