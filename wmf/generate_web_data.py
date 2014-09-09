@@ -24,7 +24,7 @@ AUTHORS:
 
 import pymongo
 
-from sage.all import parallel,dumps
+from sage.all import parallel,dumps,Gamma1
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF
 
