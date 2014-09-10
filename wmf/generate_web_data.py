@@ -106,7 +106,8 @@ def generate_one_webmodform_space1(level,weight,chi):
     """
 #    print "generate:",level,weight,chi
     M = WebModFormSpace_computing(level,weight,chi)
-
+    M.save_to_db()
+    
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
 import json 
@@ -121,7 +122,7 @@ def my_dumps(s):
 def my_loads(s):
     return json.loads(s)
     
-def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,host='localhost',only_new=True,port=int(37010)):
+def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,only_new=True,host='localhost',port=int(37010)):
     r"""
     Generates a table of the available (computed) WebModFormSpaces.
     In addition we also add data for (level,weight,chi) with
@@ -235,4 +236,23 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         
     return tbl0,tbl1
 
+    
+def drop_webmodform_data(host='localhost',port=int(37010)):
+    r"""
+    Drop all collections related to webnewforms and webmodforms
+    """
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    try:
+        webmodformspace = WebModFormSpace_computing._collection_name
+        webnewforms = WebNewForm_computing._collection_name
+    except AttributeError:
+        webmodformspace = 'webmodformspace_test'
+        webnewforms = 'webnewforms_test'
+    for col in [webmodformspace,webnewforms]:
+        D._mongodb.drop_collection(col)
+        D._mongodb.drop_collection(col+'.files')
+        D._mongodb.drop_collection(col+'.chunks')
     
