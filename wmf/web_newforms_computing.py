@@ -80,8 +80,13 @@ class WebNewForm_computing(WebNewForm):
         self._newform_number = None
         self._satake = {}
         self._twist_info = None
-        self.compute_additional_properties()
-        self.save_to_db()
+        ## If it is in the database we don't need to compute everything
+        if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0:
+            wmf_logger.debug("getting data from db")
+            self.update_from_db()
+        else:
+            self.compute_additional_properties()
+            self.save_to_db()
 
     def __repr__(self):
         r"""
@@ -97,6 +102,8 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Update ap's")
 
         self.set_dimension()
+        if self.dimension == 0:
+            return 
         self.set_aps()
         self.set_q_expansion()
         self.set_q_expansion_embeddings()
@@ -120,8 +127,18 @@ class WebNewForm_computing(WebNewForm):
         We therefore need this routine to distinguish between the two cases...
         """
         if not self._properties['dimension'].has_been_set():
-            self.dimension = self.as_factor().dimension()
-            
+            try:
+                self.dimension = self.as_factor().dimension()
+            except ValueError:
+                # check if we have a zero space
+                if self.character.number == 1:
+                    dim = dimension_new_cusp_forms(self.level,self.weight)
+                else:
+                    dim = dimension_new_cusp_forms(self.character.sage_character,self.weight)
+                if dim == 0:
+                    self.dimension = int(0)
+                else:
+                    raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
     def set_aps(self):
         r"""
         
@@ -132,7 +149,11 @@ class WebNewForm_computing(WebNewForm):
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
         wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
         ev_set = 0
-        for prec in aps.values()[0].keys():
+        precs = []
+        if aps<>{}:
+            if isinstance(aps.values()[0],dict):
+                precs = aps.values()[0].keys()
+        for prec in precs:
             E,v,meta = aps.values()[0][prec]
             self._available_precisions.append(prec)
             evs = WebEigenvalues(self.hecke_orbit_label,prec)
