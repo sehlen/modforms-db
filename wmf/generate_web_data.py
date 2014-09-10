@@ -154,11 +154,11 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             weight_max_in_db = r0.get('weight_max',0)
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
         for n in range(level_range[0],level_range[1]+1):
-            tbl0[n]={}
+            if not tbl0.has_key(n):
+                tbl0[n]={}
             for k in range(weight_range[0],weight_range[1]+1):
-                if tbl0.has_key(n):
-                    if tbl0[n].has_key(k):
-                        continue
+                if tbl0[n].has_key(k):
+                    continue
                 tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
     q = D._mongodb[webmodformspace].find({'character':int(1)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
