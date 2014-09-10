@@ -100,7 +100,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_dimension()
         self.set_aps()
         self.set_q_expansion()
-        
+        self.set_q_expansion_embeddings()
         self.set_base_ring()       
         self.set_coefficient_field()
 
@@ -227,7 +227,7 @@ class WebNewForm_computing(WebNewForm):
         """
         from wmf.web_modform_space_computing import orbit_index_from_label
         if self._newform_number is None:
-            print "label=",self.label,type(self.label)
+            #print "label=",self.label,type(self.label)
             self._newform_number = orbit_index_from_label(self.label)
         return self._newform_number
 
@@ -246,49 +246,39 @@ class WebNewForm_computing(WebNewForm):
         self._prec_needed_for_lfunctions = int(22 + int(RR(5)*RR(self.weight)*RR(self.level).sqrt()) + 1)
         return self._prec_needed_for_lfunctions 
     
-    def set_q_expansion_embeddings(self, prec=10, bitprec=53,format='numeric',display_bprec=26,insert_in_db=True):
+    def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26):
         r""" Compute all embeddings of self into C which are in the same space as self.
         Return 0 if we didn't compute anything new, otherwise return 1.
         """
+        if prec <= 0:
+            prec = self.prec_needed_for_lfunctions()
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
-        if display_bprec > bitprec:
-            display_bprec = bitprec
         ## First check if we have sufficient data
-        if self._embeddings['prec'] >= prec and self._embeddings['bitprec'] >= bitprec:
+        if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec:
             return 0 ## We should already have sufficient data.
         ## Else we compute new embeddings.
         CF = ComplexField(bitprec)
         # First wee if we need higher precision, in which case we reset all coefficients:
-        if self._embeddings['bitprec'] < bitprec:
-            self._embeddings['values']=[]
-            self._embeddings['latex']=[]
-            self._embeddings['prec']=0
+        if self._embeddings.get('bitprec',0) < bitprec:
+            self._embeddings['values']={}
+            self._embeddings['prec']=int(0)
+            self._embeddings['bitprec']=int(bitprec)
         # See if we have need of more coefficients
-        nstart = len(self._embeddings)
+        nstart = len(self._embeddings['values'])
         wmf_logger.debug("Should have {0} embeddings".format(self._embeddings['prec']))
-        wmf_logger.debug("Computing new stuff !")
+        wmf_logger.debug("Computing new embeddings !")
         deg = self.coefficient_field.absolute_degree()
-        for n in range(self._embeddings['prec'],prec):
+        for n in range(self._embeddings['prec'],prec+1):
             try:
                 cn = self.coefficient(n)
             except IndexError:
                 break
             if hasattr(cn, 'complex_embeddings'):
-                cn_emb = cn.complex_embeddings(bitprec)
+                embc = cn.complex_embeddings(bitprec)
             else:
-                cn_emb = [ CF(cn) for i in range(deg) ]
-            self._embeddings['values'].append(cn_emb)
-        self._embeddings['prec'] = len(self._embeddings['values'])
-        # See if we also need to recompute the latex strings
-        if display_bprec > self._embeddings['bitprec']:
-            self._embeddings['latex'] = []  ## Have to redo these
-        numc = len(self._embeddings['latex'])
-        for n in range(numc,prec):
-            cn_emb_latex = []
-            for x in self._embeddings['values'][n]:
-                t = my_complex_latex(x,display_bprec)
-            cn_emb_latex.append(t)
-            self._embeddings['latex'].append(cn_emb_latex)
+                embc = [ CF(cn) ] # this is only occuring for Q
+            self._embeddings['values'][n]=embc
+        self._embeddings['prec'] = prec+1
         return 1
                       
     
