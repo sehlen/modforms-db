@@ -60,7 +60,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     try:
         webmodformspace = WebModFormSpace_computing._collection_name
     except AttributeError:
-        webmodformspace = 'webmodformspace_test'
+        webmodformspace = 'webmodformspace'
     for r in q:
         N = r['N']; k=r['k']; chi=r['cchi']
         if recompute is False:
@@ -138,7 +138,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     try:
         webmodformspace = WebModFormSpace_computing._collection_name
     except AttributeError:
-        webmodformspace = 'webmodformspace_test'
+        webmodformspace = 'webmodformspace'
     ## If we have an old table we load it.
     ## Do Gamma0 data first
     r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
@@ -185,7 +185,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tbl1 = my_loads(r1.get('data'))
             level_max_in_db = r1.get('level_max',0)
             weight_max_in_db = r1.get('weight_max',0)
-    wmf_loger.debug("level_max_in_db={0}".format(level_max_in_db))
+    wmf_logger.debug("level_max_in_db={0}".format(level_max_in_db))
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
         for n in range(level_range[0],level_range[1]+1):
             tbl1[n]={}
@@ -249,10 +249,12 @@ def drop_webmodform_data(host='localhost',port=int(37010)):
         webmodformspace = WebModFormSpace_computing._collection_name
         webnewforms = WebNewForm_computing._collection_name
     except AttributeError:
-        webmodformspace = 'webmodformspace_test'
-        webnewforms = 'webnewforms_test'
+        webmodformspace = 'webmodformspace'
+        webnewforms = 'webnewforms'
+    
     for col in [webmodformspace,webnewforms]:
         D._mongodb.drop_collection(col)
         D._mongodb.drop_collection(col+'.files')
         D._mongodb.drop_collection(col+'.chunks')
     
+    D._mongodb.drop_collection('webmodformspace_dimension')
