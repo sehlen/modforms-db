@@ -142,6 +142,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     ## If we have an old table we load it.
     ## Do Gamma0 data first
     r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    
     id0 = None; id1 = None
     tbl0 = {}; tbl1={}
     level_max_in_db = 0;weight_max_in_db = 0
@@ -180,8 +181,10 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     # Now compute the gamma1 data
     r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})
     level_max_in_db = 0; weight_max_in_db = 0
+    
     if r1:
         if r1.get('_id'):
+            id1 = r1.get('_id')
             tbl1 = my_loads(r1.get('data'))
             level_max_in_db = r1.get('level_max',0)
             weight_max_in_db = r1.get('weight_max',0)
@@ -210,7 +213,8 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             tbl1[n][k][-1]=(int(ds),int(0))
 #            if n==190:
 #                wmf_logger.warning("tbl[190][{0}]={1}".format(k,tbl1[n][k]))
-    q = D._mongodb[webmodformspace].find({'character':int(1)})
+
+    q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
         n = r['level']; k = r['weight']
         i = r['character_orbit_rep']
