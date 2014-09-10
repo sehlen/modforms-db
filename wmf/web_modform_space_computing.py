@@ -100,11 +100,13 @@ class WebModFormSpace_computing(WebModFormSpace):
         ### Set / Compute / fetch everything we need
         if self.group is None:
             self.group = Gamma0(self.level)
+        self.set_dimensions()
+        if self.dimension == 0:
+            return 
         self.set_character_used_in_computation()
         self.set_character_galois_orbit()
         self.set_character_orbit_rep()
         self.set_galois_orbit_embeddings()
-        self.set_dimensions()
         self.set_sturm_bound()
         self.set_oldspace_decomposition()
         self.get_hecke_orbits()
@@ -154,7 +156,6 @@ class WebModFormSpace_computing(WebModFormSpace):
             x = self.character.sage_character
         else:
             x = self.level
-        
         k = self.weight
         # Ambient modular formsspace
         self.dimension_modular_forms = int(dimension_modular_forms(x,k))
@@ -184,12 +185,15 @@ class WebModFormSpace_computing(WebModFormSpace):
         """
         from web_newforms_computing import WebNewForm_computing
         current_dim = 0; i = 0
-        while current_dim < self.dimension and i<self.dimension: ## 
+        dim = self.dimension_new_cusp_forms
+        wmf_logger.debug("Dimension={0}".format(dim))
+        while current_dim < dim and i<dim: ## 
             label = orbit_label(i)
-            wmf_logger.debug("WebNewForm({0},{1},{2})".format(self.level,self.weight,self.character.number,label))
+            wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
             F = WebNewForm_computing(self.level,self.weight,self.character.number,label)
-            current_dim += F.as_factor().dimension()
+            current_dim += F.dimension
             i+=1
+            wmf_logger.debug("current_dim={0}".format(current_dim))
             self.hecke_orbits[label]=F
                        
     def set_oldspace_decomposition(self):
