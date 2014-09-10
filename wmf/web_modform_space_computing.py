@@ -189,6 +189,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             wmf_logger.debug("WebNewForm({0},{1},{2})".format(self.level,self.weight,self.character.number,label))
             F = WebNewForm_computing(self.level,self.weight,self.character.number,label)
             current_dim += F.as_factor().dimension()
+            i+=1
             self.hecke_orbits[label]=F
                        
     def set_oldspace_decomposition(self):
