@@ -186,10 +186,15 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             level_max_in_db = r1.get('level_max',0)
             weight_max_in_db = r1.get('weight_max',0)
     wmf_logger.debug("level_max_in_db={0}".format(level_max_in_db))
+    wmf_logger.debug("level_range={0}".format(level_range))
     if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
         for n in range(level_range[0],level_range[1]+1):
-            tbl1[n]={}
+            if not tbl1.has_key(n):
+                tbl1[n]={}
+            #wmf_logger.debug("n={0}".format(n))
             for k in range(weight_range[0],weight_range[1]+1):
+                if tbl1[n].has_key(k):
+                    continue
                 tbl1[n][k]={}
                 ds = 0
                 for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
