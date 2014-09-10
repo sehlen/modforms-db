@@ -73,7 +73,6 @@ class WebNewForm_computing(WebNewForm):
         except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
-        self.sturm_bound = None            
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
@@ -213,13 +212,6 @@ class WebNewForm_computing(WebNewForm):
         else:
             self.absolute_polynomial = self.coefficient_field.absolute_polynomial()
         
-
-    def set_sturm_bound(self):
-        r"""
-        Set the Sturm bound of self.
-        """
-        self.sturm_bound = sturm_bound(self.level,self.weight)
-
 
     def newform_number(self):
         r"""
@@ -398,7 +390,7 @@ class WebNewForm_computing(WebNewForm):
                     
             
         wmf_logger.debug("Possible spaces: {0}".format(possible_spaces))
-        coeffs = self.coefficients(range(self.sturm_bound))
+        coeffs = self.coefficients(range(self.parent.sturm_bound))
         K = self.coefficient_field
         for t in possible_spaces:
             M,xi,d,yi = t
@@ -410,14 +402,14 @@ class WebNewForm_computing(WebNewForm):
             for label in MF.hecke_orbits:
                 F = MF.hecke_orbits[label]
                 wmf_logger.debug("Checking function F={0}".format(F))
-                coeffsF = F.coefficients(range(self.sturm_bound))
+                coeffsF = F.coefficients(range(self.parent.sturm_bound))
                 coeffsF_twist = []
-                for j in range(self.sturm_bound):
+                for j in range(self.parent.sturm_bound):
                     coeffsF_twist.append(K(coeffs[j])*K(y(j)))
                 wmf_logger.debug("own coeffs={0}".format(coeffs))
                 wmf_logger.debug("twisted coeffs={0}".format(coeffsF_twist))
                 try:
-                    for j in range(self.sturm_bound):
+                    for j in range(self.parent.sturm_bound):
                         if coeffsF_twist[j]<>coeffs[j]:
                             raise StopIteration
                     twist_candidates.append(F)
