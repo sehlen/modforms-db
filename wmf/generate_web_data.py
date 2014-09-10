@@ -152,14 +152,14 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             id0 = r0.get('_id')
             level_max_in_db = r0.get('level_max',0)
             weight_max_in_db = r0.get('weight_max',0)
-    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+        #    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
         for n in range(level_range[0],level_range[1]+1):
             if not tbl0.has_key(n):
                 tbl0[n]={}
-            for k in range(weight_range[0],weight_range[1]+1):
-                if tbl0[n].has_key(k):
-                    continue
-                tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
+                for k in range(weight_range[0],weight_range[1]+1):
+                    if tbl0[n].has_key(k):
+                        continue
+                    tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
     q = D._mongodb[webmodformspace].find({'character':int(1)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
         n = r['level']; k = r['weight']
@@ -187,29 +187,29 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             weight_max_in_db = r1.get('weight_max',0)
     wmf_logger.debug("level_max_in_db={0}".format(level_max_in_db))
     wmf_logger.debug("level_range={0}".format(level_range))
-    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
-        for n in range(level_range[0],level_range[1]+1):
-            if not tbl1.has_key(n):
-                tbl1[n]={}
-            #wmf_logger.debug("n={0}".format(n))
-            for k in range(weight_range[0],weight_range[1]+1):
-                if tbl1[n].has_key(k):
-                    continue
-                tbl1[n][k]={}
-                ds = 0
-                for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
-                    xi = x.number()
-                    if (k % 2)==0 and not x.is_even():
-                        d = 0
-                    elif (k % 2)==1 and not x.is_odd():
-                        d = 0
-                    else:
-                        d = dimension_new_cusp_forms(x.sage_character(),k)
-                    tbl1[n][k][xi]=(int(d),int(0))
-                    ds+=d
-                tbl1[n][k][-1]=(int(ds),int(0))
-                if n==190:
-                    wmf_logger.warning("tbl[190][{0}]={1}".format(k,tbl1[n][k]))
+    #    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+    for n in range(level_range[0],level_range[1]+1):
+        if not tbl1.has_key(n):
+            tbl1[n]={}
+        #wmf_logger.debug("n={0}".format(n))
+        for k in range(weight_range[0],weight_range[1]+1):
+            if tbl1[n].has_key(k):
+                continue
+            tbl1[n][k]={}
+            ds = 0
+            for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
+                xi = x.number()
+                if (k % 2)==0 and not x.is_even():
+                    d = 0
+                elif (k % 2)==1 and not x.is_odd():
+                    d = 0
+                else:
+                    d = dimension_new_cusp_forms(x.sage_character(),k)
+                tbl1[n][k][xi]=(int(d),int(0))
+                ds+=d
+            tbl1[n][k][-1]=(int(ds),int(0))
+#            if n==190:
+#                wmf_logger.warning("tbl[190][{0}]={1}".format(k,tbl1[n][k]))
     q = D._mongodb[webmodformspace].find({'character':int(1)})
     for r in q:
         n = r['level']; k = r['weight']
