@@ -169,7 +169,7 @@ def dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,xi):
         if x.number() in orbit:
             return x
     else:
-        raise ValueError,"Character nr {0},{1} does not have a rep!".format(i,n)
+        raise ValueError,"Character nr {0} mod {1} does not have a rep!".format(xi,n)
 
 
 ### Conversions between the two types 
