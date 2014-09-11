@@ -245,6 +245,76 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         
     return tbl0,tbl1
 
+
+def update_tables(host='localhost',port=int(37010)):
+    r"""
+    Update the tabel by adding all known spaces.
+    
+
+    We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
+    """
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    try:
+        webmodformspace = WebModFormSpace_computing._collection_name
+    except AttributeError:
+        webmodformspace = 'webmodformspace'
+    ## If we have an old table we load it.
+    ## Do Gamma0 data first
+    r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
+    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})    
+    id0 = None; id1 = None
+    tbl0 = {}; tbl1={}
+    level_max_in_db = 0;weight_max_in_db = 0
+    if r0:
+        if r0.get('data'):
+            tbl0 = my_loads(r0.get('data'))
+            id0 = r0.get('_id')
+    if r1:
+        if r1.get('data'):
+            tbl1 = my_loads(r1.get('data'))
+            id1 = r1.get('_id')            
+    q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
+    for r in q:
+        n = r['level']; k = r['weight']; i = r['character_orbit_rep']
+        if i == 1:
+            if not tbl0.has_key(n):
+                tbl0[n] = {}
+            if tbl0[n].has_key(k):
+                d,t = tbl0[n][k]
+            else:
+                d = r['dimension_new_cusp_forms']
+            tbl0[n][k] = (int(d),int(1))
+        if not tbl1.has_key(n):
+            tbl1[n] = {}
+        if not tbl1[n].has_key(k):
+            tbl1[n][k] = {}
+        if tbl1[n][k].has_key(i):
+            d,t = tbl1[n][k][i]
+        else:
+            d = r['dimension_new_cusp_forms']
+        tbl1[n][k][i] = (int(d),int(1))        
+        if not tbl1[n][k].has_key(-1):
+            tbl1[n][k][-1] = dimension_new_cusp_forms(Gamma1(n),k)
+
+    rec0 = {'group':'gamma0','data':my_dumps(tbl0),
+            'level_max':int(level_range[1]),
+            'weight_max':int(level_range[1])}
+    # remove the old record
+    if id0:
+        D._mongodb['webmodformspace_dimension'].remove(id0)
+    D._mongodb['webmodformspace_dimension'].insert(rec0)
+
+    rec1 = {'group':'gamma1','data':my_dumps(tbl1),
+            'level_max':int(level_range[1]),
+            'weight_max':int(level_range[1])}
+    if id1:
+        D._mongodb['webmodformspace_dimension'].remove(id1)
+    D._mongodb['webmodformspace_dimension'].insert(rec1)
+    return tbl0,tbl1
+
     
 def drop_webmodform_data(host='localhost',port=int(37010)):
     r"""
