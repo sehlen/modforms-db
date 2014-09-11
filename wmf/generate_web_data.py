@@ -314,20 +314,8 @@ def update_tables(host='localhost',port=int(37010)):
         if not tbl1[n][k].has_key(-1):
             tbl1[n][k][-1] = (dimension_new_cusp_forms(Gamma1(n),k),int(1))
 
-    rec0 = {'group':'gamma0','data':my_dumps(tbl0),
-            'level_max':int(level_range[1]),
-            'weight_max':int(level_range[1])}
-    # remove the old record
-    if id0:
-        D._mongodb['webmodformspace_dimension'].remove(id0)
-    D._mongodb['webmodformspace_dimension'].insert(rec0)
-
-    rec1 = {'group':'gamma1','data':my_dumps(tbl1),
-            'level_max':int(level_range[1]),
-            'weight_max':int(level_range[1])}
-    if id1:
-        D._mongodb['webmodformspace_dimension'].remove(id1)
-    D._mongodb['webmodformspace_dimension'].insert(rec1)
+    D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':my_dmps(tbl0)}})
+    D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':my_dmps(tbl1)}})
     return tbl0,tbl1
 
     
