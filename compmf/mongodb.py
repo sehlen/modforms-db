@@ -977,6 +977,13 @@ class CompMF(MongoMF):
                     res[arg[0][0:3]] = val
             except AttributeError:
                 print "arg,val=",arg,val
+        ## Then add the spaces not yet in the database
+        for n in nrange:
+            for k in krange:
+                for i in range(euler_phi(n)):
+                    if self._modular_symbols.find({'N':int(n),'k':int(k),'chi':int(i)}).count()==0:
+                        res[(n,k,i)]=[False]
+
         return res
 
     def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False):
