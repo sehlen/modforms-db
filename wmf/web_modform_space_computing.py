@@ -73,8 +73,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         
         """
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))      
-
-        super(WebModFormSpace_computing,self).__init__(level,weight,character,cuspidal,prec,bitprec,update_from_db)
+        
+        super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:

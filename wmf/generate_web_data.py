@@ -23,7 +23,7 @@ AUTHORS:
 """
 
 import pymongo
-
+import bson
 from sage.all import parallel,dumps,Gamma1
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF
@@ -118,8 +118,10 @@ def my_dumps(s):
     Use my own dump funciton to make it esier to switch between json and bson dumps.
     """
     return json.dumps(s)
+#    return dumps(s)
 
 def my_loads(s):
+#    return json.loads(s)
     return json.loads(s)
     
 def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,only_new=True,host='localhost',port=int(37010)):
@@ -154,16 +156,19 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
             level_max_in_db = r0.get('level_max',0)
             weight_max_in_db = r0.get('weight_max',0)
         #    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
+        #print tbl0.keys()
         for n in range(level_range[0],level_range[1]+1):
-            if not tbl0.has_key(n):
-                tbl0[n]={}
+            ns = str(n)
+            if not tbl0.has_key(ns):
+                tbl0[ns]={}
                 for k in range(weight_range[0],weight_range[1]+1):
-                    if tbl0[n].has_key(k):
+                    ks = str(k)
+                    if tbl0[ns].has_key(ks):
                         continue
-                    tbl0[n][k]=int(dimension_new_cusp_forms(n,k)),int(0)
+                    tbl0[ns][ks]=int(dimension_new_cusp_forms(n,k)),int(0)
     q = D._mongodb[webmodformspace].find({'character':int(1)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
-        n = r['level']; k = r['weight']
+        n = str(r['level']); k = str(r['weight'])
         if not tbl0.has_key(n):
             tbl0[n] = {}
         if tbl0[n].has_key(k):
@@ -173,11 +178,13 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
         tbl0[n][k] = (int(d),int(1))
     rec0 = {'group':'gamma0','data':my_dumps(tbl0),
             'level_max':int(level_range[1]),
-            'weight_max':int(level_range[1])}
+            'weight_max':int(level_range[1]),
+            'date':bson.datetime.datetime.now()}
     # remove the old record
     if id0:
         D._mongodb['webmodformspace_dimension'].remove(id0)
     D._mongodb['webmodformspace_dimension'].insert(rec0)
+    print "inserted new table!"
     # Now compute the gamma1 data
     r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})
     level_max_in_db = 0; weight_max_in_db = 0
@@ -192,13 +199,15 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     wmf_logger.debug("level_range={0}".format(level_range))
     #    if level_max_in_db < level_range[1] or weight_max_in_db < weight_range[1]:
     for n in range(level_range[0],level_range[1]+1):
-        if not tbl1.has_key(n):
-            tbl1[n]={}
+        ns = str(n)
+        if not tbl1.has_key(ns):
+            tbl1[ns]={}
         #wmf_logger.debug("n={0}".format(n))
         for k in range(weight_range[0],weight_range[1]+1):
-            if tbl1[n].has_key(k):
+            ks = str(k)
+            if tbl1[ns].has_key(ks):
                 continue
-            tbl1[n][k]={}
+            tbl1[ns][ks]={}
             ds = 0
             for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n):
                 xi = x.number()
@@ -208,9 +217,9 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
                     d = 0
                 else:
                     d = dimension_new_cusp_forms(x.sage_character(),k)
-                tbl1[n][k][xi]=(int(d),int(0))
+                tbl1[ns][ks][str(xi)]=(int(d),int(0))
                 ds+=d
-            tbl1[n][k][-1]=(int(ds),int(0))
+            tbl1[ns][ks][str(-1)]=(int(ds),int(0))
 #            if n==190:
 #                wmf_logger.warning("tbl[190][{0}]={1}".format(k,tbl1[n][k]))
 
@@ -218,26 +227,32 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     for r in q:
         n = r['level']; k = r['weight']
         i = r['character_orbit_rep']
-        if not tbl1.has_key(n):
-            tbl1[n] = {}
-        if not tbl1[n].has_key(k):
-            tbl1[n][k] = {}
-        if  tbl1[n][k].has_key(i):
-            d,t = tbl1[n][k][i]
+        ns = str(n); ks=str(k); ist=str(i)
+        if not tbl1.has_key(ns):
+            tbl1[ns] = {}
+        if not tbl1[ns].has_key(ks):
+            tbl1[ns][ks] = {}
+        if  tbl1[ns][ks].has_key(ist):
+            d,t = tbl1[ns][ks][ist]
         else:
             d = r['dimension_new_cusp_forms']
-        tbl1[n][k][i] = (int(d),int(1))
-        if not tbl1[n][k].has_key(-1):
+        tbl1[ns][ks][ist] = (int(d),int(1))
+        if not tbl1[ns][ks].has_key(str(-1)):
             tot_dim = dimension_new_cusp_forms(Gamma1(n),k)
+            t = 0
             if n <= level_range[1] and k<=weight_range[1]:
-                d = sum(map(lambda x:x[0],tbl1[n][k].values()))
+                d = sum(map(lambda x:x[0],tbl1[ns][ks].values()))
                 if d <> tot_dim:
                     wmf_logger.warning("The sum of the computed dimensions does not add up at N,k={0} d={1}, tot_dim={2}".format((n,k),d,tot_dim))
-#                    wmf_logger.warning("tbl1[n][k]={0}".format(tbl1[n][k]))
-            tbl1[n][k][-1] = (int(tot_dim),int(1))
+                    #                    wmf_logger.warning("tbl1[n][k]={0}".format(tbl1[n][k]))
+
+                else:
+                    t = 1
+            tbl1[ns][ks][str(-1)] = (int(tot_dim),int(t))
     ### Also add the total dimensions...
     rec1 = {'group':'gamma1','data':my_dumps(tbl1),
             'level_max':int(level_range[1]),
+            'date':bson.datetime.datetime.now(),
             'weight_max':int(level_range[1])}
     if id1:
         D._mongodb['webmodformspace_dimension'].remove(id1)
@@ -297,7 +312,7 @@ def update_tables(host='localhost',port=int(37010)):
             d = r['dimension_new_cusp_forms']
         tbl1[n][k][i] = (int(d),int(1))        
         if not tbl1[n][k].has_key(-1):
-            tbl1[n][k][-1] = dimension_new_cusp_forms(Gamma1(n),k)
+            tbl1[n][k][-1] = (dimension_new_cusp_forms(Gamma1(n),k),int(1))
 
     rec0 = {'group':'gamma0','data':my_dumps(tbl0),
             'level_max':int(level_range[1]),
