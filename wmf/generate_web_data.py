@@ -324,7 +324,8 @@ def update_tables(host='localhost',port=int(37010)):
             if str(d)==str(dtot):
                 tbl1[n][k]["-1"]=(int(dtot),int(1))
             else:
-                print "sum of dims = {0} and true dim = {1}".format(dtot,d)
+                if n == "10" and k=="4":
+                    print "sum of dims = {0} and true dim = {1}".format(dtot,d)
     t0 = my_dumps(tbl0)
     t1 = my_dumps(tbl1)
     d0 = D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':t0,'date':bson.datetime.datetime.now()}},upsert=True)
