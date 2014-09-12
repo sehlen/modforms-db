@@ -294,6 +294,7 @@ def update_tables(host='localhost',port=int(37010)):
     q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     for r in q:
         n = r['level']; k = r['weight']; i = r['character_orbit_rep']
+        n = str(n); k=str(k); i=str(i)
         if i == 1:
             if not tbl0.has_key(n):
                 tbl0[n] = {}
@@ -311,15 +312,15 @@ def update_tables(host='localhost',port=int(37010)):
         else:
             d = r['dimension_new_cusp_forms']
         tbl1[n][k][i] = (int(d),int(1))        
-        if not tbl1[n][k].has_key(-1):
-            tbl1[n][k][-1] = (int(dimension_new_cusp_forms(Gamma1(n),k)),int(1))
+        if not tbl1[n][k].has_key("-1"):
+            tbl1[n][k][-1] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
         for k in tbl1[n].keys():
             dtot = 0
             for i in tbl1[n][k].keys():
                 if i > 0:
-                    dtot+=tbl1[n][k][i][0]
-            if tbl1[n][k].get(-1,0)==dtot:
+                    dtot+=int(tbl1[n][k][i][0])
+            if tbl1[n][k].get(-1,"0")==str(dtot):
                 tbl1[n][k][-1]=(int(dtot),int(1))
     t0 = my_dumps(tbl0)
     t1 = my_dumps(tbl1)
