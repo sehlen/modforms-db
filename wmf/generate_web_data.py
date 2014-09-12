@@ -320,7 +320,7 @@ def update_tables(host='localhost',port=int(37010)):
             for i in tbl1[n][k].keys():
                 if i > 0:
                     dtot+=int(tbl1[n][k][i][0])
-            if tbl1[n][k].get("-1","0")==str(dtot):
+            if tbl1[n][k].get("-1",("0","0"))[0]==str(dtot):
                 tbl1[n][k]["-1"]=(int(dtot),int(1))
             else:
                 print "sum of dims = {0} and true dim = {1}".format(dtot,tbl1[n][k].get("-1","0"))
