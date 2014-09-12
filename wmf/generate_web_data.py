@@ -321,10 +321,12 @@ def update_tables(host='localhost',port=int(37010)):
                     dtot+=tbl1[n][k][i][0]
             if tbl1[n][k].get(-1,0)==dtot:
                 tbl1[n][k][-1]=(int(dtot),int(1))
-    D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':my_dumps(tbl0),'date':bson.datetime.datetime.now()}})
-    D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':my_dumps(tbl1),'date':bson.datetime.datetime.now()}})
+    t0 = my_dumps(tbl0)
+    t1 = my_dumps(tbl1)
+    D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':t0,'date':bson.datetime.datetime.now()}})
+    D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':t1,'date':bson.datetime.datetime.now()}})
     print "update ",id0,id1
-    return tbl0,tbl1
+    return tbl0,tbl1,t0,t1
 
     
 def drop_webmodform_data(host='localhost',port=int(37010)):
