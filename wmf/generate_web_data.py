@@ -323,8 +323,8 @@ def update_tables(host='localhost',port=int(37010)):
                 tbl1[n][k][-1]=(int(dtot),int(1))
     t0 = my_dumps(tbl0)
     t1 = my_dumps(tbl1)
-    d0 = D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':t0,'date':bson.datetime.datetime.now()}})
-    d1 = D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':t1,'date':bson.datetime.datetime.now()}})
+    d0 = D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':t0,'date':bson.datetime.datetime.now()}},upsert=True)
+    d1 = D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':t1,'date':bson.datetime.datetime.now()}},upsert=True)
     print "update ",id0,id1
     print "res=",d0,d1
     return tbl0,tbl1,t0,t1
