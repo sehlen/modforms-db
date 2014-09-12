@@ -313,15 +313,17 @@ def update_tables(host='localhost',port=int(37010)):
             d = r['dimension_new_cusp_forms']
         tbl1[n][k][i] = (int(d),int(1))        
         if not tbl1[n][k].has_key("-1"):
-            tbl1[n][k][-1] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
+            tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
         for k in tbl1[n].keys():
             dtot = 0
             for i in tbl1[n][k].keys():
                 if i > 0:
                     dtot+=int(tbl1[n][k][i][0])
-            if tbl1[n][k].get(-1,"0")==str(dtot):
-                tbl1[n][k][-1]=(int(dtot),int(1))
+            if tbl1[n][k].get("-1","0")==str(dtot):
+                tbl1[n][k]["-1"]=(int(dtot),int(1))
+            else:
+                print "sum of dims = {0} and true dim = {1}".format(dtot,tbl1[n][k].get("-1","0"))
     t0 = my_dumps(tbl0)
     t1 = my_dumps(tbl1)
     d0 = D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':t0,'date':bson.datetime.datetime.now()}},upsert=True)
