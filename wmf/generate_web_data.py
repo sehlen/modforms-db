@@ -318,7 +318,7 @@ def update_tables(host='localhost',port=int(37010)):
         for k in tbl1[n].keys():
             dtot = 0
             for i in tbl1[n][k].keys():
-                if i > 0:
+                if int(i) > 0:
                     dtot+=int(tbl1[n][k][i][0])
             d = tbl1[n][k].get("-1",(0,0))[0]
             if str(d)==str(dtot):
