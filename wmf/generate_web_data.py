@@ -313,7 +313,14 @@ def update_tables(host='localhost',port=int(37010)):
         tbl1[n][k][i] = (int(d),int(1))        
         if not tbl1[n][k].has_key(-1):
             tbl1[n][k][-1] = (int(dimension_new_cusp_forms(Gamma1(n),k)),int(1))
-
+    for n in tbl1.keys():
+        for k in tbl1[n].keys():
+            dtot = 0
+            for i in tbl1[n][k].keys():
+                if i > 0:
+                    dtot+=tbl1[n][k][i][0]
+            if tbl1[n][k].get(-1,0)==dtot:
+                tbl1[n][k][-1]=(int(dtot),int(1))
     D._mongodb['webmodformspace_dimension'].update({'_id':id0},{"$set": {'data':my_dumps(tbl0)}})
     D._mongodb['webmodformspace_dimension'].update({'_id':id1},{"$set": {'data':my_dumps(tbl1)}})
     return tbl0,tbl1
