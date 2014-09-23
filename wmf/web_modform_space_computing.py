@@ -136,7 +136,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         Returns canonical representative of the Galois orbit of the character of self.
 
         """
-        self.character_orbit_rep = self.character.character.galois_orbit()[0]
+        #self.character_orbit_rep = self.character.character.galois_orbit()[0]
+        self.character_orbit_rep.character_conversions.dirichlet_character_conrey_galois_orbit_rep_from_character_number(self.level,self.character.number)
 
     def set_character_used_in_computation(self):
        r"""
