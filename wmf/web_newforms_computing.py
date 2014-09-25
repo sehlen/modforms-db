@@ -148,25 +148,30 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Setting aps!")
         #try:
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
-        wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+        wmf_logger.critical("Got ap lists:{0}".format(len(aps)))
         ev_set = 0
         precs = []
         if aps<>{}:
             if isinstance(aps.values()[0],dict):
                 precs = aps.values()[0].keys()
+        wmf_logger.critical("precs={0}".format(precs))
         for prec in precs:
+            wmf_logger.debug("Now getting prec@{0}".format(prec))
             E,v,meta = aps.values()[0][prec]
             self._available_precisions.append(prec)
             evs = WebEigenvalues(self.hecke_orbit_label,prec)
             evs.E = E
+            wmf_logger.critical("E = {0}".format(E))
             evs.v = v
             evs.meta = meta
             evs.init_dynamic_properties()
-            evs.save_to_db()
+            t = evs.save_to_db(update=True)
+            if not t is True:
+                wmf_logger.critical("Could not update webeigenvalues!")
             if prec >= self.prec and ev_set == 0:
                 self.eigenvalues = evs
                 ev_set = 1
-            wmf_logger.debug("Got ap's with prec={0}".format(prec))
+            wmf_logger.critical("Got ap's with prec={0}".format(prec))
         #except Exception as e:
         #wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
 
