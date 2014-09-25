@@ -137,7 +137,8 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         """
         #self.character_orbit_rep = self.character.character.galois_orbit()[0]
-        self.character_orbit_rep.character_conversions.dirichlet_character_conrey_galois_orbit_rep_from_character_number(self.level,self.character.number)
+        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep_from_character_number
+        self.character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep_from_character_number(self.level,self.character.number)
 
     def set_character_used_in_computation(self):
        r"""
@@ -164,10 +165,10 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.dimension_cusp_forms = int(dimension_cusp_forms(x,k))
         # New cuspidal subspace 
         self.dimension_new_cusp_forms = int(dimension_new_cusp_forms(x,k))
-        if self.cuspidal == 1:
-            self.dimension = self.dimension_cusp_forms
-        elif self.cuspidal == 0:
+        if self.cuspidal == 0:
             self.dimension = self.dimension_modular_forms
+        else:
+            self.dimension = self.dimension_cusp_forms
         # Old subspace of self. We only use the builtin function for cusp forms
         self.dimension_oldforms = self.dimension_cusp_forms - self.dimension_new_cusp_forms
 
