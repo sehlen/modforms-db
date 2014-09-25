@@ -1115,6 +1115,7 @@ class CompMF(MongoMF):
                             print "removed directory {0}".format(aname)
             if remove == 1 and problems<>[]:
                 print "Removed {0} records!".format(len(problems))
+        clogger.debug("Finished checking  N={0}, k={1}, chi={2}".format(N,k,chi))
         return problems            
     
 def precision_needed_for_L(N,k,**kwds):
