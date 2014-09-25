@@ -3,4 +3,4 @@ wmf_logger = make_logger('wdb')
 from web_newforms_computing import WebNewForm_computing
 from web_modform_space_computing import WebModFormSpace_computing
 
-from generate_web_data import generate_web_modform_spaces
+from generate_web_data import generate_web_modform_spaces,dimension_from_db,web_modformspace_in_db,update_dimension_tables,generate_dimension_tables
