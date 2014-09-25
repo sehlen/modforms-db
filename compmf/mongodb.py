@@ -288,6 +288,7 @@ class MongoMF(object):
             prec = r['prec']
             meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
             E,v = self.load_from_mongo('ap',fid)
+            clogger.debug("id={0} and E={1}".format(fid,E))
             t = (int(N),int(k),int(i),int(d))
             if not res.has_key(t):
                 res[t]={}
@@ -923,9 +924,10 @@ class CompMF(MongoMF):
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
                     fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,i,d,prec_in_db)
-                    clogger.debug("updating record with prec = prec_in_db={0}".format(prec_in_db))                                  
+                    clogger.debug("updating record {0} with prec = prec_in_db={1}".format(id,prec_in_db))                                  
                     q = self._aps.update({'_id':id},
-                                         {"$set":{'prec':prec_in_db,'filename':fname}},multi=True)
+                                         {"$set":{'prec':prec_in_db,'filename':fname}},multi=False,upsert=True)
+                    clogger.debug("Updated : {0}".format(q))
                     ## Also check the file system:
                     
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
