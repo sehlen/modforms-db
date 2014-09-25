@@ -2120,20 +2120,20 @@ def spaces_with_all_chars(DB):
 
 
 def add_names_to_aps(DB):
-    for r in DB._aps.find().sort('N',int(1)):
+    for r in DB._aps.find({"hecke_orbit_label":{"$exists":False}}).sort('N',int(1)):
     #{'name':{"$exists":False}}):
         N=r['N']
         k=r['k']
         fid=r['_id']
         chi=r['chi']
         cchi=r.get('cchi')
-        if cchi==None:
-            cchi = dirichlet_character_conrey_from_sage_character_number(N,chi)
-            DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
+        #if cchi==None:
+        #    cchi = dirichlet_character_conrey_from_sage_character_number(N,chi)
+        #    DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
         #d=r['newform']
-        #label = orbit_label(d)
-        #name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
-        #DB._aps.update({'_id':fid},{"$set":{'name':name}})
+        ##label = orbit_label(d)
+        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
+        DB._aps.update({'_id':fid},{"$set":{'hecke_orbit_label':name}})
 
 @cached_function
 def orbit_label(j):
