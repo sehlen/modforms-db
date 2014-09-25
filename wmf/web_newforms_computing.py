@@ -116,7 +116,8 @@ class WebNewForm_computing(WebNewForm):
 
         self.set_atkin_lehner()
         self.set_absolute_polynomial()
-        
+        if self.level()==1:
+            self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
 
 ##  Internal functions
 ##
@@ -545,7 +546,7 @@ class WebNewForm_computing(WebNewForm):
             X = m.solve_right(v)
         except:
             return ""
-        self._as_polynomial_in_E4_and_E6 = [poldeg, monomials, X]
+        #self._as_polynomial_in_E4_and_E6 = [poldeg, monomials, X]
         return [poldeg, monomials, X]
 
     def exact_cm_at_i_level_1(self, N=10,insert_in_db=True):
