@@ -619,7 +619,8 @@ class CompMF(MongoMF):
     def compute_aps(self,N,k,i,pprec=None,**kwds):
         r"""
         Compute & store aps
-        """       
+        """
+        from wmf.web_modform_space_computing import orbit_label
         if pprec is None:
             pprec = precision_needed_for_L(N,k)
         pprec = int(pprec)
@@ -649,6 +650,7 @@ class CompMF(MongoMF):
             aps = {(N,k,i,d) : (E,v,meta) }
             where E*v gives the actual list of ap's and meta is a dictionary with cputime and sage version. 
             """
+            
             if not isinstance(aps,dict):
                 clogger.warning("Trying to insert non-dict aps:{0}".format(aps))
                 return
@@ -662,6 +664,7 @@ class CompMF(MongoMF):
                 clogger.debug("meta={0}".format(meta))
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
+                label = orbit_label(d)
                 apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                  character_galois_orbit=orbit,
@@ -669,6 +672,7 @@ class CompMF(MongoMF):
                                  prec = int(pprec),
                                  cputime = meta.get("cputime",""),
                                  sage_version = meta.get("version",""),
+                                 hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                                  ambient_id=ambient_id)
                 aps_in_mongo.append(apid)
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
@@ -899,12 +903,14 @@ class CompMF(MongoMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
-                clogger.debug("type(E)={0}".format(type(E)))                                                  
+                clogger.debug("type(E)={0}".format(type(E)))
+                clogger.debug("rec={0}".format(r))
                 if isinstance(E,tuple):
                     print "r=",r
                     raise ValueError,"Wrong format of E!"
                 res['aps']=False
                 clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
+                
                 nprimes_in_db = E.nrows()
                 nprimes_assumed = prime_pi(prec)
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
