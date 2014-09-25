@@ -981,7 +981,8 @@ class CompMF(MongoMF):
         elif ncpus >= 8:
             check = list(self.check_record8(args))                    
         else:
-            check = list(self.check_record(args))
+            check = list(self.check_records(args))
+            
         #check = self.check_record(args)
         for arg,val in check:
             try: 
