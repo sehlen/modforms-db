@@ -27,6 +27,7 @@ import bson
 from sage.all import parallel,dumps,Gamma1
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF
+from sage.misc.cachefunc import cached_function
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010)):
     r"""
@@ -107,6 +108,42 @@ def generate_one_webmodform_space1(level,weight,chi):
 #    print "generate:",level,weight,chi
     M = WebModFormSpace_computing(level,weight,chi)
     M.save_to_db()
+
+
+def web_modformspace_collection(host='localhost',port=int(37010)):
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    try:
+        col = WebModFormSpace_computing._collection_name
+    except AttributeError:
+        col = 'webmodformspace'
+    return D._mongodb[col]
+
+def web_newform_collection(host='localhost',port=int(37010)):
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    try:
+        col = WebNewForm_computing._collection_name
+    except AttributeError:
+        col = 'webnewforms'
+    return D._mongodb[col]
+    
+## Create the indices we want on the collections
+
+def create_index(host='localhost',port=int(37010)):
+    c = web_newform_collection(host,port)
+    c.create_index([('level',pymongo.ASCENDING),
+                    ('weight',pymongo.ASCENDING),
+                    ('chi',pymongo.ASCENDING),
+                    ('label',pymongo.ASCENDING)]  )
+    c1 = web_modformspace_collection(host,port)
+    c1.create_index([('level',pymongo.ASCENDING),
+                    ('weight',pymongo.ASCENDING),
+                    ('chi',pymongo.ASCENDING)])
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
@@ -124,7 +161,7 @@ def my_loads(s):
 #    return json.loads(s)
     return json.loads(s)
     
-def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,only_new=True,host='localhost',port=int(37010)):
+def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,only_new=True,host='localhost',port=int(37010)):
     r"""
     Generates a table of the available (computed) WebModFormSpaces.
     In addition we also add data for (level,weight,chi) with
@@ -261,7 +298,7 @@ def generate_table(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,
     return tbl0,tbl1
 
 
-def update_tables(host='localhost',port=int(37010)):
+def update_dimension_tables(host='localhost',port=int(37010)):
     r"""
     Update the tabel by adding all known spaces.
     
@@ -356,3 +393,63 @@ def drop_webmodform_data(host='localhost',port=int(37010)):
         D._mongodb.drop_collection(col+'.chunks')
     
     D._mongodb.drop_collection('webmodformspace_dimension')
+
+@cached_function
+def dimension_from_db(level,weight,chi=None,group='gamma0'):
+    import json
+    try: 
+        D  = MongoMF(host,port)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    db = D._mongodb['webmodformspace_dimension']
+    q = db.find_one({'group':group})
+    dim_table = {}
+    if q:
+        dim_table = q.get('data',{})
+        dim_table = json.loads(dim_table)
+    if group=='gamma0' and chi<>None:
+        d,t = dim_table.get(str(level),{}).get(str(weight),{}).get(str(chi),[-1,0])
+        return  d,t
+    elif chi is None:
+        d,t = dim_table.get(str(level),{}).get(str(weight),[-1,0])
+        return  d,t
+    elif chi == 'all':
+        res = {level: {weight:{}}}
+        dtable = dim_table.get(str(level),{}).get(str(weight),{})
+        for i in dtable.keys():
+            res[level][weight][int(i)] = dtable[i]
+        return res
+
+def web_modformspace_in_db(host='localhost',port=int(37010)):
+    res = []
+    col = web_newform_collection(host,port)
+    q = col.find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
+    for r in q:
+        res.append((r['level'],r['weight'],r['character']))
+    return res
+
+
+
+### Fix the addiiton of names.
+
+
+from wmf.web_modform_space_computing import orbit_label
+def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
+    import compmf
+    D = compmf.MongoMF(host,port)
+    for r in D._aps.find({"hecke_orbit_label":{"$exists":False}}).sort('N',int(1)):
+    #{'name':{"$exists":False}}):
+        N=r['N']
+        k=r['k']
+        fid=r['_id']
+        chi=r['chi']
+        cchi=r.get('cchi')
+        #if cchi==None:
+        #    cchi = dirichlet_character_conrey_from_sage_character_number(N,chi)
+        #    DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
+        d=r['newform']
+        label = orbit_label(d)
+        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
+        D._aps.update({'_id':fid},{"$set":{'hecke_orbit_label':name}})
+        D._aps.update({'_id':fid},{"$unset":{'name':""}})
+        
