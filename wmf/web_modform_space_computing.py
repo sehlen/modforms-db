@@ -192,7 +192,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         while current_dim < dim and i<dim: ## 
             label = orbit_label(i)
             wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
-            F = WebNewForm_computing(self.level,self.weight,self.character.number,label)
+            F = WebNewForm_computing(self.level,self.weight,self.character.number,label,recompute=True)
             current_dim += F.dimension
             i+=1
             wmf_logger.debug("current_dim={0}".format(current_dim))
