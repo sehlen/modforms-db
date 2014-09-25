@@ -923,11 +923,15 @@ class CompMF(MongoMF):
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
-                    fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,i,d,prec_in_db)
-                    clogger.debug("updating record {0} with prec = prec_in_db={1}".format(id,prec_in_db))                                  
-                    q = self._aps.update({'_id':id},
-                                         {"$set":{'prec':prec_in_db,'filename':fname}},multi=False,upsert=True)
-                    clogger.debug("Updated : {0}".format(q))
+                    if  self._aps.find({'N':r['N'],'k':r['k'],'chi':r['chi'],'newform':r['newform'],'prec':prec_in_db}).count()>0:
+                        clogger.debug("We already have this prec in the database so we remove this record!")
+                        self._aps.remove({'_id':r['_id']})
+                    else:
+                        fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,i,d,prec_in_db)
+                        clogger.debug("updating record {0} with prec = prec_in_db={1}".format(id,prec_in_db))                                  
+                        q = self._aps.update({'_id':id},
+                                         {"$set":{'prec':prec_in_db,'filename':fname}},w=int(1),multi=False,upsert=True)
+                        clogger.debug("Updated : {0}".format(q))
                     ## Also check the file system:
                     
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
