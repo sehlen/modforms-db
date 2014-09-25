@@ -56,7 +56,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None,host='localhost',port=37010,db='modularforms2'):
+    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None,host='localhost',port=37010,db='modularforms2',recompute=False):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -80,8 +80,8 @@ class WebNewForm_computing(WebNewForm):
         self._newform_number = None
         self._satake = {}
         self._twist_info = None
-        ## If it is in the database we don't need to compute everything
-        if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0:
+        ## If it is in the database we don't need to compute everything unless we specify recompute=True
+        if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0 and recompute is False:
             wmf_logger.debug("getting data from db")
             self.update_from_db()
         else:
@@ -116,7 +116,7 @@ class WebNewForm_computing(WebNewForm):
 
         self.set_atkin_lehner()
         self.set_absolute_polynomial()
-        if self.level()==1:
+        if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
 
 ##  Internal functions
@@ -140,12 +140,14 @@ class WebNewForm_computing(WebNewForm):
                     self.dimension = int(0)
                 else:
                     raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
-    def set_aps(self):
+    def set_aps(self,reload_from_db=False):
         r"""
-        
+        We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
         
         """
         wmf_logger.debug("Setting aps!")
+        if self.eigenvalues.prec >= self.prec_needed_for_lfunctions() and reload_from_db is False:
+            return 
         #try:
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
         wmf_logger.critical("Got ap lists:{0}".format(len(aps)))
@@ -755,7 +757,16 @@ class WebNewForm_computing(WebNewForm):
              
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
-                f1 = QQ(4 * chip * p ** (k - 1) - ap ** 2)
+                
+                wmf_logger.debug("chip={0}".format(chip))
+                wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
+                wmf_logger.debug("ap={0}".format(ap))
+                wmf_logger.debug("ap.parent()={0}".format(ap.parent()))
+                chip = QQ(chip)
+                f1 = 4 * chip * p ** (k - 1) - ap ** 2
+                wmf_logger.debug("f1p={0}".format(f1))
+                wmf_logger.debug("f1.parent()={0}".format(f1.parent()))
+                wmf_logger.debug("f1.complex_embeddings()={0}".format(f1.complex_embeddings()))                                
                 alpha_p = (QQ(ap) + I * f1.sqrt()) / QQ(2)
                 ab = RF(p ** ((k - 1) / 2))
                 norm_alpha = alpha_p / ab
