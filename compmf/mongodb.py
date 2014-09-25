@@ -795,7 +795,7 @@ class CompMF(MongoMF):
             return list(self.check_record16(args))
         elif ncpus >= 8:
             return list(self.check_record8(args))                    
-        return self.check_record(args)
+        return list(self.check_record(args))
     
     @parallel(ncpus=8)        
     def check_record8(self,N,k,i,check_content=False,recheck=False):
@@ -981,7 +981,7 @@ class CompMF(MongoMF):
         elif ncpus >= 8:
             check = list(self.check_record8(args))                    
         else:
-            check = list(self.check_records(args))
+            check = list(self.check_record(args))
             
         #check = self.check_record(args)
         for arg,val in check:
