@@ -84,9 +84,10 @@ class WebNewForm_computing(WebNewForm):
         if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0 and recompute is False:
             wmf_logger.debug("getting data from db")
             self.update_from_db()
+            self.compute_satake_parameters_numeric()
         else:
             self.compute_additional_properties()
-            self.save_to_db()
+        self.save_to_db()
 
     def __repr__(self):
         r"""
@@ -716,8 +717,10 @@ class WebNewForm_computing(WebNewForm):
 
         We only do satake parameters for primes p primitive to the level.
         By defintion the S. parameters are given as the roots of
-         X^2 - c(p)X + chi(p)*p^(k-1) if (p,N)=1
-
+         X^2 - c(p)*X*p^((k-1)/2) + chi(p) if (p,N)=1
+         (in this normalization they have absolute value 1)
+         we only store the Satake parameter alpha in the upper half-plane
+         (the other one is then beta=1/alpha)
         INPUT:
         -''prec'' -- compute parameters for p <=prec
         -''bits'' -- do real embedings intoi field of bits precision
@@ -749,7 +752,7 @@ class WebNewForm_computing(WebNewForm):
                 ap = self.coefficient(p) 
             except IndexError:
                 break
-            # Remove bad primes
+            # Ignore bad primes
             if p.divides(self.level):
                 continue
             self._satake['ps'].append(p)
@@ -757,43 +760,37 @@ class WebNewForm_computing(WebNewForm):
              
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
-                
+                app = RF(ap)*p**(-0.5*(k-1))
                 wmf_logger.debug("chip={0}".format(chip))
                 wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
                 wmf_logger.debug("ap={0}".format(ap))
                 wmf_logger.debug("ap.parent()={0}".format(ap.parent()))
                 chip = QQ(chip)
-                f1 = 4 * chip * p ** (k - 1) - ap ** 2
+                f1 = 4 * chip - app ** 2
                 wmf_logger.debug("f1p={0}".format(f1))
-                wmf_logger.debug("f1.parent()={0}".format(f1.parent()))
-                wmf_logger.debug("f1.complex_embeddings()={0}".format(f1.complex_embeddings()))                                
-                alpha_p = (QQ(ap) + I * f1.sqrt()) / QQ(2)
-                ab = RF(p ** ((k - 1) / 2))
-                norm_alpha = alpha_p / ab
-                t_p = CF(norm_alpha).argument()
-                thetas[0][p] = t_p
-                alphas[0][p] = (alpha_p / ab).n(bits)
+                #wmf_logger.debug("f1.parent()={0}".format(f1.parent()))
+                #wmf_logger.debug("f1.complex_embeddings()={0}".format(f1.complex_embeddings()))                                
+                alpha_p = (app + I * f1.sqrt()) / QQ(2)
+                t_p = CF(alpha_p).argument()
+                thetas[0][p] = RF(t_p)
+                alphas[0][p] = CF(alpha_p)
             else:
                 for jj in range(degree):
-                    app = ap.complex_embeddings(bits)[jj]
+                    app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
                     wmf_logger.debug("chip={0}".format(chip))
                     wmf_logger.debug("app={0}".format(app))
                     wmf_logger.debug("jj={0}".format(jj))            
                     if not hasattr(chip,'complex_embeddings'):
-                        f1 = (4 * CF(chip) * p ** (k - 1) - app ** 2)
+                        f1 = (4 * CF(chip)  - app ** 2)
                     else:
-                        f1 = (4 * chip.complex_embeddings(bits)[jj] * p ** (k - 1) - app ** 2)
-                    alpha_p = (app + I * abs(f1).sqrt())
-                    # ab=RF(/RF(2)))
-                    # alpha_p=alpha_p/RealField(bits)(2)
+                        f1 = (4 * chip.complex_embeddings(bits)[jj]  - app ** 2)
+                    alpha_p = (app + I * abs(f1).sqrt())/RF(2)
                     wmf_logger.debug("f1={0}".format(f1))
-                    
-                    alpha_p = alpha_p / RF(2)
                     wmf_logger.debug("alpha_p={0}".format(alpha_p))                    
                     t_p = CF(alpha_p).argument()
                     # tps.append(t_p)
                     # aps.append(alpha_p)
-                    alphas[jj][p] = alpha_p
+                    alphas[jj][p] = CF(alpha_p)
                     thetas[jj][p] = t_p
         self._satake['alphas'] = alphas
         self._satake['thetas'] = thetas
