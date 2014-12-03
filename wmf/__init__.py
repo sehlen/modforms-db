@@ -1,4 +1,5 @@
 from lmfdb.utils import make_logger
+import logging
 wmf_logger = make_logger('wdb')
 try:
     import colorlog
