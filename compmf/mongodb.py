@@ -1051,7 +1051,9 @@ class CompMF(MongoMF):
                         self._mongodb['{0}.files'.format(col)].update({'_id':id},{"$set":{'cchi':cchi}})
                     else:
                         self._mongodb['{0}.files'.format(col)].update({'ambient_id':id},{"$set":{'cchi':cchi}})            
+            clogger.debug("Get Modular symbols from Mongo! col={0} id={1}".format(self._modular_symbols_collection,id))
             M = self.load_from_mongo(self._modular_symbols_collection,id)
+            clogger.debug("Got Modular symbols from Mongo!")
             x = M.character()
             if N == 1:
                 si = 0
@@ -1081,7 +1083,8 @@ class CompMF(MongoMF):
                     for fname in self._db.listdir(aname):
                         self._db.delete_file(fname)
                     os.removedirs(aname)
-            #else:
+            else:
+                clogger.debug("Characters are correct!")
             #    r = self._modular_symbols.find_one({'_id':id})
             #    #if r.get('complete') is None or r.get('complete')<2:
             #self.check_record(N,k,chi,check_content=True)
