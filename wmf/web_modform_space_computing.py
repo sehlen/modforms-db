@@ -75,6 +75,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))      
         
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
+        wmf_logger.debug("Super class is inited!")
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:
@@ -97,20 +98,26 @@ class WebModFormSpace_computing(WebModFormSpace):
         r"""
         Compute additional properties. 
         """
+        wmf_logger.debug("Computing addiitonal properties!")
         ### Set / Compute / fetch everything we need
         if self.group is None:
             self.group = Gamma0(self.level)
         self.set_dimensions()
-        if self.dimension == 0:
-            return 
         self.set_character_used_in_computation()
         self.set_character_galois_orbit()
         self.set_character_orbit_rep()
         self.set_galois_orbit_embeddings()
+        wmf_logger.debug("Got all characters!")
+        if self.dimension == 0:
+            self.save_to_db()
+            return 
         self.set_sturm_bound()
+        wmf_logger.debug("Got sturm bound!")
         self.set_oldspace_decomposition()
+        wmf_logger.debug("Got oldspace decomposition!")
         self.get_hecke_orbits()
         self.save_to_db()
+
 
     def set_character_galois_orbit(self):
         r"""

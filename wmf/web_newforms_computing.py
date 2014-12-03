@@ -80,11 +80,13 @@ class WebNewForm_computing(WebNewForm):
         self._newform_number = None
         self._satake = {}
         self._twist_info = None
+        self._as_polynomial_in_E4_and_E6 = None
         ## If it is in the database we don't need to compute everything unless we specify recompute=True
         if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0 and recompute is False:
             wmf_logger.debug("getting data from db")
             self.update_from_db()
             self.compute_satake_parameters_numeric()
+            self.set_twist_info()
         else:
             self.compute_additional_properties()
         self.save_to_db()
@@ -442,7 +444,8 @@ class WebNewForm_computing(WebNewForm):
                     for j in range(self.parent.sturm_bound):
                         if coeffsF_twist[j]<>coeffs[j]:
                             raise StopIteration
-                    twist_candidates.append(F)
+                    if F.hecke_orbit_label not in twist_candidates:
+                        twist_candidates.append(F.hecke_orbit_label)
                 except StopIteration: # If we are here then we don't have a twist to self
                     pass
 
@@ -513,7 +516,7 @@ class WebNewForm_computing(WebNewForm):
             raise NotImplementedError("Only implemented for SL(2,Z). Need more generators in general.")
         if(self._as_polynomial_in_E4_and_E6 is not None and self._as_polynomial_in_E4_and_E6 != ''):
             return self._as_polynomial_in_E4_and_E6
-        d = self.parent().dimension_modular_forms()  # dimension of space of modular forms
+        d = self.parent.dimension_modular_forms  # dimension of space of modular forms
         k = self.weight
         K = self.base_ring
         l = list()
@@ -521,7 +524,7 @@ class WebNewForm_computing(WebNewForm):
         # for n in range(d+1):
         #    l.append(self._f.q_expansion(d+2)[n])
         # v=vector(l) # (self._f.coefficients(d+1))
-        v = vector(self.coefficients(range(d),insert_in_db=insert_in_db))
+        v = vector(self.coefficients(range(d)))
         d = dimension_modular_forms(1, k)
         lv = len(v)
         if(lv < d):
@@ -732,6 +735,8 @@ class WebNewForm_computing(WebNewForm):
             return 
         K = self.coefficient_field
         degree = K.absolute_degree()
+        wmf_logger.debug("K={0}".format(K))
+        wmf_logger.debug("degree={0}".format(degree))
         RF = RealField(bits)
         CF = ComplexField(bits)
         ps = prime_range(prec)
@@ -777,13 +782,14 @@ class WebNewForm_computing(WebNewForm):
             else:
                 for jj in range(degree):
                     app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
-                    wmf_logger.debug("chip={0}".format(chip))
+                    wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
                     wmf_logger.debug("app={0}".format(app))
                     wmf_logger.debug("jj={0}".format(jj))            
                     if not hasattr(chip,'complex_embeddings'):
                         f1 = (4 * CF(chip)  - app ** 2)
                     else:
-                        f1 = (4 * chip.complex_embeddings(bits)[jj]  - app ** 2)
+                        wmf_logger.debug("chip.emb={0}".format(chip.complex_embeddings(bits)))                        
+                        f1 = (4 * chip.complex_embeddings(bits)[0]  - app ** 2)
                     alpha_p = (app + I * abs(f1).sqrt())/RF(2)
                     wmf_logger.debug("f1={0}".format(f1))
                     wmf_logger.debug("alpha_p={0}".format(alpha_p))                    
