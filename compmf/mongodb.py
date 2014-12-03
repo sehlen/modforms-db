@@ -846,6 +846,7 @@ class CompMF(MongoMF):
             numf = rec['orbits']
             ambient_id = rec['_id']
         ## Check factors
+        clogger.debug("will check number of factors!")
         numf1 = self.number_of_factors(N,k,i)
         res['factors'] = False
         facts = {}
