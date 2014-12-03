@@ -1041,8 +1041,9 @@ class CompMF(MongoMF):
             al = gridfs.GridFS(self._mongodb,'Atkin_Lehner')
             id = r['_id']
             cchi = r.get('cchi')
+            clogger.debug("checking record: {0}".format(r))
             if cchi is None:
-                print "We don't have a Conrey character for r={0}".format(r)
+                clogger.debug("We don't have a Conrey character for r={0}".format(r))
                 c = dirichlet_character_conrey_from_sage_character_number(N,chi)
                 cchi = c.number()
                 for col in self._file_collections:
@@ -1060,9 +1061,9 @@ class CompMF(MongoMF):
                 ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
             if si <> chi or ci<>cchi:
                 problems.append((N,k,chi))
-                print "Chi is wrong! Should be {0}".format(si)
-                print "CChi is wrong! Should be {0}".format(ci)
-                print "r=",r
+                clogger.debug("Chi is wrong! Should be {0}".format(si))
+                clogger.debug("CChi is wrong! Should be {0}".format(ci))
+                clogger.debug("r={0}".format(r))
                 if remove == 1:
                     # First delete from mongo
                     ms.delete(id)
@@ -1088,6 +1089,7 @@ class CompMF(MongoMF):
             for N1,k1,chi1,d,prec in self._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
+                clogger.debug("checking in files: {0}".format(( N1,k1,chi1,d,prec)))
                 sage.modular.modsym.modsym.ModularSymbols_clear_cache()
                 if not files_separately==1 or (N1,k1,chi1) in problems:
                     continue
@@ -1102,7 +1104,7 @@ class CompMF(MongoMF):
                 if si <> chi:
                     if (N1,k1,chi1) not in problems:
                         problems.append((N1,k1,chi1))
-                    print "in file: Chi is wrong! Should be {0}".format(si)
+                    clogger.debug("in file: Chi is wrong! Should be {0}".format(si))
                     if remove == 1:
                         dname = self._db.factor(N1,k1,chi1,d)
                         for fname in self._db.listdir(dname):
@@ -1111,8 +1113,7 @@ class CompMF(MongoMF):
                         for fname in self._db.listdir(aname):
                             self._db.delete_file(fname)
                         os.removedirs(aname)
-                        if verbose>0:
-                            print "removed directory {0}".format(aname)
+                        clogger.debug("removed directory {0}".format(aname))
             if remove == 1 and problems<>[]:
                 print "Removed {0} records!".format(len(problems))
         clogger.debug("Finished checking  N={0}, k={1}, chi={2}".format(N,k,chi))
