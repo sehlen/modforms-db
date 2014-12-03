@@ -153,7 +153,8 @@ class WebNewForm_computing(WebNewForm):
             return 
         #try:
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
-        wmf_logger.critical("Got ap lists:{0}".format(len(aps)))
+        wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+        wmf_logger.debug("Want:{0} coefficients!".format(self.prec_needed_for_lfunctions()))
         ev_set = 0
         precs = []
         if aps<>{}:
@@ -176,7 +177,12 @@ class WebNewForm_computing(WebNewForm):
             if prec >= self.prec and ev_set == 0:
                 self.eigenvalues = evs
                 ev_set = 1
-            wmf_logger.critical("Got ap's with prec={0}".format(prec))
+            wmf_logger.debug("Got ap's with prec={0}".format(self.eigenvalues.prec))
+            if self.eigenvalues.prec >= self.prec_needed_for_lfunctions():
+                ## We got as many as we wanted.
+                break
+        if self.eigenvalues.prec < self.prec_needed_for_lfunctions():
+            wmf_logger.critical("Could not find coefficients with prec:{0} Only got:{1}".format(self.prec_needed_for_lfunctions(),self.eigenvalues.prec))
         #except Exception as e:
         #wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
 
@@ -735,8 +741,8 @@ class WebNewForm_computing(WebNewForm):
             return 
         K = self.coefficient_field
         degree = K.absolute_degree()
-        wmf_logger.debug("K={0}".format(K))
-        wmf_logger.debug("degree={0}".format(degree))
+        #wmf_logger.debug("K={0}".format(K))
+        #wmf_logger.debug("degree={0}".format(degree))
         RF = RealField(bits)
         CF = ComplexField(bits)
         ps = prime_range(prec)
@@ -766,13 +772,13 @@ class WebNewForm_computing(WebNewForm):
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
                 app = RF(ap)*p**(-0.5*(k-1))
-                wmf_logger.debug("chip={0}".format(chip))
-                wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
-                wmf_logger.debug("ap={0}".format(ap))
-                wmf_logger.debug("ap.parent()={0}".format(ap.parent()))
+                #wmf_logger.debug("chip={0}".format(chip))
+                #wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
+                #wmf_logger.debug("ap={0}".format(ap))
+                #wmf_logger.debug("ap.parent()={0}".format(ap.parent()))
                 chip = QQ(chip)
                 f1 = 4 * chip - app ** 2
-                wmf_logger.debug("f1p={0}".format(f1))
+                #wmf_logger.debug("f1p={0}".format(f1))
                 #wmf_logger.debug("f1.parent()={0}".format(f1.parent()))
                 #wmf_logger.debug("f1.complex_embeddings()={0}".format(f1.complex_embeddings()))                                
                 alpha_p = (app + I * f1.sqrt()) / QQ(2)
@@ -782,17 +788,17 @@ class WebNewForm_computing(WebNewForm):
             else:
                 for jj in range(degree):
                     app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
-                    wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
-                    wmf_logger.debug("app={0}".format(app))
-                    wmf_logger.debug("jj={0}".format(jj))            
+                    #wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
+                    #wmf_logger.debug("app={0}".format(app))
+                    #wmf_logger.debug("jj={0}".format(jj))            
                     if not hasattr(chip,'complex_embeddings'):
                         f1 = (4 * CF(chip)  - app ** 2)
                     else:
                         wmf_logger.debug("chip.emb={0}".format(chip.complex_embeddings(bits)))                        
                         f1 = (4 * chip.complex_embeddings(bits)[0]  - app ** 2)
                     alpha_p = (app + I * abs(f1).sqrt())/RF(2)
-                    wmf_logger.debug("f1={0}".format(f1))
-                    wmf_logger.debug("alpha_p={0}".format(alpha_p))                    
+                    #wmf_logger.debug("f1={0}".format(f1))
+                    #wmf_logger.debug("alpha_p={0}".format(alpha_p))                    
                     t_p = CF(alpha_p).argument()
                     # tps.append(t_p)
                     # aps.append(alpha_p)
