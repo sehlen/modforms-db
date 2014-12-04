@@ -1094,6 +1094,7 @@ class CompMF(MongoMF):
             clogger.debug("searching files for: {0}".format(s))
             q = self._db.known(s)
             clogger.debug("q: {0}".format(q))
+            raise ValueError
             for t in q:
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
