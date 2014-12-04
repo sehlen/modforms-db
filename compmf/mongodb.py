@@ -1090,7 +1090,9 @@ class CompMF(MongoMF):
             #    #if r.get('complete') is None or r.get('complete')<2:
             #self.check_record(N,k,chi,check_content=True)
             #    self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
-            for N1,k1,chi1,d,prec in self._db.known("N={0} and k={1} and i={2}".format(N,k,chi)):
+            s = "N={0} and k={1} and i={2}".format(N,k,chi)
+            clogger.debug("searching for: {0}".format(s))
+            for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
                 clogger.debug("checking in files: {0}".format(( N1,k1,chi1,d,prec)))
