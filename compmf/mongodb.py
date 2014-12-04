@@ -1092,7 +1092,9 @@ class CompMF(MongoMF):
             #    self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
             s = "N={0} and k={1} and i={2}".format(N,k,chi)
             clogger.debug("searching files for: {0}".format(s))
-            for t in self._db.known(s):
+            q = self._db.known(s)
+            clogger.debug("q: {0}".format(q))
+            for t in q:
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
                 print "t=",t
