@@ -18,7 +18,6 @@ if len(clogger.handlers)>0:
 clogger.handlers.append(stream)
 clogger.propagate=False
 clogger.setLevel(logging.DEBUG)
-clogger.handlers.append(stream)
 import character_conversions
 import filesdb
 import compute
