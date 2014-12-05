@@ -3,6 +3,8 @@ r"""
 Utilities for modform computing classes.
 
 """
+
+from sage.all import cached_function
        
 @cached_function
 def orbit_label(j):
