@@ -1063,9 +1063,10 @@ class CompMF(MongoMF):
                 ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
             if si <> chi or ci<>cchi:
                 problems.append((N,k,chi))
-                clogger.debug("Chi is wrong! Should be {0}".format(si))
-                clogger.debug("CChi is wrong! Should be {0}".format(ci))
+                clogger.debug("Chi is wrong! Should be {0} not {1}".format(si,chi))
+                clogger.debug("CChi is wrong! Should be {0} not {1}".format(ci,cchi))
                 clogger.debug("r={0}".format(r))
+                raise ArithmeticError()
                 if remove == 1:
                     # First delete from mongo
                     ms.delete(id)
@@ -1080,9 +1081,10 @@ class CompMF(MongoMF):
                         for fname in self._db.listdir(dname):
                             self._db.delete_file(fname)
                     aname = self._db.ambient(N,k,chi)
-                    for fname in self._db.listdir(aname):
-                        self._db.delete_file(fname)
-                    os.removedirs(aname)
+                    #dname = join(s.split("/")[0:-1],"/")
+                    #for fname in self._db.listdir(dname):
+                    #    self._db.delete_file(fname)
+                    #os.removedirs(aname)
             else:
                 clogger.debug("Characters are correct!")
             #    r = self._modular_symbols.find_one({'_id':id})
