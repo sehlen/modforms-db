@@ -976,6 +976,7 @@ class CompMF(MongoMF):
             N = r['N']; k=r['k']; i = r['chi']
             #clogger.debug("r = {0}".format((N,k,i)))
             args.append((N,k,i,check_content,recheck))
+        clogger.debug("args={0}".format(args))
         if ncpus >= 32:
             check = list(self.check_record32(args))
         elif ncpus >= 16:
@@ -984,7 +985,7 @@ class CompMF(MongoMF):
             check = list(self.check_record8(args))                    
         else:
             check = list(self.check_record(args))
-            
+        clogger.debug("check={0}".format(check))            
         #check = self.check_record(args)
         for arg,val in check:
             try: 
@@ -1095,6 +1096,7 @@ class CompMF(MongoMF):
             #    self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
             s = "N={0} and k={1} and i={2}".format(N,k,chi)
             clogger.debug("searching files for: {0}".format(s))
+            
             for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
