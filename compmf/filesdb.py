@@ -366,11 +366,12 @@ class FilenamesMFDB(Filenames):
         Return the result of an SQL query against the datbase.
         """
         query = query.replace('prec','maxp')
-
+        clogger.debug("in known: q={0}".format(query))
         # 1. open database
         db = sqlite3.connect(self._known_db_file)
+        clogger.debug("db={0}".format(db))
         cursor = db.cursor()
-
+        clogger.debug("cursor={0}".format(cursor))
         # 2. return result of query
         # really stupid and dangerous?
         if ';' in query:
@@ -380,6 +381,7 @@ class FilenamesMFDB(Filenames):
         if query.strip():
             cmd += 'WHERE %s'%query
         cmd += ' ORDER BY N, k, i'
+        clogger.debug("in known: dmd={0}".format(cmd))
         return cursor.execute(cmd)
 
 
