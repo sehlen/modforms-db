@@ -796,18 +796,18 @@ class CompMF(MongoMF):
             return list(self.check_record8(args))                    
         return list(self.check_record(args))
     
-    @parallel(ncpus=8)        
+    @parallel(ncpus=8,verbose=True)           
     def check_record8(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
     
-    @parallel(ncpus=16)        
+    @parallel(ncpus=16,verbose=True)                   
     def check_record16(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
-    @parallel(ncpus=32)        
+    @parallel(ncpus=32,verbose=True)            
     def check_record32(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
         
-    @parallel(ncpus=1)            
+    @parallel(ncpus=1,verbose=True)            
     def check_record(self,N,k,i,check_content=False,recheck=False):
         r"""
 
