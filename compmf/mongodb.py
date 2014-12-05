@@ -968,6 +968,8 @@ class CompMF(MongoMF):
             s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
         if chi=='trivial' or chi==0:
             s['chi'] = int(0)
+        elif isinstance(chi,list):
+            s['chi'] = {"$in":map(int,chi)}
         args = []
         clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
