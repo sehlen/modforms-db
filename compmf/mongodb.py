@@ -917,10 +917,8 @@ class CompMF(MongoMF):
                 nprimes_assumed = prime_pi(prec)
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
                 precs.append(prec_in_db)
-                clogger.debug("claimed prec ={0}".format(prec))                                  
-                clogger.debug("prec_in_db={0}".format(prec_in_db))
-                clogger.debug("nprimes_in_db={0}".format(nprimes_in_db))
-                clogger.debug("nprimes_assumed={0}".format(nprimes_assumed))
+                clogger.debug("Precision: claimed ={0}  actually in db: {1}".format(prec,prec_in_db))
+                clogger.debug("Nprimes assumed: {0} in db: {1}".format(nprimes_assumed,nprimes_in_db))
                 if nprimes_in_db <> nprimes_assumed:  ### The coefficients in the database are not as many as assumed!
                     clogger.debug("Have {0} aps in the database and we claim that we have {1}".format(E.nrows(),prime_pi(prec)))
                     #int(ceil(RR(nth_prime(E.nrows()))/RR(100))*100)
@@ -1053,9 +1051,9 @@ class CompMF(MongoMF):
                         self._mongodb['{0}.files'.format(col)].update({'_id':id},{"$set":{'cchi':cchi}})
                     else:
                         self._mongodb['{0}.files'.format(col)].update({'ambient_id':id},{"$set":{'cchi':cchi}})            
-            clogger.debug("Get Modular symbols from Mongo! col={0} id={1}".format(self._modular_symbols_collection,id))
+            #clogger.debug("Get Modular symbols from Mongo! col={0} id={1}".format(self._modular_symbols_collection,id))
             M = self.load_from_mongo(self._modular_symbols_collection,id)
-            clogger.debug("Got Modular symbols from Mongo!")
+            #clogger.debug("Got Modular symbols from Mongo!")
             x = M.character()
             if N == 1:
                 si = 0
@@ -1093,18 +1091,9 @@ class CompMF(MongoMF):
             #    self._modular_symbols.update({'_id':id},{"$set":{'complete':int(3)}})
             s = "N={0} and k={1} and i={2}".format(N,k,chi)
             clogger.debug("searching files for: {0}".format(s))
-            q = self._db.known(s)
-            clogger.debug("q: {0}".format(q))
-            for t in q:
-                #if N < minn or N>maxn or k<mink or k>maxk:
-                #    continue
-                clogger.debug("t=".format(t))
-                clogger.debug("1checking in files: {0}".format(t))
-                
             for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
-                clogger.debug("2checking in files: {0}".format(( N1,k1,chi1,d,prec)))
                 sage.modular.modsym.modsym.ModularSymbols_clear_cache()
                 if not files_separately==1 or (N1,k1,chi1) in problems:
                     continue
