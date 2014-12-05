@@ -562,7 +562,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         clogger.debug("Creating  {0}".format(fname))
         clogger.debug("space {0}".format(M))
         ambient = ambient_to_dict(M, i)
-        clogger.debug("as dict: {0}".format(ambient))
+        #clogger.debug("as dict: {0}".format(ambient)) # can be very long...
         save(ambient,fname)
 
         

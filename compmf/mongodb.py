@@ -905,7 +905,7 @@ class CompMF(MongoMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 E,v = loads(fs_ap.get(id).read())                    
-                clogger.debug("type(E)={0}".format(type(E)))
+                #clogger.debug("type(E)={0}".format(type(E)))
                 clogger.debug("rec={0}".format(r))
                 if isinstance(E,tuple):
                     print "r=",r

@@ -12,11 +12,8 @@ except:
 stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
 stream.setFormatter(formatter)
-clogger = logging.getLogger(__name__)
-if not clogger.handlers:
-    clogger.addHandler(stream)
-else:
-    clogger.handlers[0].setFormatter(formatter)
+clogger = logging.getLogger(__name__+'Clogger')
+clogger.propagate=False
 clogger.setLevel(logging.DEBUG)
 
 import character_conversions
