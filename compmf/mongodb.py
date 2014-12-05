@@ -1098,7 +1098,7 @@ class CompMF(MongoMF):
             for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
-                clogger.debug("  in file with : {0}".format((N1,k1,chi1,d,pre))
+                clogger.debug("  in file with : {0}".format((N1,k1,chi1,d,pre)))
                 sage.modular.modsym.modsym.ModularSymbols_clear_cache()
                 if not files_separately==1 or (N1,k1,chi1) in problems:
                     continue
