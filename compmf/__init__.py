@@ -13,6 +13,8 @@ stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
 stream.setFormatter(formatter)
 clogger = logging.getLogger(__name__)
+if len(clogger.handlers)>0:
+    clogger.handlers=[]
 clogger.handlers.append(stream)
 clogger.propagate=False
 clogger.setLevel(logging.DEBUG)

@@ -12,6 +12,8 @@ except:
 stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
 stream.setFormatter(formatter)
+if len(wmf_logger.handlers)>0:
+    wmf_logger.handlers = []
 wmf_logger.handlers.append(stream)
 wmf_logger.propagate=False
 from web_newforms_computing import WebNewForm_computing
