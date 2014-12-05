@@ -823,13 +823,13 @@ class CompMF(MongoMF):
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
+        clogger.debug("Checking N,k,i={0}".format((N,k,i)))
         ### Might as well check the character here as well.
         #x = M.character()
         #si = sage_character_to_galois_orbit_number(x)
         #if si <> i:
         #    clogger.warning("Character for this record is wrong!")
         M = self.get_ambient(N,k,i,compute=False)
-        clogger.debug("Checking N,k,i={0}".format((N,k,i)))
         if M is None:
             res['modular_symbols']=False
             numf = 0
@@ -971,6 +971,7 @@ class CompMF(MongoMF):
         if chi=='trivial' or chi==0:
             s['chi'] = int(0)
         args = []
+        clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
             N = r['N']; k=r['k']; i = r['chi']
             #clogger.debug("r = {0}".format((N,k,i)))
@@ -1097,7 +1098,7 @@ class CompMF(MongoMF):
             for t in q:
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
-                print "t=",t
+                clogger.debug("t=".format(t))
                 clogger.debug("1checking in files: {0}".format(t))
                 
             for N1,k1,chi1,d,prec in self._db.known(s):
