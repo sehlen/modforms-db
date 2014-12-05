@@ -10,7 +10,7 @@ except:
     LOGFORMAT = "  %(levelname)-10s%(filename)s:%(lineno)d | %(message)s"
     formatter = logging.Formatter(LOGFORMAT)
 stream = logging.StreamHandler()
-stream.setLevel(LOG_LEVEL)
+#stream.setLevel(LOG_LEVEL)
 stream.setFormatter(formatter)
 if len(wmf_logger.handlers)>0:
     wmf_logger.handlers = []
