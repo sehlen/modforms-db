@@ -553,8 +553,7 @@ class CompMF(MongoMF):
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
         factors_in_file = self._db.number_of_known_factors(N,k,i)
         factors_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
-        clogger.debug("factors_in_file={0}".format(factors_in_file))
-        clogger.debug("factors_in_mongo={0}".format(factors_in_mongo))
+        clogger.debug("factors: in_file={0} in mongo={1}".format(factors_in_file,factors_in_mongo))
         if factors_in_file == 0 and  len(factors_in_mongo)==0:
             if not compute:
                 clogger.debug("No factors exist and we do not compute anything!")
@@ -990,7 +989,7 @@ class CompMF(MongoMF):
                 if val.values().count(False)>0:
                     res[arg[0][0:3]] = val
             except AttributeError:
-                print "arg,val=",arg,val
+                clogger.critical("arg = {0} val={1}".format(arg,val))
         ## Then add the spaces not yet in the database
         for n in nrange:
             for k in krange:
