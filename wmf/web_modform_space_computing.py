@@ -32,14 +32,15 @@ from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, 
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.rings.number_field.number_field_base import NumberField as NumberField_class
 
-from wmf import wmf_logger,WebNewForm_computing
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version
-
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace
+from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
 
 from compmf import MongoMF
-from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
+
+from wmf import wmf_logger,WebNewForm_computing,orbit_index_from_label,orbit_label
+
 
 class WebModFormSpace_computing(WebModFormSpace):
     r"""
@@ -250,38 +251,3 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.oldspace_decomposition = L
 
 
-
-       
-@cached_function
-def orbit_label(j):
-    x = AlphabeticStrings().gens()
-    j1 = j % 26
-    label = str(x[j1]).lower()
-    j  = (j - j1) / 26 -1
-    while j >= 0:
-        j1 = j % 26
-        label = str(x[j1]).lower() + label
-        j = (j - j1) / 26 - 1
-    return label
-
-
-@cached_function
-def orbit_index_from_label(label):
-    r"""
-    Inverse of the above
-    """
-    res = 0
-    A = AlphabeticStrings()
-    x = A.gens()
-    label = str(label)
-    l = list(label)
-    
-    su = A(l.pop().upper())
-    res = x.index(su)
-    l.reverse()
-    i = 1
-    for s in l:
-        su = A(s.upper())
-        res+=(1+x.index(su))*26**i
-        i+=1
-    return res

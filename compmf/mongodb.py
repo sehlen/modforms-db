@@ -621,7 +621,7 @@ class CompMF(MongoMF):
         r"""
         Compute & store aps
         """
-        from wmf.web_modform_space_computing import orbit_label
+        from wmf import orbit_label
         if pprec is None:
             pprec = precision_needed_for_L(N,k)
         pprec = int(pprec)
@@ -800,6 +800,7 @@ class CompMF(MongoMF):
     @parallel(ncpus=8)        
     def check_record8(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
+    
     @parallel(ncpus=16)        
     def check_record16(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
