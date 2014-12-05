@@ -946,7 +946,7 @@ class CompMF(MongoMF):
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
         else:
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
-        clogger.debug("done checking!")
+        clogger.debug("done checking record!")
         return res
 
 
@@ -1079,10 +1079,10 @@ class CompMF(MongoMF):
                     for rf in  self._newform_factors.find({'_ambient_id':id},fields=['_id','newform']):
                         fid = rf['_id']
                         factors.delete(fid) # Delete factor
-                        dname = self._db.factor(N,k,chi,rf['newform'])
-                        for fname in self._db.listdir(dname):
-                            self._db.delete_file(fname)
-                    aname = self._db.ambient(N,k,chi)
+                    #    dname = self._db.factor(N,k,chi,rf['newform'])
+                    #    for fname in self._db.listdir(dname):
+                    #        self._db.delete_file(fname)
+                    #aname = self._db.ambient(N,k,chi)
                     #dname = join(s.split("/")[0:-1],"/")
                     #for fname in self._db.listdir(dname):
                     #    self._db.delete_file(fname)
@@ -1098,6 +1098,7 @@ class CompMF(MongoMF):
             for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
+                clogger.debug("  in file with : {0}".format((N1,k1,chi1,d,pre))
                 sage.modular.modsym.modsym.ModularSymbols_clear_cache()
                 if not files_separately==1 or (N1,k1,chi1) in problems:
                     continue
@@ -1109,22 +1110,24 @@ class CompMF(MongoMF):
                     si = 0
                 else:
                     si = sage_character_to_galois_orbit_number(x)
+                clogger.debug("si={0}, chi={1}".format(si,chi))
                 if si <> chi:
                     if (N1,k1,chi1) not in problems:
                         problems.append((N1,k1,chi1))
-                    clogger.debug("in file: Chi is wrong! Should be {0}".format(si))
+                    clogger.debug("in file: Chi is wrong! Got: {0} Should be {1}".format(si,chi))
                     if remove == 1:
                         dname = self._db.factor(N1,k1,chi1,d)
                         for fname in self._db.listdir(dname):
                             self._db.delete_file(fname)
                         aname = self._db.ambient(N1,k1,chi1)
-                        for fname in self._db.listdir(aname):
+                        dname = join(aname.split("/")[0:-1],"/")
+                        for fname in self._db.listdir(dname):
                             self._db.delete_file(fname)
-                        os.removedirs(aname)
-                        clogger.debug("removed directory {0}".format(aname))
+                        os.removedirs(dname)
+                        clogger.debug("removed directory {0}".format(dname))
             if remove == 1 and problems<>[]:
                 clogger.debug("Removed {0} records!".format(len(problems)))
-        clogger.debug("Finished checking  N={0}, k={1}, chi={2}".format(N,k,chi))
+        clogger.debug("Finished checking  character: N={0}, k={1}, chi={2}".format(N,k,chi))
         return problems            
     
 def precision_needed_for_L(N,k,**kwds):
