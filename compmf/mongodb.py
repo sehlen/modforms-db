@@ -23,7 +23,7 @@ Programs for inserting modular forms data into a mongo database. By default we a
 
 
 import sage.all
-import os,re
+import os,re,sys
 from string import join
 import pymongo
 import gridfs
@@ -947,6 +947,7 @@ class CompMF(MongoMF):
         else:
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         clogger.debug("done checking record!")
+        sys.stdout.flush()
         return res
 
 
@@ -976,7 +977,7 @@ class CompMF(MongoMF):
             N = r['N']; k=r['k']; i = r['chi']
             #clogger.debug("r = {0}".format((N,k,i)))
             args.append((N,k,i,check_content,recheck))
-        clogger.debug("args={0}".format(args))
+#        clogger.debug("args={0}".format(args))
         if ncpus >= 32:
             check = list(self.check_record32(args))
         elif ncpus >= 16:
@@ -985,7 +986,7 @@ class CompMF(MongoMF):
             check = list(self.check_record8(args))                    
         else:
             check = list(self.check_record(args))
-        clogger.debug("check={0}".format(check))            
+#        clogger.debug("check={0}".format(check))            
         #check = self.check_record(args)
         for arg,val in check:
             try: 
