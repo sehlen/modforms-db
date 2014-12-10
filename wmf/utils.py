@@ -4,7 +4,7 @@ Utilities for modform computing classes.
 
 """
 
-from sage.all import cached_function
+from sage.all import cached_function,AlphabeticStrings
        
 @cached_function
 def orbit_label(j):
