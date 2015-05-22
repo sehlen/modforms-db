@@ -837,6 +837,7 @@ class CompMF(MongoMF):
         #si = sage_character_to_galois_orbit_number(x)
         #if si <> i:
         #    clogger.warning("Character for this record is wrong!")
+        ambient_id = None
         M = self.get_ambient(N,k,i,compute=False)
         if M is None:
             res['modular_symbols']=False
