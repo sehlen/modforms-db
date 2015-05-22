@@ -953,8 +953,10 @@ class CompMF(MongoMF):
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
-        else:
+        elif ambient_id is not None:
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
+        else:
+            clogger.debug("Space {0},{1},{2} is not in database".format(N,k,i))
         clogger.debug("done checking record!")
         sys.stdout.flush()
         return res
