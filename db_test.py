@@ -45,7 +45,6 @@ from mdb import db
 #from sage.all_cmdline import *   # import sage library
 import glob, os, os.path,re, sys
 import pymongo
-from pymongo import Connection
 import gridfs
 
 class WDBtoMFDB(CompMF):
@@ -252,9 +251,16 @@ class WDBtoMongo(WDBtoMFDB):
         
         """
         super(WDBtoMongo,self).__init__(datadir,**kwds)
-        self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
         assert str(db).isalnum()
-        self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
+
+        if pymongo.version_tuple[0] < 3:
+            from pymongo import Connection
+            self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+            self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
+        else:
+             from pymongo.mongo_client import MongoClient
+             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
+             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
         self._modular_symbols = self._mongodb['Modular_symbols.files']
         self._factors = self._mongodb['Newform_factors.files']
         self._aps = self._mongodb['ap.files']

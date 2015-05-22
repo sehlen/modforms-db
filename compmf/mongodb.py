@@ -51,8 +51,16 @@ class MongoMF(object):
         
         - compute -- Boolean (default True) set to False if you do not want to compute anything.
         """
-        self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
-        self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+        if pymongo.version_tuple[0] < 3:
+            from pymongo import Connection
+            _C = Connection(port=dbport)
+            self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
+            self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+        else:
+            from pymongo.mongo_client import MongoClient
+            self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
+            self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
+
 
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
