@@ -859,7 +859,7 @@ class CompMF(MongoMF):
         res['factors'] = False
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
-        d = -1; d0= -1
+        d = -1; d1= -1
         if numf1 == numf:
             res['factors'] = True
             if check_content:
