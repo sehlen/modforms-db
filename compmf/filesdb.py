@@ -828,7 +828,7 @@ def dict_to_ambient(modsym):
         eps = DirichletGroup(N, F)(eps)
 
     from sage.modular.modsym.manin_symbol_list import ManinSymbolList, ManinSymbol
-    manin_symbol_list = ManinSymbolList(k, manin)
+    manin_symbol_list = ManinSymbolList(k, manin).symbol_list()
     
     def custom_init(M):
         # reinitialize the list of Manin symbols with ours, which may be
@@ -837,6 +837,7 @@ def dict_to_ambient(modsym):
         print syms
         print syms._symbol_list
         ManinSymbolList.__init__(syms, k, manin_symbol_list)
+        print "2nd"
         print syms
         print syms._symbol_list        
         M._manin_generators = [ManinSymbol(syms, x) for x in manin]
