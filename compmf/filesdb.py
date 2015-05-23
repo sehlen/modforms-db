@@ -638,13 +638,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         f = self.factor(N, k, i, d, makedir=False)
         if not self.path_exists(f):
             raise RuntimeError, "no such factor (%s,%s,%s,%s)"%(N,k,i,d)
-        try:
-            B = load(self.factor_basis_matrix(N, k, i, d))
-            Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
-            v = load(self.factor_dual_eigenvector(N, k, i, d))
-            nz = load(self.factor_eigen_nonzero(N, k, i, d))
-        except IOError:
-            raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+        #try:
+        B = load(self.factor_basis_matrix(N, k, i, d))
+        Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
+        v = load(self.factor_dual_eigenvector(N, k, i, d))
+        nz = load(self.factor_eigen_nonzero(N, k, i, d))
+        #except IOError:
+        #    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
         if B._cache is None:
             B._cache = {}
         if Bd._cache is None:
