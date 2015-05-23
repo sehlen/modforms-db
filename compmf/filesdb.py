@@ -272,7 +272,7 @@ class FilenamesMFDB(Filenames):
         factors_dirs = [d for d in self.listdir(fn) if d.isdigit() and self.isdir(self.make_path_name(fn, d)) ] 
         for d in factors_dirs:
             numf = 0
-            for f in os.listdir(d):
+            for f in os.listdir(self.make_path_name(fn, d)):
                 if os.path.getsize(f)>0:
                     numf+=1
             if numf > 0:
