@@ -585,10 +585,10 @@ class CompMF(MongoMF):
                     clogger.debug("The factors from file was corrupt / empty. Need to compute them anew!")
                         
                     factors_in_file = self._computedb.compute_decompositions(N,k,i)
-                    try:
-                        factor = self._db.load_factor(N,k,i,d,M=ambient)
-                    except RuntimeError:
-                        raise ArithmeticError,"Could not get factors for {0}".format((N,k,i))
+#                    try:
+                    factor = self._db.load_factor(N,k,i,d,M=ambient)
+#                    except RuntimeError:
+#                        raise ArithmeticError,"Could not get factors for {0}".format((N,k,i))
                 metaname = self._db.space(N,k,i,False)+"/decomp-meta.sobj"
                 clogger.debug("metaname={0}".format(metaname))
                 try:
