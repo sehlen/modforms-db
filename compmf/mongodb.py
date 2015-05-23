@@ -120,6 +120,11 @@ class MongoMF(object):
 
 
     def remove_duplicates(self,col,keys,dryrun=1):
+        r"""
+        Remove duplicates from mongo db
+        
+
+        """
         from sage.all import deepcopy
         if 'files' not in col:
             ccol='{0}.files'.format(col)

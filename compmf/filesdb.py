@@ -839,6 +839,7 @@ def dict_to_ambient(modsym):
         M._manin_basis = basis
         M._manin_gens_to_basis = rels
         M._mod2term = mod2term
+        print "M.__rank=",M._AmbientHeckeModule__rank
         return M
     return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 
