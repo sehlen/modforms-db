@@ -836,8 +836,9 @@ def dict_to_ambient(modsym):
         syms = M.manin_symbols()
         print syms
         print syms._symbol_list
-#        ManinSymbolList.__init__(syms, k, manin_symbol_list)
-        
+        ManinSymbolList.__init__(syms, k, manin_symbol_list)
+        print syms
+        print syms._symbol_list        
         M._manin_generators = [ManinSymbol(syms, x) for x in manin]
         M._manin_basis = basis
         M._manin_gens_to_basis = rels
