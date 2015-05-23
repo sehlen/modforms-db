@@ -834,23 +834,13 @@ def dict_to_ambient(modsym):
         # reinitialize the list of Manin symbols with ours, which may be
         # ordered differently someday:
         syms = M.manin_symbols()
-        print syms
-        print syms._symbol_list
         ManinSymbolList.__init__(syms, k, manin_symbol_list)
-        print "2nd"
-        print syms
-        print syms._symbol_list        
         M._manin_generators = [ManinSymbol(syms, x) for x in manin]
         M._manin_basis = basis
         M._manin_gens_to_basis = rels
         M._mod2term = mod2term
-        print "M.ms",M.manin_symbols()
-        print "M.ms",M.manin_symbols()._symbol_list
         return M
-    M1 = ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
-    print "M1.ms",M1.manin_symbols()
-    print "M1.ms",M1.manin_symbols()._symbol_list
-    return M1
+    return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 
 
 
