@@ -957,6 +957,9 @@ class CompMF(MongoMF):
         elif ambient_id is not None:
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         else:
+            res['aps']=False
+            res['factors']=False
+            res['modular_symbols']=False
             clogger.debug("Space {0},{1},{2} is not in database".format(N,k,i))
         clogger.debug("done checking record!")
         sys.stdout.flush()
