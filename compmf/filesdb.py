@@ -833,7 +833,10 @@ def dict_to_ambient(modsym):
     def custom_init(M):
         # reinitialize the list of Manin symbols with ours, which may be
         # ordered differently someday:
+        #self.__manin_symbols = ManinSymbolList_gamma0(
+        #    level=N, weight=k)
         syms = M.manin_symbols()
+        print syms
         ManinSymbolList.__init__(syms, k, manin_symbol_list)
         
         M._manin_generators = [ManinSymbol(syms, x) for x in manin]
