@@ -837,6 +837,7 @@ def dict_to_ambient(modsym):
         #    level=N, weight=k)
         syms = M.manin_symbols()
         print syms
+        print syms._symbol_list
         ManinSymbolList.__init__(syms, k, manin_symbol_list)
         
         M._manin_generators = [ManinSymbol(syms, x) for x in manin]
