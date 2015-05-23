@@ -267,8 +267,17 @@ class FilenamesMFDB(Filenames):
         Returning the number of factors for which we have computed data.
         TODO: add check for empty files.
         """
+        num_factors = 0
         fn = self.space(N,k,i)
-        return len([d for d in self.listdir(fn) if d.isdigit() and self.isdir(self.make_path_name(fn, d)) ])
+        factors_dirs = [d for d in self.listdir(fn) if d.isdigit() and self.isdir(self.make_path_name(fn, d)) ] 
+        for d in factors_dirs:
+            numf = 0
+            for f in os.listdir(d):
+                if os.path.getsize(f)>0:
+                    numf+=1
+            if numf > 0:
+                num_factors +=1 
+        return num_factors
 
     def known_levels(self):
         r"""
@@ -638,13 +647,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         f = self.factor(N, k, i, d, makedir=False)
         if not self.path_exists(f):
             raise RuntimeError, "no such factor (%s,%s,%s,%s)"%(N,k,i,d)
-        #try:
-        B = load(self.factor_basis_matrix(N, k, i, d))
-        Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
-        v = load(self.factor_dual_eigenvector(N, k, i, d))
-        nz = load(self.factor_eigen_nonzero(N, k, i, d))
-        #except IOError:
-        #    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+        try:
+            B = load(self.factor_basis_matrix(N, k, i, d))
+            Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
+            v = load(self.factor_dual_eigenvector(N, k, i, d))
+            nz = load(self.factor_eigen_nonzero(N, k, i, d))
+        except IOError:
+            raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
         if B._cache is None:
             B._cache = {}
         if Bd._cache is None:
