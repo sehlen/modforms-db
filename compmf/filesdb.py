@@ -821,6 +821,8 @@ def dict_to_ambient(modsym):
     basis = modsym['basis']
     rels  = modsym['rels']
     mod2term  = modsym['mod2term']
+    dim = len(basis)
+
     F = rels.base_ring()
     if i == 0:
         eps = trivial_character(N)
@@ -839,6 +841,7 @@ def dict_to_ambient(modsym):
         M._manin_basis = basis
         M._manin_gens_to_basis = rels
         M._mod2term = mod2term
+        M._AmbientHeckeModule__rank=dim
         print "M.__rank=",M.__dict__
         return M
     return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
