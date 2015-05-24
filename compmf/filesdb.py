@@ -566,8 +566,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         k = M.weight()
         fname = self.ambient(N, k, i, makedir=True)
         if self.path_exists(fname):
-            clogger.debug("%s already exists; not recreating"%fname)
-            return
+            #clogger.debug("%s already exists; not recreating"%fname)
+            clogger.debug("%s already exists; but we recreate it!"%fname)
+            #return
         clogger.debug("Creating  {0}".format(fname))
         clogger.debug("space {0}".format(M))
         ambient = ambient_to_dict(M, i)
@@ -822,7 +823,8 @@ def dict_to_ambient(modsym):
     rels  = modsym['rels']
     mod2term  = modsym['mod2term']
     dim = len(basis)
-
+    if dim == 0:
+        clogger.critical("Something is wrong ")
     F = rels.base_ring()
     if i == 0:
         eps = trivial_character(N)
