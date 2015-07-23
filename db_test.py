@@ -2238,10 +2238,10 @@ def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
             # First delete from mongo
             ms.delete(id)
             # delete aps
-            for rf in  DB._aps.find({'_ambient_id':id},fields=['_id']):
+            for rf in  DB._aps.find({'_ambient_id':id},projection=['_id']):
                 aps.delete(rf['_id'])
             # delete factors
-            for rf in  DB._newform_factors.find({'_ambient_id':id},fields=['_id','newform']):
+            for rf in  DB._newform_factors.find({'_ambient_id':id},projection=['_id','newform']):
                 fid = rf['_id']
                 factors.delete(fid) # Delete factor
                 dname = DB._db.factor(N,k,chi,rf['newform'])

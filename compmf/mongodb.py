@@ -120,6 +120,11 @@ class MongoMF(object):
 
 
     def remove_duplicates(self,col,keys,dryrun=1):
+        r"""
+        Remove duplicates from mongo db
+        
+
+        """
         from sage.all import deepcopy
         if 'files' not in col:
             ccol='{0}.files'.format(col)
@@ -130,7 +135,7 @@ class MongoMF(object):
         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
         
         clogger.debug("flds={0}".format(flds))
-        nnmax = max(self._mongodb[ccol].find({},fields=['N']).distinct('N'))
+        nnmax = max(self._mongodb[ccol].find().distinct('N'))
         args = []
         if 'ap' in col:
             step=50
@@ -159,7 +164,7 @@ class MongoMF(object):
         clogger.debug("nmin = {0} \t nmax= {1} \t col={2} \t ccol={3}".format(nmin,nmax,col,ccol))
         #if ccol=='Newform_factors.files':
         s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
-        for r in self._mongodb[ccol].find(s,fields=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
+        for r in self._mongodb[ccol].find(s,projection=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
             id=r['_id']
             s = {}
             for k in keys:
@@ -174,7 +179,7 @@ class MongoMF(object):
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
-            q = self._mongodb[ccol].find(s,fields=flds).sort('uploadDate',1)
+            q = self._mongodb[ccol].find(s,projection=flds).sort('uploadDate',1)
             if q.count()==1:
                 continue
             for rnew in q: 
@@ -782,11 +787,11 @@ class CompMF(MongoMF):
         else:
             check_level = 1
         clogger.debug("check_record with level: {0}".format(check_level))
-        s = {'fields':['N','k','chi']}
+        s = {'projection':['N','k','chi']}
         if recheck is False:
             s['complete']={"$lt":check_level+int(1)}
         clogger.debug("s = {0}".format(s))
-        for r in self._modular_symbols.find().sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
+        for r in self._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             n = r['N']; k=r['k']; chi=r['chi']
             if nrange<>[] and (n < nrange[0] or n > nrange[-1]):
                 continue
@@ -1090,10 +1095,10 @@ class CompMF(MongoMF):
                     # First delete from mongo
                     ms.delete(id)
                     # delete aps
-                    for rf in  self._aps.find({'_ambient_id':id},fields=['_id']):
+                    for rf in  self._aps.find({'_ambient_id':id},projection=['_id']):
                         aps.delete(rf['_id'])
                     # delete factors
-                    for rf in  self._newform_factors.find({'_ambient_id':id},fields=['_id','newform']):
+                    for rf in  self._newform_factors.find({'_ambient_id':id},projection=['_id','newform']):
                         fid = rf['_id']
                         factors.delete(fid) # Delete factor
                     #    dname = self._db.factor(N,k,chi,rf['newform'])
