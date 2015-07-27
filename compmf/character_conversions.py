@@ -26,8 +26,36 @@ TODO: Do we want to store characters in a database instead of a simple cache?
 
 Available functions:
 
+Groups of Dirichlet Characters:
+ - dirichlet_group_conrey(n)
+ - dirichlet_group_sage(n)
+Convert between characters and numbers (in same system)
+- conrey_character_from_number(n,i) -- return a Conrey character from a conrey number
+ - conrey_character_to_number(x) -- return the numer of character 
+ - sage_character_from_number(n,i)
+ - sage_character_to_number(x)
+Galois orbits:
+ - dirichlet_character_sage_galois_orbits_reps(N)
+ - dirichlet_character_conrey_galois_orbits_reps(N)
+
+- sage_character_to_sage_galois_orbit_number(x) -- take a Sage character and return its index in the Galois orbit
 
 
+ - dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi)
+ - dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,xi)
+ - dirichlet_character_conrey_from_sage_character_number(n,i)
+ - dirichlet_character_conrey_from_sage_character(x):
+ - dirichlet_character_conrey_from_sage_galois_orbit_number(n,i):
+ - dirichlet_character_sage_from_conrey_character(x):
+ - dirichlet_character_sage_from_conrey_character_number(n,i):
+ - dirichlet_character_conrey_galois_orbit_rep_from_sage_character(x):
+ - dirichlet_character_sage_galois_orbit_rep_from_number(N,i):
+ - dirichlet_character_sage_galois_orbit_rep_from_sage_character(N,xi):
+ - conrey_character_number_from_sage_galois_orbit_number(n,i):
+ - sage_character_number_from_conrey_number(n,i):
+ - dirichlet_character_conrey_used_in_computation(N,xi):
+ - dirichlet_character_conrey_galois_orbit_embeddings(N,xi):
+ - dirichlet_character_to_int(chi,convention='Conrey'):
 
 """
 
@@ -92,7 +120,7 @@ def sage_character_to_number(x):
         raise ValueError,"{0} is not a sage character! Error:{1}".format(x,e.message)
     return n,i
 
-def sage_character_to_galois_orbit_number(x):
+def sage_character_to_sage_galois_orbit_number(x):
     r"""
     Return the number of the (Sage) galois orbit which contains x
     """
@@ -245,7 +273,7 @@ def dirichlet_character_sage_galois_orbit_rep_from_number(N,i):
         raise ValueError,"Galois orbit nr. {0} does not exist in DirichletGroup({1})!".format(i,N)
 
 @cached_function
-def dirichlet_character_sage_galois_orbit_rep(N,xi):
+def dirichlet_character_sage_galois_orbit_rep_from_sage_character(N,xi):
     """
     Return representatives for the Galois orbits of Dirichlet characters of level N (using the sage representation of characters).
     """

@@ -21,6 +21,7 @@ clogger.setLevel(logging.DEBUG)
 import character_conversions
 import filesdb
 import compute
+import utils
 import mongodb
 from compute import ComputeMFData
 from filesdb import FilenamesMFDB, FilenamesMFDBLoading

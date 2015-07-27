@@ -56,7 +56,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['chi']=int(chi_range[0])
         else:
             s['chi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
-    s['complete']=int(3)
+    s['complete']={"$gt":0}
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     try:
         webmodformspace = WebModFormSpace_computing._collection_name

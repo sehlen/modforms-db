@@ -238,6 +238,7 @@ class WebNewForm_computing(WebNewForm):
             self.set_aps()
         try:
             self.coefficient_field = self.eigenvalues[2].parent()
+            self.coefficient_field_degree = self.coefficient_field.degree()
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
 

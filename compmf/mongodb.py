@@ -29,10 +29,16 @@ import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
-from compmf.character_conversions import dirichlet_character_conrey_from_sage_character_number,dirichlet_character_conrey_galois_orbit_numbers_from_character_number,dirichlet_character_sage_galois_orbit_rep_from_number
+from compmf.character_conversions import (
+    dirichlet_character_conrey_from_sage_character_number,
+    dirichlet_character_conrey_galois_orbit_numbers_from_character_number,
+    dirichlet_character_sage_galois_orbit_rep_from_number,
+    dirichlet_character_sage_galois_orbits_reps,
+    sage_character_to_sage_galois_orbit_number,
+    conrey_character_number_from_sage_galois_orbit_number
+)
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor
-
-
+from utils import are_compatible
 from compmf import clogger
 
 class MongoMF(object):
@@ -246,6 +252,9 @@ class MongoMF(object):
         r"""
         Return the ambient space M(N,k,i)
 
+        keywords:
+         - compute (True) -- if True compute an ambient space if it is not in the database.
+         - get_record (False) -- if True return the database record instead of the space.
         """
         ambient_id = kwds.get('ambient_id',None)
         if ambient_id is None:
@@ -256,8 +265,20 @@ class MongoMF(object):
                 if ids==[]:
                     return None
                 ambient_id = ids[0]
+        if kwds.get('get_record',False):
+            return self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)})
         return self.load_from_mongo('Modular_symbols',ambient_id)
-       
+
+    def get_dimc(self,N,k,i):
+        r"""
+        Get dimension of cusp forms in S_k(N,i).
+
+        """
+        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)},projection=['dimc'])
+        if r is None:
+            return -1
+        return r.get('dimc',-1)
+    
     def number_of_factors(self,N,k,i,**kwds):
         r"""
         Return the number of factors. 
@@ -280,7 +301,7 @@ class MongoMF(object):
             res[t] = f
         return res
     
-    def get_aps(self,N,k,i,d=None,character_naming='sage'):
+    def get_aps(self,N,k,i,d=None,character_naming='sage',prec_needed=0,coeffs=False):
         r"""
         Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
         
@@ -305,7 +326,11 @@ class MongoMF(object):
             t = (int(N),int(k),int(i),int(d))
             if not res.has_key(t):
                 res[t]={}
-            res[t][prec]=(E,v,meta)
+            if prec_needed == 0 or coeffs == False:
+                res[t][prec]=(E,v,meta)
+            else:
+                if prec >= prec_needed and coeffs:
+                    return E*v
         return res
         
 class CompMF(MongoMF):
@@ -365,7 +390,7 @@ class CompMF(MongoMF):
         r"""
         Convert all records in the files to MongoDB
         """
-        nrange = self._db.known_levels()
+        nrange = self._db.known_hosts_levels()
         nrange.sort()
         clogger.debug("nrange={0}".format(nrange))
         return self.convert_to_mongo(nrange)
@@ -397,7 +422,7 @@ class CompMF(MongoMF):
         Get or compute a list of spaces in parallel.
         
         """
-        ncpus = kwds.get('ncpus',0)
+        ncpus = kwds.get('ncpus',1)
         if ncpus==8:
             return list(self._compute_and_insert_one_space8(args,**kwds))
         elif ncpus==16:
@@ -423,26 +448,46 @@ class CompMF(MongoMF):
         If data for the given space M(N,k,i) exists in either mongo or files database we fetch this data (and possible complete if e.g. more coefficients are needed) and then insert the result into both databases unless explicitly told not to.
 
         """
-        clogger.debug("converting {0}".format((N,k,i)))
+        clogger.debug("Compute and/or Insert {0}".format((N,k,i)))
         clogger.debug("Computing ambient modular symbols")
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
             return 
         ambient_fid = self.compute_ambient(N,k,i,**kwds)
+        # if the space is empty we return None and exit;
+        if ambient_fid is None: ## If something went wrong or there isn't even Eisenstein series.
+            clogger.debug("Ambient is None!")            
+            return True
+        if isinstance(ambient_fid,int) and ambient_fid ==1: ## If we have no cusp forms
+            clogger.debug("Ambient space of cusp forms is 0 dimensional!")
+            self._db.update_known_db((N,k,i,0,0))
+            return True
         # Insert ambient modular symbols
         kwds['ambient_id']=ambient_fid
         clogger.debug("Getting factors!")
         factor_ids = self.compute_factors(N,k,i,**kwds)
         kwds['factor_ids']=factor_ids 
-        # Necessary for L-function computations.
-        
-        pprec = precision_needed_for_L(N,k,pprec=100)
-        clogger.debug("Computing aps to prec {0} for i = {1}".format(pprec,i))
-        aps = self.compute_aps(N,k,i,pprec,**kwds)
-        clogger.debug("Computing atkin lehner for i={0}".format(i))
-        try:
-            atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
-        except:
-            pass 
+        # Necessary number of coefficients for L-function computations.
+        if not factor_ids is None and factor_ids <> []: 
+            pprec = precision_needed_for_L(N,k,pprec=100)
+            clogger.debug("Computing aps to prec {0} for i = {1}".format(pprec,i))
+            ap = self.compute_aps(N,k,i,pprec,**kwds)
+            clogger.debug("Got {0}".format(ap))
+            try:
+                atkin_lehner = self.compute_atkin_lehner(N,k,i,**kwds)
+            except:
+                atkin_lehner = None
+            if not (ambient_fid is None or factor_ids is None or ap is None or atkin_lehner is None):
+                completeness = int(1)
+            else:
+                print "Factor=",factor_ids
+                print "AL=",atkin_lehner
+                print "ap=",ap
+                print "ambient=",ambient_fid
+                completeness = int(0)
+        else:
+            completeness = int(1)
+        self._modular_symbols.update({'_id':ambient_fid},{"$set":
+                                                          {'complete':completeness}})                                                              
         return True    
 
     def compute_atkin_lehner(self,N,k,i,**kwds):
@@ -486,8 +531,10 @@ class CompMF(MongoMF):
         
     def compute_ambient(self,N,k,i,**kwds):
         r"""
-        Compute the ambient space with the given parameters and insert it in mongo if it is not there 
+        Compute the ambient space with the given parameters and insert it in mongo if it is not there. 
         """
+        if not are_compatible(N,k,i):
+            return None
         files_ms = self._modular_symbols
         fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
         verbose = kwds.get('verbose',0)
@@ -506,11 +553,14 @@ class CompMF(MongoMF):
             # Check factors 
             clogger.debug("Have ambient space!")
             clogger.debug("ambient_in_mongo={0}".format(rec))
-        # Next see if we have it in the files database
+        # Next see if we have it in the files database. If not we will compute it.
         try:
             ambient = self._db.load_ambient_space(N,k,i)
+            clogger.debug("Loaded ambient={0}".format(ambient))
             ambient_in_file = 1
         except ValueError:
+            clogger.debug("Could not load ambient!")
+            ambient = None
             pass
         if ambient_in_mongo <> 0 and ambient_in_file==0:
             ambient = loads(fs_ms.get(ambient_in_mongo).read())
@@ -525,26 +575,32 @@ class CompMF(MongoMF):
             clogger.debug("Compute and/or save to file!")
             self._computedb.compute_ambient_space(N,k,i,M=ambient,tm=cputime)
             ambient_in_file = 1
-#        num_factors = len(self.compute_factors(N,k,i,**kwds))
-        if ambient_in_mongo == 0 and not ambient is None:
+        if ambient_in_mongo == 0 and ambient_in_file == 1: #not ambient is None:
             metaname = self._db.space(N,k,i,False)+"/ambient-meta.sobj"
             clogger.debug("metaname={0}".format(metaname))
             try:
                 meta = load(metaname)
             except (OSError,IOError):
                 meta={}
-            fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i))
+            fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,i).split("/")[1])
             ## Note that we have to update the number of orbits.
+            if ambient is None:
+                ambient = self._db.load_ambient_space(N,k,i)
+            dima = int(ambient.dimension())
+            dimc = int(ambient.cuspidal_submodule().dimension())
+            clogger.debug("Save ambient to mongodb! ambient={0}".format(ambient))
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             fid = fs_ms.put(dumps(ambient),filename=fname,
-                            N=int(N),k=int(k),chi=int(i),orbits=0,
+                            N=int(N),k=int(k),chi=int(i),orbits=int(0),
+                            dima=dima,dimc=dimc,
                             character_galois_orbit=orbit,
                             cchi=int(ci),
                             cputime = meta.get("cputime",""),
                             sage_version = meta.get("version",""))
         else:
             fid = ambient_in_mongo
-        if fid == 0:
+        clogger.debug("fid={0}".format(fid))
+        if fid == 0 or ambient is None:
             fid = None
         return fid
 
@@ -552,6 +608,7 @@ class CompMF(MongoMF):
         r"""
         Compute / store newform factors of parameters N,k,i
         """
+        from utils import orbit_label
         verbose = kwds.get('verbose',0)
         ambient_id = kwds.get('ambient_id',None)
         compute = kwds.get('compute',self._do_computations)
@@ -566,10 +623,13 @@ class CompMF(MongoMF):
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
         factors_in_file = self._db.number_of_known_factors(N,k,i)
         factors_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        dimc = self.get_dimc(N,k,i)
+        if dimc == 0:
+            return []  # There are no factors to compute
         clogger.debug("factors: in_file={0} in mongo={1}".format(factors_in_file,factors_in_mongo))
         if factors_in_file == 0 and  len(factors_in_mongo)==0:
             if not compute:
-                clogger.debug("No factors exist and we do not compute anything!")
+                clogger.debug("No factors exist in db and we do not compute anything!")
                 return None
                 # Else compute and insert into the files.
             factors_in_file = self._computedb.compute_decompositions(N,k,i)
@@ -604,6 +664,7 @@ class CompMF(MongoMF):
                     clogger.debug("Factor {0},{1},{2},{3} not computed!".format(N,k,i,d))
                     continue
                 fname1 = "{0}-{1:0>3}".format(fname,d)
+                label = orbit_label(d)
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=int(i),
                                     cchi=int(ci),
@@ -612,6 +673,7 @@ class CompMF(MongoMF):
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),
                                     ambient_id=ambient_id,
+                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                                     v=int(1))
                 if not facid is None:
                     factors_in_mongo.append(facid)
@@ -633,7 +695,7 @@ class CompMF(MongoMF):
         r"""
         Compute & store aps
         """
-        from wmf import orbit_label
+        from utils import orbit_label
         if pprec is None:
             pprec = precision_needed_for_L(N,k)
         pprec = int(pprec)
@@ -667,6 +729,7 @@ class CompMF(MongoMF):
             if not isinstance(aps,dict):
                 clogger.warning("Trying to insert non-dict aps:{0}".format(aps))
                 return
+            res = []
             for key,value in aps.iteritems():
                 N,k,i,d = key
                 E,v,meta = value
@@ -699,11 +762,13 @@ class CompMF(MongoMF):
                                prec = int(pprec),
                                sage_version = meta.get("version",""),
                                ambient_id=ambient_id)
-
+                res.append(vid)
+            return res
         def insert_aps_into_filesdb(aps):
             r"""
             Insert aps (of the same format as above) into the files database.
             """
+            res = []
             for key,val in aps.iteritems():
                 clogger.debug("key={0}".format(key))
                 clogger.debug("type(val)={0}".format(type(val)))
@@ -723,7 +788,8 @@ class CompMF(MongoMF):
                     if not self._db.path_exists(vname):
                         save(v,vname)
                     save(meta, self._db.meta(aplist_file))
-                    
+                    res.append(vname)
+            return res
         # See if we have the coefficients in a file or not
         q = self._db.known("N={0} and k={1} and i={2}".format(N,k,i))
         for r in q:
@@ -758,12 +824,13 @@ class CompMF(MongoMF):
             if aps == None or (isinstance(aps,dict) and len(aps.values()[0])<>3) or aps==-1:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
                 return aps
-            aps_in_mongo = insert_aps_into_mongodb(aps)
+            return insert_aps_into_mongodb(aps)
         elif len(aps_in_mongo) == num_factors and aps_in_file==0 and self._save_to_file:
             ### We have coefficients in mongo, need to save them to file
             aps = self.get_aps(N,k,i)
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
-            insert_aps_into_filesdb(aps)
+            return insert_aps_into_filesdb(aps)
+        clogger.critical("aps for: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
         return aps_in_mongo
 
 
@@ -837,11 +904,6 @@ class CompMF(MongoMF):
             if self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
         clogger.debug("Checking N,k,i={0}".format((N,k,i)))
-        ### Might as well check the character here as well.
-        #x = M.character()
-        #si = sage_character_to_galois_orbit_number(x)
-        #if si <> i:
-        #    clogger.warning("Character for this record is wrong!")
         ambient_id = None
         M = self.get_ambient(N,k,i,compute=False)
         if M is None:
@@ -860,11 +922,14 @@ class CompMF(MongoMF):
             numf = rec['orbits']
             ambient_id = rec['_id']
         ## Check factors
-        clogger.debug("will check number of factors!")
+        clogger.debug("will check number of factors! for M={0}".format(M))
         numf1 = self.number_of_factors(N,k,i)
-        res['factors'] = False
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
+        if numf1 == 0 and numf == 0:
+            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(3)}})
+            return res
+        res['factors'] = False
         d = -1; d1= -1
         if numf1 == numf:
             res['factors'] = True
@@ -995,7 +1060,7 @@ class CompMF(MongoMF):
         clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
             N = r['N']; k=r['k']; i = r['chi']
-            #clogger.debug("r = {0}".format((N,k,i)))
+            clogger.debug("r = {0}".format((N,k,i)))
             args.append((N,k,i,check_content,recheck))
 #        clogger.debug("args={0}".format(args))
         if ncpus >= 32:
@@ -1016,8 +1081,9 @@ class CompMF(MongoMF):
                 clogger.critical("arg = {0} val={1}".format(arg,val))
         ## Then add the spaces not yet in the database
         for n in nrange:
+            norbits=len(dirichlet_character_sage_galois_orbits_reps(n))
             for k in krange:
-                for i in range(euler_phi(n)):
+                for i in range(norbits):
                     if self._modular_symbols.find({'N':int(n),'k':int(k),'chi':int(i)}).count()==0:
                         res[(n,k,i)]=[False]
 
@@ -1039,7 +1105,13 @@ class CompMF(MongoMF):
         recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck,ncpus=ncpus)
         args = []
         for N,k,i in recs.keys():
-            if not chi is None and i<>chi:
+            if k==1:
+                clogger.debug("Weight 1 is not implemented!")
+                continue
+            if not chi is None and i not in chi:
+                continue
+            if not are_compatible(N,k,i):
+                clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
                 continue
             args.append((N,k,i))
         clogger.debug("Completing {0} spaces!".format(len(args)))
@@ -1048,7 +1120,6 @@ class CompMF(MongoMF):
 
     
     def check_character(self,N,k,chi,remove=1,files_separately=0):
-        from compmf.character_conversions import sage_character_to_galois_orbit_number,conrey_character_number_from_sage_galois_orbit_number
         #if N % 10 == 0:
         clogger.debug("Checking N={0}, k={1}, chi={2}".format(N,k,chi))
         
@@ -1083,7 +1154,7 @@ class CompMF(MongoMF):
                 si = 0
                 ci = 1
             else:
-                si = sage_character_to_galois_orbit_number(x)
+                si = sage_character_to_sage_galois_orbit_number(x)
                 ci = conrey_character_number_from_sage_galois_orbit_number(N,si)
             if si <> chi or ci<>cchi:
                 problems.append((N,k,chi))
@@ -1121,7 +1192,6 @@ class CompMF(MongoMF):
             for N1,k1,chi1,d,prec in self._db.known(s):
                 #if N < minn or N>maxn or k<mink or k>maxk:
                 #    continue
-                print "here"
                 clogger.debug("  in file with : {0}".format((N1,k1,chi1,d,prec)))
                 sage.modular.modsym.modsym.ModularSymbols_clear_cache()
                 if not files_separately==1 or (N1,k1,chi1) in problems:
@@ -1133,7 +1203,7 @@ class CompMF(MongoMF):
                 if N1 == 1:
                     si = 0
                 else:
-                    si = sage_character_to_galois_orbit_number(x)
+                    si = sage_character_to_sage_galois_orbit_number(x)
                 clogger.debug("si={0}, chi={1}".format(si,chi))
                 if si <> chi:
                     if (N1,k1,chi1) not in problems:
@@ -1153,6 +1223,77 @@ class CompMF(MongoMF):
                 clogger.debug("Removed {0} records!".format(len(problems)))
         clogger.debug("Finished checking  character: N={0}, k={1}, chi={2}".format(N,k,chi))
         return problems            
+
+
+
+    def check_if_twist(self,N=1,k=2,ci=0,d=0,fid=None):
+        r"""
+        Check if the newform factor given by factor_id is a twist of another form.
+
+        Recall that if chi is a character modulo Q and F has level N then
+        F_chi has level lcm(N,Q^2)
+
+        """
+        from sage.all import is_squarefree,ZZ,divisors,lcm,sturm_bound,primes
+        from character_conversions import sage_character_from_number,conrey_character_from_number,dirichlet_group_sage,sage_character_to_number
+        if not fid is None:
+            q = self._newform_factors.find_one({'_id':factor_id})
+        else:
+            q = self._newform_factors.find_one({'N':int(N),'k':int(k),'chi':int(ci),'newform':int(d)})
+        if q is None:
+            raise ValueError,"This newform is not in the database!"
+        N=q['N']; k=q['k']; cchi=q['cchi']; fid = q['_id']; ci=q['chi']
+        d = q['newform']
+            
+        chi = sage_character_from_number(N,ci)
+        DG = dirichlet_group_sage(N)
+        is_twist = True
+        possible_twists = []
+        if is_squarefree(N): ## Twists always have levels with square factors.
+            is_twist = False
+            ### TODO: make a similar check for the character.
+        else:
+            #x = conrey_char
+            ### Possible conductors of character we can twist with to get here
+            for q in ZZ(N).divisors():
+                if q == 1:
+                    continue
+                if not (q**2).divides(N):
+                    continue
+                for M in ZZ(N).divisors():
+                    # Can we twist a form of level Q to get the one we have?
+                    if not lcm(M,q**2).divides(N):
+                        continue
+                    print "possible M,q=",M,q,lcm(M,q**2)
+                    for x in dirichlet_group_sage(M):
+                        if x(-1) <> (-1)**k:
+                            continue
+                        m,xi = sage_character_to_number(x) # get number for later reference
+                        ## Now check the characters
+                        for y in dirichlet_group_sage(q):
+                            if y.is_trivial():
+                                continue
+                            if DG(x)*DG(y**2)==chi:
+                                print "possible character=",y
+                                q,yi = sage_character_to_number(y)
+                                possible_twists.append((M,xi,q,yi)) # it is possible that we have a twist of F \in M_k(M,x) with character y of modulus q.
+        bd = max(sturm_bound(N,k),2)
+        print "Sturm bound=",bd
+        aps = self.get_aps(N,k,ci,d,prec_needed=bd,coeffs=True)
+        print "aps=",aps
+        for M,xi,q,yi in possible_twists:
+            print "Checking:",M,xi,q,yi
+            y = sage_character_from_number(q,yi)
+            for d1 in range(self.number_of_factors(M,k,xi)):
+                apsf = self.get_aps(M,k,xi,d,prec_needed=bd,coeffs=True)
+                print "aps=",apsf
+                twisted_aps = [ apsf[prime_pi(p)-1]*y(p) for p in primes(bd+1)]
+                print "twisted_aps=",twisted_aps
+                test = [twisted_aps[i] - aps[i] for i in range(len(twisted_aps))]
+                print "test=",test
+                if test.count(0)==len(test):
+                    print "We have a twist!"
+                    return M,xi
     
 def precision_needed_for_L(N,k,**kwds):
     r"""

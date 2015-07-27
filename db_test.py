@@ -20,7 +20,7 @@ os.sys.path.append("{0}".format(basedir))
 os.sys.path.append("{0}/mdb/".format(basedir))
 
 #import mfdb
-import mdb
+#import mdb
 import compmf
 
 #from mdb import schema
@@ -2290,3 +2290,32 @@ def check_character(DB,id,N,k,chi,cchi,remove=0,verbose=0,files_separately=0):
 
 
 
+
+def check_if_twist(N,k,ci):
+    r"""
+    Check if the newform factor given by factor_id is a twist of another form.
+    
+    Recall that if chi is a character modulo Q and F has level N then
+    F_chi has level lcm(N,Q^2)
+    
+    """
+    from character_conversions import conrey_character_from_number
+#        if not fid is None:
+#            q = D._newform_factors.find_one({'_id':factor_id})
+#        elif not label is None:
+#            q = D._newform_factors.find_one({'hecke_orbit_label':label})
+#        else:
+#            raise ValueError,"Need either lable or id!"
+    #        N=q['N']; k=q['k']; cchi=q['cchi']; fid = q['_id']; ci=q['chi'] 
+    chi = sage_character_from_number(N,ci)
+    is_twist = True
+    if is_squarefree(N): ## Twists always have levels with square factors.
+        is_twist = False
+    for M in ZZ(N).divisors():
+        # Can we twist a form of level N to get the one we have?
+        # Check possible conductors:
+        d = N / M
+        for d1 in divisors(M):
+            q = d*d1
+            print "possible q=",q
+        

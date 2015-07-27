@@ -38,7 +38,7 @@ by William Stein.
 
 """
 import os
-from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols,prime_pi,nth_prime
+from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols,prime_pi,nth_prime,ZZ
 
 import sqlite3
 from stat import S_ISDIR
@@ -176,7 +176,12 @@ class FilenamesMFDB(Filenames):
         r"""
         Directory name files related to M(N,k,i)
         """
-        return '%05d-%03d-%03d'%(N,k,i)
+        #return '%05d-%03d-%03d'%(N,k,i)
+        ### Base directory:
+        dir0 = '{0:0>5}-{1:0>5}'.format(int((float(N)/float(500)))*500+1,(int(float(N)/float(500))+1)*500)
+        dir1 = '{0:0>5d}-{1:0>3d}-{2:0>3d}'.format(N,k,i)
+        return "{0}/{1}".format(dir0,dir1)
+        #return '%05d-%03d-%03d'%(N,k,i)
 
     def space(self, N, k, i, makedir=False):
         r"""
@@ -273,7 +278,7 @@ class FilenamesMFDB(Filenames):
         for d in factors_dirs:
             numf = 0
             for f in os.listdir(self.make_path_name(fn, d)):
-                if os.path.getsize(f)>0:
+                if os.path.getsize(self.make_path_name(fn, d,f))>0:
                     numf+=1
             if numf > 0:
                 num_factors +=1 
@@ -292,6 +297,7 @@ class FilenamesMFDB(Filenames):
                     res.append(N)
         return res
 
+
     def find_known(self):
         """
         Return iterator of 5-tuples of Python ints, defined as follows:
@@ -305,13 +311,22 @@ class FilenamesMFDB(Filenames):
         If no newforms are known but there are newforms (they just
         haven't been computed), then newforms is set to -1.
         """
-        for Nki in self.listdir(self._data):
+        ## I don't know how to make an iterator over directories in subdirectories...
+        list_of_dirs = []
+        for ddir in self.listdir(self._data):
+            ddir1 = self.make_path_name(self._data,ddir)
+            for Nki in self.listdir(ddir1):
+                ddir1 = self.make_path_name(ddir1,Nki)
+                ddir1 = ddir1.replace('//','/')
+                list_of_dirs.append(ddir1)
+        for ddir in list_of_dirs:
+            Nki = ddir.split('/')[-1]
             z = Nki.split('-')
             if len(z) == 3:
                 N, k, i = parse_Nki(Nki)
                 if k==1: # weight 1 not implemented
                     continue
-                newforms = [x for x in self.listdir(self.make_path_name(self._data, Nki)) if x.isdigit()]
+                newforms = [x for x in self.listdir(ddir) if x.isdigit()]
                 if len(newforms) == 0:
                     # maybe nothing computed?
                     if i == 0:
@@ -331,7 +346,7 @@ class FilenamesMFDB(Filenames):
                     for n in newforms:
                         v = set([])
                         this_maxp = 0
-                        for X in self.listdir(self.make_path_name(self._data, Nki, n)):
+                        for X in self.listdir(self.make_path_name(ddir1, Nki, n)):
                             if X.startswith('aplist') and 'meta' not in X:
                                 args = [int(a) for a in X.rstrip('.sobj').split('-')[1:]]
                                 v.update(prime_range(*args))
@@ -348,27 +363,35 @@ class FilenamesMFDB(Filenames):
     ##
     ## Since the file system can be quite slow we also have a sqlite database
     ##
-    def update_known_db(self):
+    def update_known_db(self,rec=None):
         r"""
-        Create the sqlite database and iterate through the known files.
+        Create the sqlite database and insert record. If rec=none we iterate through the known files and insert all.
+        The records are of the form (N,k,i,newforms,maxp) 
         """
         # 1. create the sqlite3 database
         # Unlink is only necessary with loal files
-        if os.path.exists(self._known_db_file):
+        if os.path.exists(self._known_db_file) and rec is None:
             os.unlink(self._known_db_file)
-        db = sqlite3.connect(self._known_db_file)
-        cursor = db.cursor()
-        schema = 'CREATE TABLE "known" (N, k, i, newforms, maxp)'
-        cursor.execute(schema)
-        db.commit()
 
+        if not os.path.exists(self._known_db_file):
+            db = sqlite3.connect(self._known_db_file)
+            cursor = db.cursor()
+            schema = 'CREATE TABLE "known" (N, k, i, newforms, maxp)'
+            #print schema
+            cursor.execute(schema)
+            db.commit()
+        else:
+            db = sqlite3.connect(self._known_db_file)
+            cursor = db.cursor()
         # 2. iterate over known 5-tuples inserting them in db
-        for t in self.find_known():
-            #print t
-            cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", t)
-
+        if rec is None:
+            for t in self.find_known():
+                cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", t)
+        else:
+            cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", map(int,rec))                
         db.commit()
 
+        
 
     def known(self, query):
         r"""
@@ -377,6 +400,8 @@ class FilenamesMFDB(Filenames):
         query = query.replace('prec','maxp')
         #clogger.debug("in known: q={0}".format(query))
         # 1. open database
+        if not os.path.exists(self._known_db_file):
+            self.update_known_db()
         db = sqlite3.connect(self._known_db_file)
         #clogger.debug("db={0}".format(db))
         cursor = db.cursor()
@@ -570,7 +595,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             clogger.debug("%s already exists; but we recreate it!"%fname)
             #return
         clogger.debug("Creating  {0}".format(fname))
-        clogger.debug("space {0}".format(M))
+        clogger.debug("space: {0}".format(M))
         ambient = ambient_to_dict(M, i)
         #clogger.debug("as dict: {0}".format(ambient)) # can be very long...
         save(ambient,fname)
@@ -628,8 +653,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         if self.path_exists(fnameM):
             return load(fnameM)
         fname = self.ambient(N, k, i, makedir=False)
+        #print N,k,i
+        # print "fnameM=",fnameM
+        #print "fname=",fname
         if self.path_exists(fname):
+            #print "fname exists!"
             ambient = load(fname)
+            #print "ambient=",ambient
             if not ambient is None:
                 M = dict_to_ambient(ambient)
                 #clogger.debug("Constructed space: {0}".format(M))
@@ -824,7 +854,7 @@ def dict_to_ambient(modsym):
     mod2term  = modsym['mod2term']
     dim = len(basis)
     if dim == 0:
-        clogger.critical("Something is wrong ")
+        clogger.critical("Dimension is zero! Something could be wrong ")
     F = rels.base_ring()
     if i == 0:
         eps = trivial_character(N)
@@ -844,7 +874,7 @@ def dict_to_ambient(modsym):
         M._manin_gens_to_basis = rels
         M._mod2term = mod2term
         M._AmbientHeckeModule__rank=dim
-        print "M.__rank=",M.__dict__
+        #print "M.__rank=",M.__dict__
         return M
     return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
 

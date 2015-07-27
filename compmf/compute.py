@@ -51,7 +51,7 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
-from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep,dirichlet_character_sage_galois_orbits_reps
+from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
 
 from compmf import clogger
 
@@ -76,7 +76,7 @@ class ComputeMFData(object):
         return self._files
     # Compute objects
     
-    @fork    
+    #@fork    
     def compute_ambient_space(self,N, k, i,**kwds):#
         r"""
         Compute the ambient space M(N,k,i) and save as file. 
@@ -100,20 +100,22 @@ class ComputeMFData(object):
                 j+=1
             return
         filename = self.files().ambient(N, k, i)
+        clogger.debug("filename={0}".format(filename))
         if self.files().path_exists(filename):
             return
-        eps = dirichlet_character_sage_galois_orbit_rep(N, i)
+        eps = dirichlet_character_sage_galois_orbit_rep_from_number(N, i)
         t = cputime()
         M = kwds.get('M',None)
         if M ==  None or M.sign()<>N or M.weight()<>k or M.level()<>N or M.character()<> eps or not is_ModularSymbolsSpace(M):
-            clogger.debug("Will compute ambient modular symbols space {0}".format((N,k,i)))
+            clogger.debug("Will compute ambient modular symbols space {0} with eps={1}".format((N,k,i),eps))
             t = cputime()
             M = ModularSymbols(eps, weight=k, sign=1)
             tm = cputime(t)
+            clogger.debug("Got space: {0}".format(M))
         else:
             tm = kwds.get('tm')
         self.files().save_ambient_space(M,i)
-        #save(M, filename)
+        fname = self.files().ambient(N, k, i, makedir=False)
         meta = {'cputime':tm, 'dim':M.dimension(), 'M':str(M), 'version':sage.version.version}
         save(meta, self.files().meta(filename))        
         clogger.debug("saved {0} to {1}".format(meta,filename))
@@ -132,7 +134,7 @@ class ComputeMFData(object):
             print X
    
        
-    @fork    
+    #@fork    
     def compute_decompositions(self,N, k, i,**kwds):
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
@@ -160,7 +162,7 @@ class ComputeMFData(object):
             self.compute_ambient_space(N, k, i,**kwds)
         if not self.files().path_exists(filename):
             return 0
-        eps = DirichletGroup(N).galois_orbits()[i][0]
+        #eps = DirichletGroup(N).galois_orbits()[i][0]
         # check if the factor already exists by checking for 
         clogger.debug("check if path exists {0}".format(self.files().factor_eigen_nonzero(N, k, i, 0)))
         if self.files().path_exists(self.files().factor_eigen_nonzero(N, k, i, 0)):
@@ -211,7 +213,7 @@ class ComputeMFData(object):
         for X in f(v):
             print X
     # atkin_lehner
-    @fork    
+    #@fork    
     def compute_atkin_lehner(self,N, k, i,M=None,m=None,**kwds):
         filename = self.files().ambient(N, k, i)
         if not self.files().path_exists(filename):
@@ -245,7 +247,7 @@ class ComputeMFData(object):
             save(meta, self.files().meta(atkin_lehner_file))
         return 0
     # aplists
-    @fork    
+    #@fork    
     def compute_aplists(self,N, k, i, n0,n1,**kwds):
         r""" Compute a list of a(p) for S(N,k,i) with p in the range [next_prime(n0),previous_prime(n1)]. The length of the list is prime_pi(n1)-prime_pi(n0).
         We store the list in a file named aplist-n0-n1.sobj where n0 and n1 are padded with zeros to
