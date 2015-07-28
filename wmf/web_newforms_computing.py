@@ -28,7 +28,7 @@ TODO:
 Fix complex characters. I.e. embedddings and galois conjugates in a consistent way.
 
 """
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
 import re
@@ -113,11 +113,13 @@ class WebNewForm_computing(WebNewForm):
         self.set_base_ring()       
         self.set_coefficient_field()
 
-        self.set_twist_info()
+        #self.set_twist_info()
         self.set_is_cm()
         self.compute_satake_parameters_numeric()
-
-        self.set_atkin_lehner()
+        try:
+            self.set_atkin_lehner()
+        except ZeroDivisionError:
+            wmf_logger.critical("Computing Atkin-Lehner failed!")
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
@@ -238,7 +240,7 @@ class WebNewForm_computing(WebNewForm):
             self.set_aps()
         try:
             self.coefficient_field = self.eigenvalues[2].parent()
-            self.coefficient_field_degree = self.coefficient_field.degree()
+            self.coefficient_field_degree = self.coefficient_field.absolute_degree()
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
 
@@ -296,7 +298,7 @@ class WebNewForm_computing(WebNewForm):
             self._embeddings['bitprec']=int(bitprec)
         # See if we have need of more coefficients
         nstart = len(self._embeddings['values'])
-        wmf_logger.debug("Should have {0} embeddings".format(self._embeddings['prec']))
+        wmf_logger.debug("we already  have {0} embedded coeffs".format(self._embeddings['prec']))
         wmf_logger.debug("Computing new embeddings !")
         deg = self.coefficient_field.absolute_degree()
         for n in range(self._embeddings['prec'],prec+1):
@@ -523,7 +525,7 @@ class WebNewForm_computing(WebNewForm):
             raise NotImplementedError("Only implemented for SL(2,Z). Need more generators in general.")
         if(self._as_polynomial_in_E4_and_E6 is not None and self._as_polynomial_in_E4_and_E6 != ''):
             return self._as_polynomial_in_E4_and_E6
-        d = self.parent.dimension_modular_forms  # dimension of space of modular forms
+        #d = self.parent.dimension_modular_forms  # dimension of space of modular forms
         k = self.weight
         K = self.base_ring
         l = list()
@@ -531,8 +533,10 @@ class WebNewForm_computing(WebNewForm):
         # for n in range(d+1):
         #    l.append(self._f.q_expansion(d+2)[n])
         # v=vector(l) # (self._f.coefficients(d+1))
-        v = vector(self.coefficients(range(d)))
+        #print "d=",d
         d = dimension_modular_forms(1, k)
+        v = vector(self.coefficients(range(d)))
+
         lv = len(v)
         if(lv < d):
             raise ArithmeticError("not enough Fourier coeffs")

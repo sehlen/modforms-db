@@ -28,7 +28,7 @@ import pymongo
 from flask import url_for
 
 
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I, join, gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,AlphabeticStrings,Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,AlphabeticStrings,Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.rings.number_field.number_field_base import NumberField as NumberField_class
 
@@ -179,7 +179,10 @@ class WebModFormSpace_computing(WebModFormSpace):
             self.dimension = self.dimension_cusp_forms
         # Old subspace of self. We only use the builtin function for cusp forms
         self.dimension_oldforms = self.dimension_cusp_forms - self.dimension_new_cusp_forms
-
+        wmf_logger.debug("dim_mod={0}".format(self.dimension_modular_forms))
+        wmf_logger.debug("dim_cusp={0}".format(self.dimension_cusp_forms))
+        wmf_logger.debug("dim_new_cusp={0}".format(self.dimension_new_cusp_forms))        
+        
                 
     def set_sturm_bound(self):
         r""" Return the Sturm bound of S_k(N,xi), i.e. the number of coefficients necessary to determine a form uniquely in the space.
