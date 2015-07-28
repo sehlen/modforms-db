@@ -49,3 +49,17 @@ def are_compatible(modulus,weight,ci):
     import character_conversions
     x = character_conversions.dirichlet_character_conrey_from_sage_character_number(modulus,ci)
     return (x.is_even() and weight % 2 == 0) or (x.is_odd() and weight % 2 == 1)
+
+def label_from_param(N,k,i,d):
+    return "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(d))
+
+def param_from_label(lab):
+    t = lab.split(".")
+    if len(t)<>3:
+        raise ValueError
+    N=int(t[0]); k = int(t[1])
+    s = t[2]
+    delim = map(lambda x:x.isalpha(),s).index(True)
+    i = int(s[0:delim])
+    label =s[delim:]
+    return (N,k,i,label)
