@@ -178,7 +178,13 @@ class FilenamesMFDB(Filenames):
         """
         #return '%05d-%03d-%03d'%(N,k,i)
         ### Base directory:
-        dir0 = '{0:0>5}-{1:0>5}'.format(int((float(N)/float(500)))*500+1,(int(float(N)/float(500))+1)*500)
+        if N % 500 == 0:
+            lb = N - 500+1
+            ub = N
+        else:
+            lb = int(float(N)/float(500))*500+1
+            ub = int(float(N)/float(500))*500+500
+        dir0 = '{0:0>5}-{1:0>5}'.format(lb,ub)
         dir1 = '{0:0>5d}-{1:0>3d}-{2:0>3d}'.format(N,k,i)
         return "{0}/{1}".format(dir0,dir1)
         #return '%05d-%03d-%03d'%(N,k,i)
