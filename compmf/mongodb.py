@@ -37,7 +37,7 @@ from compmf.character_conversions import (
     sage_character_to_sage_galois_orbit_number,
     conrey_character_number_from_sage_galois_orbit_number
 )
-from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor
+from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ
 from utils import are_compatible
 from compmf import clogger
 
@@ -1280,21 +1280,29 @@ class CompMF(MongoMF):
         bd = max(sturm_bound(N,k),2)
         print "Sturm bound=",bd
         aps = self.get_aps(N,k,ci,d,prec_needed=bd,coeffs=True)
-        print "aps=",aps
+        K0 = aps[0].base_ring()
         for M,xi,q,yi in possible_twists:
             print "Checking:",M,xi,q,yi
             y = sage_character_from_number(q,yi)
             for d1 in range(self.number_of_factors(M,k,xi)):
-                apsf = self.get_aps(M,k,xi,d,prec_needed=bd,coeffs=True)
+                apsf = self.get_aps(M,k,xi,d1,prec_needed=bd,coeffs=True)
                 print "aps=",apsf
                 twisted_aps = [ apsf[prime_pi(p)-1]*y(p) for p in primes(bd+1)]
+                K1 = twisted_aps[0].base_ring()
+                if K0 == QQ:
+                    K = K1
+                elif K1 == QQ:
+                    K = K0
+                else:
+                    K = K1.extend(K0.polymomial)
                 print "twisted_aps=",twisted_aps
-                test = [twisted_aps[i] - aps[i] for i in range(len(twisted_aps))]
+                print "K=",K
+                test = [K(twisted_aps[i]) - K(aps[i]) for i in range(len(twisted_aps))]
                 print "test=",test
                 if test.count(0)==len(test):
-                    print "We have a twist!"
-                    return M,xi
-    
+                    print "We have a twist of {0} by {1}!".format((M,k,xi,d1),(q,yi))
+                    return M,k,xi,d1
+        
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
