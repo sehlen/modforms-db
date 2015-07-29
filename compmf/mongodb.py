@@ -806,6 +806,7 @@ class CompMF(MongoMF):
         if len(aps_in_mongo) == num_factors and aps_in_file==1:
             return aps_in_mongo
         elif len(aps_in_mongo) <> num_factors:
+            
             if aps_in_file==0:
                 if not compute:
                     return []
