@@ -73,6 +73,8 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         
         """
+        if isinstance(level,str):  ## It is probable a label
+            level,weight,character = map(int,level.split("."))
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))      
         
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
