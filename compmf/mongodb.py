@@ -742,7 +742,8 @@ class CompMF(MongoMF):
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 label = orbit_label(d)
                 # delete if exists
-                fs_ap.delete(fname1)
+                fid = fs_ap.find({'filename':fname1})
+                fs_ap.delete(fid)
                 apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                  character_galois_orbit=orbit,
