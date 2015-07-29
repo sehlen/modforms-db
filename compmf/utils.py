@@ -41,6 +41,10 @@ def orbit_index_from_label(label):
     return res
 
 @cached_function
+def newform_label(N,k,i,d):
+    return "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(d))
+
+@cached_function
 def are_compatible(modulus,weight,ci):
     r"""
     Return true if x(-1) == (-1)**k
