@@ -325,10 +325,10 @@ class FilenamesMFDB(Filenames):
                 ddir1 = self.make_path_name(ddir1,Nki)
                 ddir1 = ddir1.replace('//','/')
                 list_of_dirs.append(ddir1)
-        clogger.debug("list_of_dirs:{0}".format(list_of_dirs))
+        clogger.critical("list_of_dirs:{0}".format(list_of_dirs))
         for ddir in list_of_dirs:
             Nki = ddir.split('/')[-1]
-            clogger.debug("Nki={0}".format(Nki))
+            clogger.critical("Nki={0}".format(Nki))
             z = Nki.split('-')
             if len(z) == 3:
                 N, k, i = parse_Nki(Nki)
