@@ -741,7 +741,7 @@ class CompMF(MongoMF):
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 label = orbit_label(d)
-                clogger.debug("label={0}".format((N,k,i,d))
+                clogger.debug("label={0}".format((N,k,i,d)))
                 # delete if exists
                 r = self._aps.find_one({'filename':fname1})
                 fs_ap.delete(r['_id'])
