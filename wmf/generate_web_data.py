@@ -134,16 +134,57 @@ def web_newform_collection(host='localhost',port=int(37010)):
     
 ## Create the indices we want on the collections
 
-def create_index(host='localhost',port=int(37010)):
-    c = web_newform_collection(host,port)
-    c.create_index([('level',pymongo.ASCENDING),
-                    ('weight',pymongo.ASCENDING),
-                    ('chi',pymongo.ASCENDING),
-                    ('label',pymongo.ASCENDING)]  )
-    c1 = web_modformspace_collection(host,port)
-    c1.create_index([('level',pymongo.ASCENDING),
-                    ('weight',pymongo.ASCENDING),
-                    ('chi',pymongo.ASCENDING)])
+from pymongo import IndexModel, ASCENDING, DESCENDING
+
+def create_index(host='localhost',port=int(37010),only=None):
+    #c = web_newform_collection(host,port)
+    C  = MongoMF(host,port)
+    D = C._mongodb
+    collections_indices = [
+        {'name':'webnewforms', 'index':[
+            ('level',pymongo.ASCENDING),
+            ('weight',pymongo.ASCENDING),
+            ('chi',pymongo.ASCENDING)],
+                        'unique':False},
+        {'name':'webnewforms', 'index':[
+            ('hecke_orbit_label',pymongo.ASCENDING)],
+                         'unique':True},
+        {'name': 'webnewforms.files', 'index': [
+            ('hecke_orbit_label',pymongo.ASCENDING)],
+                               'unique':True},
+        {'name': 'webmodformspace' ,'index':[
+            ('level',pymongo.ASCENDING),
+            ('weight',pymongo.ASCENDING),
+            ('chi',pymongo.ASCENDING)],
+                            'unique':False},
+        {'name': 'webmodformspace', 'index':[
+            ('galois_orbit_name',pymongo.ASCENDING)],
+                             'unique':True},
+        {'name':  'webmodformspace.files', 'index':[
+            ('galois_orbit_name',pymongo.ASCENDING)],
+                                   'unique':True},
+       {'name':  'webchar', 'index': [
+            ('modulus',pymongo.ASCENDING),
+            ('number',ASCENDING)],
+                     'unique':False},
+       {'name':  'webchar', 'index': [
+            ('label',ASCENDING)],
+        'unique':True},
+        {'name' : 'webeigenvalues', 'index':[
+            ('hecke_orbit_label',ASCENDING)],
+         'unique':True}
+        ]
+    for r in collections_indices:
+        if not only is None:
+            if r['name'] <> only:
+                continue
+        if r['name'] in D.collection_names():
+            D[r['name']].create_index(r['index'],unique=r['unique'])
+            print "Created indeex r={0}".format(r)
+        
+
+
+
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
@@ -453,3 +494,73 @@ def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
         D._aps.update({'_id':fid},{"$set":{'hecke_orbit_label':name}})
         D._aps.update({'_id':fid},{"$unset":{'name':""}})
         
+
+def add_hecke_orbits(host='localhost',port=int(37010)):
+    import compmf
+    from utils import orbit_label
+    D = compmf.MongoMF(host,port)
+    spaces = D._mongodb.webmodformspace.distinct('galois_orbit_name') 
+    for label in spaces:
+        N,k,i = map(int,label.split("."))
+        M = WebModFormSpace_computing(N,k,i)
+        if M.hecke_orbits == {}:
+            for d in range(M.dimension_new_cusp_forms):
+                flabel = orbit_label(d)
+                F = WebNewForm(N,k,i,flabel) 
+                M.hecke_orbits[flabel]=F
+                M.save_to_db()
+            print "Fixed {0}".format((N,k,i))
+
+def remove_duplicates(D,label=None):
+    col = D._mongodb['webchar']
+    if label is None:
+        labels = col.distinct("label")
+    else:
+        labels = [label]
+    for lab in labels:
+        q = col.find({'label':lab})
+        if q.count()>1:
+            print "Duplicates at {0}: num={1}".format(lab,q.count())
+            l = list(q)
+            nl = len(l)
+            kept=0
+            for i in range(nl):
+                remove = True
+                r = l[i]
+                if r['label']<>[] and kept==0:
+                    # keep
+                    kept  = 1
+                    remove = False
+                if i == nl-1 and kept == 0: # at the end we keep at least one... 
+                    remove = False
+                if remove:
+                    col.remove({'_id':r['_id']})
+                    print "removed {0}:{1}".format(lab,r['_id'])
+
+
+def remove_gridfs_duplicates(D,label_in=None):
+    import gridfs
+    fs = gridfs.GridFS(D._mongodb,collection='webmodformspace')
+    col = D._mongodb['webmodformspace.files']
+    if label_in is None:
+        labs = col.distinct('galois_orbit_name')
+    else:
+        labs = [label_in]
+    for label in labs:
+        q = col.find({'galois_orbit_name':label}).sort("uploadDate", 1)
+        n = q.count()
+        if n>1:
+            print "duplicate:",label
+            i = 0
+            for f in q:
+                fid = f['_id']
+                if i < n-1:
+                    fs.delete(fid)
+                    print "removed f=",f
+                else:
+                    print "keep =",f
+                i+=1
+#            fsq = fs.find({'hecke_orbit_label':label})
+#            if fsq.count()>1:
+                
+
