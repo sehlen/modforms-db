@@ -77,7 +77,7 @@ class MongoMF(object):
         self._newform_factors = self._mongodb["{0}.files".format(self._newform_factors_collection)]
         self._aps = self._mongodb["{0}.files".format(self._aps_collection)]
         self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
-
+        self._twists = self._mongodb["twists"]
         self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
 
 
@@ -741,6 +741,8 @@ class CompMF(MongoMF):
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 label = orbit_label(d)
+                # delete if exists
+                fs_ap.delete(fname1)
                 apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                  character_galois_orbit=orbit,
@@ -1242,6 +1244,7 @@ class CompMF(MongoMF):
             q = self._newform_factors.find_one({'N':int(N),'k':int(k),'chi':int(ci),'newform':int(d)})
         if q is None:
             raise ValueError,"This newform is not in the database!"
+        
         N=q['N']; k=q['k']; cchi=q['cchi']; fid = q['_id']; ci=q['chi']
         d = q['newform']
             
@@ -1260,7 +1263,9 @@ class CompMF(MongoMF):
                     continue
                 if not (q**2).divides(N):
                     continue
-                for M in ZZ(N).divisors():
+                divs = ZZ(N).divisors()
+                divs.sort()
+                for M in divs:
                     # Can we twist a form of level Q to get the one we have?
                     if not lcm(M,q**2).divides(N):
                         continue
@@ -1301,8 +1306,28 @@ class CompMF(MongoMF):
                 print "test=",test
                 if test.count(0)==len(test):
                     print "We have a twist of {0} by {1}!".format((M,k,xi,d1),(q,yi))
-                    return M,k,xi,d1
-        
+                    return (M,k,xi,d1),(q,yi)
+        return []
+
+    def check_all_twists(self,verbose=0):
+#        fs_twist = gridfs.GridFS(self._mongodb,self._twists_collection)
+        for r in self._newform_factors.find().sort('N'):
+            N=r['N']; k=r['k']; i=r['chi']; d=r['newform']
+            if is_squarefree(N):
+                continue
+            t = self.check_if_twist(N,k,i,d)
+            if len(t)>0:
+                labela = utils.newform_label(N,k,i,d)
+                labelb = utils.newform_label(t[0][0],t[0][1],t[0][2],t[0][3])
+                clabel = "{0}.{1}".format(t[1][0],t[1][1])
+                twist_rec = {'hecke_orbit_label':labela,'twist_of':labelb,'by_char':clabel}
+                if verbose>0:
+                    print "inserting; ",twist_rec
+                self._twists.update(twist_rec)
+                
+
+
+                
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
@@ -1312,3 +1337,5 @@ def precision_needed_for_L(N,k,**kwds):
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
     return ceil(RR(pprec)/RR(100))*100
+
+
