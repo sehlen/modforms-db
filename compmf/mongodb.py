@@ -588,7 +588,7 @@ class CompMF(MongoMF):
                 ambient = self._db.load_ambient_space(N,k,i)
             dima = int(ambient.dimension())
             dimc = int(ambient.cuspidal_submodule().dimension())
-            clogger.debug("Save ambient to mongodb! ambient={0}".format(ambient))
+            clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,i),ambient))
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             fid = fs_ms.put(dumps(ambient),filename=fname,
                             N=int(N),k=int(k),chi=int(i),orbits=int(0),
