@@ -390,23 +390,21 @@ class FilenamesMFDB(Filenames):
 
             z = Nki.split('-')
             if len(z) == 3: ## we are in a space directory
-                print "z=",z
-                clogger.critical("Nki={0}".format(Nki))
-                clogger.critical("dirName={0}".format(dirName))
-                clogger.critical("subdirs={0}".format(subdirList))                        
+                #clogger.critical("Nki={0}".format(Nki))
+                #clogger.critical("dirName={0}".format(dirName))
+                #clogger.critical("subdirs={0}".format(subdirList))                        
                 N, k, i = map(int,z) #parse_Nki(Nki)
                 print N,k,i
                 if k==1: # weight 1 not implemented
                     continue
                 newforms = [x for x in subdirList if x.isdigit()]
-                print "newforms=",newforms
+                #print "newforms=",newforms
                 if len(newforms) == 0:
                     # maybe nothing computed?
                     if i == 0:
                         # program around a bug in dimension_new_cusp_forms: Trac 12640
                         d = dimension_new_cusp_forms(N,k)
                     else:
-                        print "N,i=",N,i
                         chi = character(N, i)
                         d = dimension_new_cusp_forms(chi, k)
                     if d == 0:
@@ -420,9 +418,9 @@ class FilenamesMFDB(Filenames):
                         maxp = None
                         v = set([])
                         this_maxp = 0
-                        print "list=",self.make_path_name(dirName, Nki, n)
+                        #print "list=",self.make_path_name(dirName, Nki, n)
                         for X in self.listdir(self.make_path_name(dirName, n)):
-                            print "X=",X
+                            #print "X=",X
                             if X.startswith('aplist') and 'meta' not in X:
                                 args = [int(a) for a in X.rstrip('.sobj').split('-')[1:]]
                                 v.update(prime_range(*args))
