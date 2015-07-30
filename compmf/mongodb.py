@@ -1348,15 +1348,21 @@ class CompMF(MongoMF):
                 
 
 
-    def insert_raw_data(self):
+    def insert_raw_data(self,pattern=""):
+        r"""
+        Go through modular forms data in the files and insert everything into mongo database in primitive / raw format, i.e. as a dict
+        instead of a higher level object.
+        pattern is a search pattern for the sql database
+        """
         from utils import orbit_label
         mdb = self._mongo_conn[self._db_raw]
         mdb_ambient_files = mdb["ambient_data.files"]
         fs_a = gridfs.GridFS(mdb,'ambient_data')
         mdb_factor_files = mdb["factor_data.files"]
         fs_f = gridfs.GridFS(mdb,'factor_data')
-#        ii = 0
-        for (N,k,i,newform,nap) in self._db.known(""):
+        s = pattern
+        
+        for (N,k,i,newform,nap) in self._db.known(s):
             print N,k,i,newform,nap
 #            ii+=1
 #            if ii>10:
