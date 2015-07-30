@@ -120,7 +120,7 @@ class MongoMF(object):
         r"""
         Creates indices for our databases
         """
-        for r in self._collections_indices:
+        for r in self._collections_indexes:
             if not only is None:
                 if r['name'] <> only:
                     continue
