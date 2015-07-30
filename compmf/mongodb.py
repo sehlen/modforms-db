@@ -325,7 +325,7 @@ class MongoMF(object):
             s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
         if not d is None:
             s['newform']=int(d)
-        clogger.debug("find aps with s={0} from sources:{1]".format(s,sources))
+        clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
         res = None
         if source == ['mongo']:
             for r in self._aps.find(s):
