@@ -304,7 +304,7 @@ class FilenamesMFDB(Filenames):
         return res
 
 
-    def find_known(self):
+    def find_known_old(self):
         """
         Return iterator of 5-tuples of Python ints, defined as follows:
 
@@ -323,15 +323,15 @@ class FilenamesMFDB(Filenames):
             if '-' not in ddir:
                 continue
             ddir1 = self.make_path_name(self._data,ddir)
-            print ddir1
             for Nki in self.listdir(ddir1):
                 ddir1 = self.make_path_name(ddir1,Nki)
                 ddir1 = ddir1.replace('//','/')
                 list_of_dirs.append(ddir1)
         #clogger.critical("list_of_dirs:{0}".format(list_of_dirs))
         for ddir in list_of_dirs:
+        #for dirName, subdirList, fileList in os.walk(self._data):
             Nki = ddir.split('/')[-1]
-            clogger.critical("Nki={0}".format(Nki))
+            #clogger.critical("Nki={0}".format(Nki))
             z = Nki.split('-')
             if len(z) == 3:
                 N, k, i = parse_Nki(Nki)
@@ -370,6 +370,73 @@ class FilenamesMFDB(Filenames):
                             maxp = this_maxp if maxp is None else min(this_maxp, maxp)
 
                     yield (N,k,i,len(newforms),maxp)
+
+    def find_known(self):
+        """
+        Return iterator of 5-tuples of Python ints, defined as follows:
+
+        (N, k, i, newforms, maxp)
+        (37, 2, 0, 2, 10000)
+
+        Here N = level, k = weight, i = character, newforms = number of newforms,
+        maxp = integer such that a_p is known for p<=maxp.
+
+        If no newforms are known but there are newforms (they just
+        haven't been computed), then newforms is set to -1.
+        """
+        ## I don't know how to make an iterator over directories in subdirectories...
+        for dirName, subdirList, fileList in os.walk(self._data):
+            Nki = dirName.split('/')[-1]
+
+            z = Nki.split('-')
+            if len(z) == 3: ## we are in a space directory
+                print "z=",z
+                clogger.critical("Nki={0}".format(Nki))
+                clogger.critical("dirName={0}".format(dirName))
+                clogger.critical("subdirs={0}".format(subdirList))                        
+                N, k, i = map(int,z) #parse_Nki(Nki)
+                print N,k,i
+                if k==1: # weight 1 not implemented
+                    continue
+                newforms = [x for x in subdirList if x.isdigit()]
+                print "newforms=",newforms
+                if len(newforms) == 0:
+                    # maybe nothing computed?
+                    if i == 0:
+                        # program around a bug in dimension_new_cusp_forms: Trac 12640
+                        d = dimension_new_cusp_forms(N,k)
+                    else:
+                        print "N,i=",N,i
+                        chi = character(N, i)
+                        d = dimension_new_cusp_forms(chi, k)
+                    if d == 0:
+                        # definitely no newforms
+                        yield (N,k,i,0,0)
+                    else:
+                        # we just don't know the newforms yet
+                        yield (N,k,i,-1,0)
+                else:
+                    for n in newforms:
+                        maxp = None
+                        v = set([])
+                        this_maxp = 0
+                        print "list=",self.make_path_name(dirName, Nki, n)
+                        for X in self.listdir(self.make_path_name(dirName, n)):
+                            print "X=",X
+                            if X.startswith('aplist') and 'meta' not in X:
+                                args = [int(a) for a in X.rstrip('.sobj').split('-')[1:]]
+                                v.update(prime_range(*args))
+                                this_maxp = max(this_maxp, max(args))
+#                                print "args=",args
+#                                print "this_maxp=",this_maxp
+                            if len(v) != len(prime_range(this_maxp)):
+                                # something missing!
+                                clogger.debug("data ranges are missing in the aplist data for %s"%Nki)
+                                maxp = 100
+                            else:
+                                maxp = this_maxp if maxp is None else max(this_maxp, maxp)
+
+                        yield (N,k,i,len(newforms),maxp)
 
     ##
     ## Since the file system can be quite slow we also have a sqlite database
