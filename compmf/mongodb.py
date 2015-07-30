@@ -434,12 +434,15 @@ class CompMF(MongoMF):
 
     ## Different levels of parallelization
     @parallel(ncpus=8)
+    @classmethod
     def _compute_and_insert_one_space8(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)        
     @parallel(ncpus=16)
+    @classmethod
     def _compute_and_insert_one_space16(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)
     @parallel(ncpus=32)
+    @classmethod
     def _compute_and_insert_one_space32(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)        
         
@@ -883,17 +886,21 @@ class CompMF(MongoMF):
         return list(self.check_record(args))
     
     @parallel(ncpus=8,verbose=True)           
+    @classmethod
     def check_record8(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
     
     @parallel(ncpus=16,verbose=True)                   
+    @classmethod
     def check_record16(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
     @parallel(ncpus=32,verbose=True)            
+    @classmethod
     def check_record32(self,N,k,i,check_content=False,recheck=False):
         return self.check_record(N,k,i,check_content,recheck)
         
-    @parallel(ncpus=1,verbose=True)            
+    @parallel(ncpus=1,verbose=True)
+    @classmethod
     def check_record(self,N,k,i,check_content=False,recheck=False):
         r"""
 
