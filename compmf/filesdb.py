@@ -323,6 +323,7 @@ class FilenamesMFDB(Filenames):
             if '-' not in ddir:
                 continue
             ddir1 = self.make_path_name(self._data,ddir)
+            print ddir1
             for Nki in self.listdir(ddir1):
                 ddir1 = self.make_path_name(ddir1,Nki)
                 ddir1 = ddir1.replace('//','/')
