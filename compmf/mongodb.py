@@ -1396,7 +1396,7 @@ class CompMF(MongoMF):
                     v = load(self._db.factor_dual_eigenvector(N, k, i, newform))
                     nz = load(self._db.factor_eigen_nonzero(N, k, i, newform))
                 except IOError:
-                    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),f)
+                    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),factor_fname)
                 if B._cache is None:
                     B._cache = {}
                 if Bd._cache is None:
