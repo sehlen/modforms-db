@@ -923,7 +923,10 @@ class CompMF(MongoMF):
             aps = self.get_aps(N,k,i,source=['mongo'])
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
             return insert_aps_into_filesdb(aps)
-        clogger.critical("aps for: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
+        elif len(aps_in_mongo)==num_factors: #  we are ok anyway
+            clogger.debug("We have anough coefficients in mongo and do not want to write to file!")
+        else:
+            clogger.critical("aps for: {0},{1},{2},{3} could not be computed!".format(N,k,i))
         return aps_in_mongo
 
 
