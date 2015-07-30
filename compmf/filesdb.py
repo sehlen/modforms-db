@@ -627,7 +627,7 @@ class FilenamesMFDB(Filenames):
         if update:
             self.update_known_db()
         res = {}
-        for t in self.find_known():
+        for t in self.known():
             N,k,i,newf,d = t
             if N not in res:
                 res[N] = {}
