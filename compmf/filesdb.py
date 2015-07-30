@@ -810,11 +810,12 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             numap,fname = min(aplist_files)
         else:
             numap,fname = aplist_files[0]
-            for n,c in aplist_files[1:]:
-                clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
-                if n >= numc:
-                    numap,fname = n,c
-                    break
+            if numap < numc:
+                for n,c in aplist_files[1:]:
+                    clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
+                    if n >= numc:
+                        numap,fname = n,c
+                        break
         #clogger.debug("aplist_files={0}".format(aplist_files))
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))
         if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
