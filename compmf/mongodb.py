@@ -1377,7 +1377,7 @@ class CompMF(MongoMF):
                            weight=int(k),
                            chi=int(i),
                            cchi=int(conrey_character_number))
-                    clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label)
+                    clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
             sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
             q = mdb_files.find_one({'sage_newform_label':sage_newform_label})
             if not q is None: # insert newform
