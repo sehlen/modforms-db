@@ -1374,17 +1374,20 @@ class CompMF(MongoMF):
                 conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number)
                 
                 ambient_fname = self._db.ambient(N,k,i) 
-                ambient = load(ambient_fname)
-                fname = ambient_fname.split("/")[-2]
-                if ambient <> None:
-                    fs_a.put(dumps(ambient),filename=fname,
-                           sage_label=sage_label,
-                           conrey_label=conrey_label,
-                           level=int(N),
-                           weight=int(k),
-                           chi=int(i),
-                           cchi=int(conrey_character_number))
-                    clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
+                try:
+                    ambient = load(ambient_fname)
+                    fname = ambient_fname.split("/")[-2]
+                    if ambient <> None:
+                        fs_a.put(dumps(ambient),filename=fname,
+                                 sage_label=sage_label,
+                                 conrey_label=conrey_label,
+                                 level=int(N),
+                                 weight=int(k),
+                                 chi=int(i),
+                                 cchi=int(conrey_character_number))
+                        clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
+                except IOError:
+                    clogger.debug("Space {0} is not in files at {1}".format(sage_label,ambient_fname))
             sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
             q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
             if q is None: # insert newform
