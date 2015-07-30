@@ -287,13 +287,18 @@ class MongoMF(object):
         """
         return self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)}).count()
 
-    def get_factors(self,N,k,i,d=None,sources=['mongo','files']):
+    def get_factors(self,N,k,i,d=None,character_naming='sage',sources=['mongo','files']):
         r"""
         Get factor nr. d of the space M(N,k,i)
         """
         res = None
         if sources == ['mongo']:
-            s = {'N':int(N),'k':int(k),'chi':int(i)}
+            if character_naming=='sage':
+                s = {'N':int(N),'k':int(k),'chi':int(i)}
+            else:
+                ## Fetch the record in the database corresponding to the Galois orbit of
+                ## chi_N,i  (in Conrey's character naming scheme)            
+                s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
             if not d is None:
                 s['newform']=int(d)
             for r in self._newform_factors.find(s):
@@ -305,7 +310,7 @@ class MongoMF(object):
                 t = (int(N),int(k),int(i),int(d))
                 res[t] = f
             return res
-        elif source == ['files']:
+        elif sources == ['files']:
             res = self._db.load_factor(N,k,i,d)
             return res
         elif len(sources)>1:
@@ -317,7 +322,7 @@ class MongoMF(object):
             clogger.critical("Can not load factors, unknown source:{0}".format(sources))
         return res
     
-    def get_aps(self,N,k,i,d=None,character_naming='sage',prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','file']):
+    def get_aps(self,N,k,i,d=None,prec_needed=0,coeffs=False,character_naming='sage',sources=['mongo','mongo_raw','file']):
         r"""
         Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
 
@@ -371,7 +376,7 @@ class MongoMF(object):
                 res = None
         elif len(sources)>1:
             for ss in sources:
-                res = self.get_aps(N,k,i,d,character_naming,prec_needed,coeffs,[ss])
+                res = self.get_aps(N,k,i,d,prec_needed,coeffs,character_naming,[ss])
                 print "res=",res
                 if not res is None:
                     return res
