@@ -348,7 +348,7 @@ class MongoMF(object):
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
-        elif len(source)>1:
+        elif len(sources)>1:
             for ss in sources:
                 res = get_aps(N,k,i,d,character_naming,prec_needed,coeffs,[ss])
                 if not res is None:
