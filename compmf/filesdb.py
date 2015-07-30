@@ -320,6 +320,8 @@ class FilenamesMFDB(Filenames):
         ## I don't know how to make an iterator over directories in subdirectories...
         list_of_dirs = []
         for ddir in self.listdir(self._data):
+            if '-' not in ddir:
+                continue
             ddir1 = self.make_path_name(self._data,ddir)
             for Nki in self.listdir(ddir1):
                 ddir1 = self.make_path_name(ddir1,Nki)
