@@ -1391,10 +1391,10 @@ class CompMF(MongoMF):
                 conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
                 factor_fname = self._db.factor(N,k,i,newform) 
                 try:
-                    B = load(self.factor_basis_matrix(N, k, i, newform))
-                    Bd = load(self.factor_dual_basis_matrix(N, k, i, newform))
-                    v = load(self.factor_dual_eigenvector(N, k, i, newform))
-                    nz = load(self.factor_eigen_nonzero(N, k, i, newform))
+                    B = load(self._db.factor_basis_matrix(N, k, i, newform))
+                    Bd = load(self._db.factor_dual_basis_matrix(N, k, i, newform))
+                    v = load(self._db.factor_dual_eigenvector(N, k, i, newform))
+                    nz = load(self._db.factor_eigen_nonzero(N, k, i, newform))
                 except IOError:
                     raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),f)
                 if B._cache is None:
