@@ -838,11 +838,11 @@ class CompMF(MongoMF):
                                      sage_version = meta.get("version",""),
                                      hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                                      ambient_id=ambient_id)
+                    aps_in_mongo.append(apid)
                 except gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients: Error:{0}".format(e.message))
                     q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
                     clogger.critical("We have {0} records in the database!".format(q.count()))
-                aps_in_mongo.append(apid)
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
                 # Also insert the corresponding v separately (to protect against changes in sage)
                 fnamev = "gamma0-ambient-v-{0}-{1:0>3}".format(self._db.space_name(N,k,i),d)
@@ -893,7 +893,7 @@ class CompMF(MongoMF):
         # If we have coefficients both in mongo and files we don't do anything.
         if len(aps_in_mongo) == num_factors and aps_in_file==1:
             return aps_in_mongo
-        elif len(aps_in_mongo) <> num_factors:
+        elif len(aps_in_mongo) < num_factors:
             
             if aps_in_file==0:
                 if not compute:
@@ -918,9 +918,9 @@ class CompMF(MongoMF):
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
                 return aps
             return insert_aps_into_mongodb(aps)
-        elif len(aps_in_mongo) == num_factors and aps_in_file==0 and self._save_to_file:
+        elif len(aps_in_mongo) == num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
             ### We have coefficients in mongo, need to save them to file
-            aps = self.get_aps(N,k,i)
+            aps = self.get_aps(N,k,i,source=['mongo'])
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
             return insert_aps_into_filesdb(aps)
         clogger.critical("aps for: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
