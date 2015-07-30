@@ -744,7 +744,8 @@ class CompMF(MongoMF):
                 clogger.debug("label={0}".format((N,k,i,d)))
                 # delete if exists
                 r = self._aps.find_one({'filename':fname1})
-                fs_ap.delete(r['_id'])
+                if not r is None:
+                    fs_ap.delete(r['_id'])
                 apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                  N=int(N),k=int(k),chi=int(i),cchi=int(ci),
                                  character_galois_orbit=orbit,

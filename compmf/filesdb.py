@@ -638,8 +638,8 @@ class FilenamesMFDB(Filenames):
             ii+=1
         Ns = res.keys(); Ns.sort()
         
-        s="Number of records:{0}".format(ii)
-        s+="in range {0} -- {1} ".format(min(Ns),max(Ns))
+        s="Number of records:{0} \n".format(ii)
+        s+="Levels in range {0} -- {1} ".format(min(Ns),max(Ns))
         if not details:
             return s
         for N in Ns:
