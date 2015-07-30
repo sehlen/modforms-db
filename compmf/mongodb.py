@@ -84,7 +84,7 @@ class MongoMF(object):
 
 
         ## The indices we use for the collections given above
-        self._indices = [
+        self._collections_indexes = [
         { 'name': 'Modular_symbols.files', 'index':[
             ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
           'unique':True},
@@ -116,23 +116,23 @@ class MongoMF(object):
         s="Modular forms database at mongodb: {0}".format(self._mongo_conn)
         return s
 
-    def create_indices(self,noremove=1):
+    def create_indices(self,noremove=1,only=None):
         r"""
         Creates indices for our databases
         """
-        for col in self._file_collections:
-            if 'files' not in col:
-                col = "{0}.files".format(col)
-            ix = self._indices[col]
-            print "Creating index for collection ",col
-            try: 
-                self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
-            except pymongo.errors.DuplicateKeyError:
-                print "Removing duplicates!"
-                keys =  [x[0] for x in ix['keys']]
-                self.remove_duplicates(col,keys,dryrun=noremove)
+        for r in self._collections_indices:
+            if not only is None:
+                if r['name'] <> only:
+                    continue
+            if r['name'] in self._mongodb.collection_names():
                 try: 
-                    self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
+                    self._mongodb[r['name']].create_index(r['index'],unique=r['unique'])
+                except pymongo.errors.DuplicateKeyError:
+                    print "Removing duplicates!"
+                    keys =  [x[0] for x in ix['keys']]
+                    self.remove_duplicates(col,keys,dryrun=noremove)
+                    try: 
+                        self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
                 except pymongo.errors.DuplicateKeyError:
                     clogger.critical("We could not remove all duplicates!")
             # remove duplicates
