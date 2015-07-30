@@ -303,9 +303,18 @@ class MongoMF(object):
             res[t] = f
         return res
     
-    def get_aps(self,N,k,i,d=None,character_naming='sage',prec_needed=0,coeffs=False):
+    def get_aps(self,N,k,i,d=None,character_naming='sage',prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','file']):
         r"""
         Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
+
+
+        INPUT:
+
+        - sources -- describe a list of sources to check, including:
+           * 'mongo' -- high level sage objects in mongodb
+           * 'mongo_raw' -- low-level objects in mongodb (will need some construction of objects)
+           * 'files' -- low-level objects from files.
+      
         
         """
         if character_naming=='sage':
@@ -316,23 +325,34 @@ class MongoMF(object):
             s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
         if not d is None:
             s['newform']=int(d)
-        clogger.debug("find aps with s={0}".format(s))
-        res = {}
-        for r in self._aps.find(s):
-            fid=r['_id']
-            d = r['newform']
-            prec = r['prec']
-            meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
-            E,v = self.load_from_mongo('ap',fid)
-            clogger.debug("id={0} and E={1}".format(fid,E))
-            t = (int(N),int(k),int(i),int(d))
-            if not res.has_key(t):
-                res[t]={}
-            if prec_needed == 0 or coeffs == False:
-                res[t][prec]=(E,v,meta)
-            else:
-                if prec >= prec_needed and coeffs:
-                    return E*v
+        clogger.debug("find aps with s={0} from sources:{1]".format(s,sources))
+        res = None
+        if source == ['mongo']:
+            for r in self._aps.find(s):
+                fid=r['_id']; d = r['newform']; prec = r['prec']
+                meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
+                E,v = self.load_from_mongo('ap',fid)
+                clogger.debug("id={0} and E={1}".format(fid,E))
+                t = (int(N),int(k),int(i),int(d)).
+                if not res.has_key(t):
+                    res[t]={}
+                if prec_needed == 0 or coeffs == False:
+                    res[t][prec]=(E,v,meta)
+                else:
+                    if prec >= prec_needed and coeffs:
+                        res = E*v
+                        break
+        elif source == ['files']:
+            try: 
+                self._db.load_aps(N,k,i,d)
+            except Exception as e:
+                clogger.critical("Could not get ap's from file:{0}".format(e))
+                res = None
+        elif len(source)>1:
+            for ss in sources:
+                res = get_aps(N,k,i,d,character_naming,prec_needed,coeffs,[ss])
+                if not res is None:
+                    return res
         return res
         
 class CompMF(MongoMF):
