@@ -434,15 +434,17 @@ class CompMF(MongoMF):
 
     ## Different levels of parallelization
     @parallel(ncpus=8)
-    @classmethod
+    @staticcmethod
     def _compute_and_insert_one_space8(self,N,k,i,**kwds):
-        return self.compute_and_insert_one_space(N,k,i,**kwds)        
+        return self.compute_and_insert_one_space(N,k,i,**kwds)
+    
     @parallel(ncpus=16)
-    @classmethod
+    @staticmethod
     def _compute_and_insert_one_space16(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)
+
     @parallel(ncpus=32)
-    @classmethod
+    @staticmethod
     def _compute_and_insert_one_space32(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)        
         
