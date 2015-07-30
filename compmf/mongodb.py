@@ -1355,12 +1355,12 @@ class CompMF(MongoMF):
         fs_a = gridfs.GridFS(mdb,'ambient_data')
         mdb_factor_files = mdb["factor_data.files"]
         fs_f = gridfs.GridFS(mdb,'factor_data')
-        ii = 0
+#        ii = 0
         for (N,k,i,newform,nap) in self._db.known(""):
             print N,k,i,newform,nap
-            ii+=1
-            if ii>10:
-                return 
+#            ii+=1
+#            if ii>10:
+#                return 
             # insert the ambient space
             sage_label = "{0}.{1}.{2}".format(N,k,i)
             q = mdb_ambient_files.find_one({'sage_label':sage_label})
