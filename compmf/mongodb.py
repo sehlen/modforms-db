@@ -329,12 +329,14 @@ class MongoMF(object):
         res = None
         if sources == ['mongo']:
             for r in self._aps.find(s):
+                if res is None:
+                    res = {}
                 fid=r['_id']; d = r['newform']; prec = r['prec']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 E,v = self.load_from_mongo('ap',fid)
                 clogger.debug("id={0} and E={1}".format(fid,E))
                 t = (int(N),int(k),int(i),int(d))
-                if not res is None and not res.has_key(t):
+                if not res.has_key(t):
                     res[t]={}
                 if prec_needed == 0 or coeffs == False:
                     res[t][prec]=(E,v,meta)
