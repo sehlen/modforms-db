@@ -327,7 +327,7 @@ class MongoMF(object):
             s['newform']=int(d)
         clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
         res = None
-        if source == ['mongo']:
+        if sources == ['mongo']:
             for r in self._aps.find(s):
                 fid=r['_id']; d = r['newform']; prec = r['prec']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
@@ -342,7 +342,7 @@ class MongoMF(object):
                     if prec >= prec_needed and coeffs:
                         res = E*v
                         break
-        elif source == ['files']:
+        elif sources == ['files']:
             try: 
                 self._db.load_aps(N,k,i,d)
             except Exception as e:
