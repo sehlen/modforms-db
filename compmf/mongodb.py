@@ -1362,8 +1362,8 @@ class CompMF(MongoMF):
         fs_f = gridfs.GridFS(mdb,'factor_data')
         s = pattern
         
-        for (N,k,i,newform,nap) in self._db.known(s):
-            print N,k,i,newform,nap
+        for (N,k,i,newforms,nap) in self._db.known(s):
+            print N,k,i,newforms,nap
 #            ii+=1
 #            if ii>10:
 #                return 
@@ -1394,38 +1394,40 @@ class CompMF(MongoMF):
                         clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
                 except IOError:
                     clogger.debug("Space {0} is not in files at {1}".format(sage_label,ambient_fname))
-            sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
-            q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
-            if q is None: # insert newform
-                conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
-                factor_fname = self._db.factor(N,k,i,newform) 
-                try:
-                    B = load(self._db.factor_basis_matrix(N, k, i, newform))
-                    Bd = load(self._db.factor_dual_basis_matrix(N, k, i, newform))
-                    v = load(self._db.factor_dual_eigenvector(N, k, i, newform))
-                    nz = load(self._db.factor_eigen_nonzero(N, k, i, newform))
+            for newform in range(newforms):
+                sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
+            
+                q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
+                if q is None: # insert newform
+                    conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
+                    factor_fname = self._db.factor(N,k,i,newform) 
+                    try:
+                        B = load(self._db.factor_basis_matrix(N, k, i, newform))
+                        Bd = load(self._db.factor_dual_basis_matrix(N, k, i, newform))
+                        v = load(self._db.factor_dual_eigenvector(N, k, i, newform))
+                        nz = load(self._db.factor_eigen_nonzero(N, k, i, newform))
 
-                    if B._cache is None:
-                        B._cache = {}
-                    if Bd._cache is None:
-                        Bd._cache = {}
-                    B._cache['in_echelon_form'] = True
-                    Bd._cache['in_echelon_form'] = True
-                    factor = {'B':B,'Bd':Bd,'v':v,'nz':nz}
-                    fname = factor_fname.split("/")[-2]
-                    if factor <> None:
-                        fs_f.put(dumps(factor),filename=fname,
-                                 sage_newform_label=sage_newform_label,
-                                 conrey_newform_label=conrey_newform_label,
-                                 level=int(N),
-                                 weight=int(k),
-                                 chi=int(i),
-                                 cchi=int(conrey_character_number),
-                                 newform=int(newform))
-                    clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label))
+                        if B._cache is None:
+                            B._cache = {}
+                        if Bd._cache is None:
+                            Bd._cache = {}
+                        B._cache['in_echelon_form'] = True
+                        Bd._cache['in_echelon_form'] = True
+                        factor = {'B':B,'Bd':Bd,'v':v,'nz':nz}
+                        fname = factor_fname.split("/")[-2]
+                        if factor <> None:
+                            fs_f.put(dumps(factor),filename=fname,
+                                     sage_newform_label=sage_newform_label,
+                                     conrey_newform_label=conrey_newform_label,
+                                     level=int(N),
+                                     weight=int(k),
+                                     chi=int(i),
+                                     cchi=int(conrey_newform_label_character_number),
+                                     newform=int(newform))
+                        clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label))
                 
-                except IOError:
-                    clogger.debug("Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),factor_fname))
+                    except IOError:
+                        clogger.debug("Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),factor_fname))
                     
 
                 
