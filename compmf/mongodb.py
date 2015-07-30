@@ -344,7 +344,7 @@ class MongoMF(object):
                         break
         elif sources == ['files']:
             try: 
-                self._db.load_aps(N,k,i,d)
+                res = self._db.load_aps(N,k,i,d)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
