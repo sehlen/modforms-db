@@ -133,8 +133,8 @@ class MongoMF(object):
                     self.remove_duplicates(col,keys,dryrun=noremove)
                     try: 
                         self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
-                except pymongo.errors.DuplicateKeyError:
-                    clogger.critical("We could not remove all duplicates!")
+                    except pymongo.errors.DuplicateKeyError:
+                        clogger.critical("We could not remove all duplicates!")
             # remove duplicates
 
 
