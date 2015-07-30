@@ -304,13 +304,18 @@ class MongoMF(object):
             for r in self._newform_factors.find(s):
                 if res is None:
                     res = {}
-                d = r['newform']
+                newform = r['newform']
                 fid = r['_id']
                 f = self.load_from_mongo('Newform_factors',fid)
-                t = (int(N),int(k),int(i),int(d))
-                res[t] = f
+                t = (int(N),int(k),int(i),int(newform))
+                if d is None:
+                    res = f
+                else:
+                    res[t] = f
             return res
         elif sources == ['files']:
+            if character_naming <>'sage':
+                i = character_conversions.sage_character_number_from_conrey_number(N,i)           
             res = self._db.load_factor(N,k,i,d)
             return res
         elif len(sources)>1:
@@ -353,24 +358,25 @@ class MongoMF(object):
             for r in self._aps.find(s):
                 if res is None:
                     res = {}
-                fid=r['_id']; d = r['newform']; prec = r['prec']
+                fid=r['_id']; newform = r['newform']; prec = r['prec']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 E,v = self.load_from_mongo('ap',fid)
                 clogger.debug("id={0} and E={1}".format(fid,E))
-                t = (int(N),int(k),int(i),int(d))
-                if not res.has_key(t):
-                    res[t]={}
+                t = (int(N),int(k),int(i),int(newform))
+                if not res.has_key(newform):
+                    res[newform]={}
                 if prec_needed == 0 or coeffs == False:
-                    res[t][prec]=(E,v,meta)
+                    res[newform][prec]=(E,v,meta)
                 else:
                     if prec >= prec_needed and coeffs:
-                        res = E*v
-                        break
+                        res[newform][prec] = E*v
+                if not d is None:
+                    res = res[newform]
         elif sources == ['files']:
             if character_naming <>'sage':
                 i = character_conversions.sage_character_number_from_conrey_number(N,i)           
             try: 
-                res = self._db.load_aps(N,k,i,d)
+                res = self._db.load_aps(N,k,i,d,numc=prec_needed)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None

@@ -811,6 +811,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         else:
             numap,fname = aplist_files[0]
             for n,c in aplist_files[1:]:
+                clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
                 if n >= numc:
                     numap,fname = n,c
                     break
