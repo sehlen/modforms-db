@@ -308,7 +308,7 @@ class MongoMF(object):
                 fid = r['_id']
                 f = self.load_from_mongo('Newform_factors',fid)
                 t = (int(N),int(k),int(i),int(newform))
-                if d is None:
+                if not d is None:
                     res = f
                 else:
                     res[t] = f
