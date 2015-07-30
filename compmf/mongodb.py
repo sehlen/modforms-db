@@ -336,7 +336,7 @@ class MongoMF(object):
             return res
         elif len(sources)>1:
             for ss in sources:
-                res = self.get_factors(N,k,i,d,[ss])
+                res = self.get_factors(N,k,i,d,sources=[ss])
                 if not res is None:
                     return res
         else:
