@@ -1357,6 +1357,7 @@ class CompMF(MongoMF):
         fs_f = gridfs.GridFS(mdb,'factor_data')
         i = 0
         for (N,k,i,newform,nap) in self._db.known(""):
+            print N,k,i,newform,nap
             i+=1
             if i>10:
                 return 
