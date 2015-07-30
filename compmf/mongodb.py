@@ -434,7 +434,7 @@ class CompMF(MongoMF):
 
     ## Different levels of parallelization
     @parallel(ncpus=8)
-    @staticcmethod
+    @staticmethod
     def _compute_and_insert_one_space8(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)
     
