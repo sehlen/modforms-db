@@ -328,7 +328,7 @@ class FilenamesMFDB(Filenames):
                 ddir1 = self.make_path_name(ddir1,Nki)
                 ddir1 = ddir1.replace('//','/')
                 list_of_dirs.append(ddir1)
-        clogger.critical("list_of_dirs:{0}".format(list_of_dirs))
+        #clogger.critical("list_of_dirs:{0}".format(list_of_dirs))
         for ddir in list_of_dirs:
             Nki = ddir.split('/')[-1]
             clogger.critical("Nki={0}".format(Nki))
@@ -555,11 +555,12 @@ class FilenamesMFDB(Filenames):
 
 
 
-    def show_existing_files_db(self):
+    def show_existing_files_db(self,update=False):
         r"""
         Display an overview of the existing files.
         """
-        self.update_known_db()
+        if update:
+            self.update_known_db()
         res = {}
         for t in self.find_known():
             N,k,i,newf,d = t
