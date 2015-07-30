@@ -1381,7 +1381,7 @@ class CompMF(MongoMF):
             sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
             q = mdb_files.find_one({'sage_newform_label':sage_newform_label})
             if not q is None: # insert newform
-                conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois)number,orbit_label(newform))
+                conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
                 factor_fname = self._db.factor(N,k,i,d) 
                 factor = load(factor_fname)
                 fname = factor_fname.split("/")[-2]
