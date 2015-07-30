@@ -453,6 +453,7 @@ class CompMF(MongoMF):
         If data for the given space M(N,k,i) exists in either mongo or files database we fetch this data (and possible complete if e.g. more coefficients are needed) and then insert the result into both databases unless explicitly told not to.
 
         """
+        sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         clogger.debug("Compute and/or Insert {0}".format((N,k,i)))
         clogger.debug("Computing ambient modular symbols")
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
@@ -492,7 +493,8 @@ class CompMF(MongoMF):
         else:
             completeness = int(1)
         self._modular_symbols.update({'_id':ambient_fid},{"$set":
-                                                          {'complete':completeness}})                                                              
+                                                          {'complete':completeness}})
+        sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         return True    
 
     def compute_atkin_lehner(self,N,k,i,**kwds):
