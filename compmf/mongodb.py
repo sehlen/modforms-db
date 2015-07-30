@@ -1349,8 +1349,9 @@ class CompMF(MongoMF):
 
     def insert_raw_data(self):
         mdb = self._mongo_conn[self._db_raw]
-        mdb_files = self._mongo_conn["{0}.files".format(self._db_raw)]        
+        mdb_ambient_files = mdb["ambient_data.files"]
         fs_a = gridfs.GridFS(mdb,'ambient_data')
+        mdb_factor_files = mdb["factor_data.files"]
         fs_f = gridfs.GridFS(mdb,'factor_data')
         i = 0
         for (N,k,i,newform,nap) in self._db.known(s):
@@ -1359,7 +1360,7 @@ class CompMF(MongoMF):
                 return 
             # insert the ambient space
             sage_label = "{0}.{1}.{2}".format(N,k,i)
-            q = mdb_files.find_one({'sage_label':sage_label})
+            q = mdb_ambient_files.find_one({'sage_label':sage_label})
             if not q is None: # insert it
                 conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
                 conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
@@ -1379,11 +1380,24 @@ class CompMF(MongoMF):
                            cchi=int(conrey_character_number))
                     clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
             sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
-            q = mdb_files.find_one({'sage_newform_label':sage_newform_label})
+            q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
             if not q is None: # insert newform
                 conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
                 factor_fname = self._db.factor(N,k,i,d) 
-                factor = load(factor_fname)
+                try:
+                    B = load(self.factor_basis_matrix(N, k, i, d))
+                    Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
+                    v = load(self.factor_dual_eigenvector(N, k, i, d))
+                    nz = load(self.factor_eigen_nonzero(N, k, i, d))
+                except IOError:
+                    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+                if B._cache is None:
+                    B._cache = {}
+                if Bd._cache is None:
+                    Bd._cache = {}
+                B._cache['in_echelon_form'] = True
+                Bd._cache['in_echelon_form'] = True
+                factor = {'B':B,'Bd':Bd,'v':v,'nz':nz}
                 fname = factor_fname.split("/")[-2]
                 if factor <> None:
                     fs_f.put(dumps(factor),filename=fname,
