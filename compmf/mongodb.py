@@ -350,7 +350,7 @@ class MongoMF(object):
                 res = None
         elif len(sources)>1:
             for ss in sources:
-                res = get_aps(N,k,i,d,character_naming,prec_needed,coeffs,[ss])
+                res = self.get_aps(N,k,i,d,character_naming,prec_needed,coeffs,[ss])
                 if not res is None:
                     return res
         return res
