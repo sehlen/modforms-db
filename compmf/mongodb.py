@@ -1348,6 +1348,7 @@ class CompMF(MongoMF):
 
 
     def insert_raw_data(self):
+        from utils import orbit_label
         mdb = self._mongo_conn[self._db_raw]
         mdb_ambient_files = mdb["ambient_data.files"]
         fs_a = gridfs.GridFS(mdb,'ambient_data')
