@@ -359,7 +359,6 @@ class CompMF(MongoMF):
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
         assert str(db).isalnum()
-        self._modular_symbols = 
         self._do_computations = kwds.get('compute',True)
         self._save_to_file = kwds.get('save_to_file',True)
         
@@ -434,7 +433,7 @@ class CompMF(MongoMF):
 
     ## Different levels of parallelization
     @parallel(ncpus=8)
-    @classmethod
+#    @classmethod
 #    @staticmethod
     def _compute_and_insert_one_space8(self,N,k,i,**kwds):
         return self.compute_and_insert_one_space(N,k,i,**kwds)
