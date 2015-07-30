@@ -861,12 +861,13 @@ class CompMF(MongoMF):
             Insert aps (of the same format as above) into the files database.
             """
             res = []
-            for key,val in aps.iteritems():
-                clogger.debug("key={0}".format(key))
+            for d,val in aps.iteritems():
+                clogger.debug("d={0}".format(d))
                 clogger.debug("type(val)={0}".format(type(val)))
                 if isinstance(val,dict):
                     clogger.debug("val.keys()={0}".format(val.keys()))
-                N,k,i,d = key
+                #N,k,i,d = key
+                #d = key
                 for prec in val.keys():
                     E,v,meta = val[prec]
                     aplist_file = self._db.factor_aplist(N, k, i, d, False, prec)
