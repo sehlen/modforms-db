@@ -1364,7 +1364,7 @@ class CompMF(MongoMF):
                 conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
                 conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
                 conrey_character_number = character_conversions.dirichlet_character_conrey_used_in_computation(N,i)
-                conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number))
+                conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number)
                 
                 ambient_fname = self._db.ambient(N,k,i) 
                 ambient = load(ambient_fname)
