@@ -317,17 +317,19 @@ class MongoMF(object):
       
         
         """
-        if character_naming=='sage':
-            s = {'N':int(N),'k':int(k),'chi':int(i)}
-        else:
-            ## Fetch the record in the database corresponding to the Galois orbit of
-            ## chi_N,i  (in Conrey's character naming scheme)
-            s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}
-        if not d is None:
-            s['newform']=int(d)
+
+            
         clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
         res = None
         if sources == ['mongo']:
+            if character_naming=='sage':
+                s = {'N':int(N),'k':int(k),'chi':int(i)}
+            else:
+                ## Fetch the record in the database corresponding to the Galois orbit of
+                ## chi_N,i  (in Conrey's character naming scheme)            
+                s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}            
+            if not d is None:
+                s['newform']=int(d)
             for r in self._aps.find(s):
                 if res is None:
                     res = {}
@@ -345,6 +347,8 @@ class MongoMF(object):
                         res = E*v
                         break
         elif sources == ['files']:
+            if character_naming <>'sage':
+                i = character_conversions.sage_character_number_from_conrey_number(N,i)           
             try: 
                 res = self._db.load_aps(N,k,i,d)
             except Exception as e:
