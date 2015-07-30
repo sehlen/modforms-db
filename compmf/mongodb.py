@@ -330,6 +330,8 @@ class MongoMF(object):
             if not d is None:
                 res = self._db.load_factor(N,k,i,d)
             else:
+                if res is None:
+                    res = {}
                 nfacts = self._db.number_of_known_factors(N,k,i)
                 for d in range(nfacts):
                     res[d]=self._db.load_factor(N,k,i,d)
