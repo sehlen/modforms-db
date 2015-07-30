@@ -1371,12 +1371,12 @@ class CompMF(MongoMF):
             sage_label = "{0}.{1}.{2}".format(N,k,i)
             q = mdb_ambient_files.find_one({'sage_label':sage_label})
             conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
-
+            conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
+            
+            conrey_character_number = conrey_char.number() #character_conversions.dirichlet_character_conrey_used_in_computation(N,conrey_char.number())
             if q is None: # insert it
                 print N,i
-                conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
-                
-                conrey_character_number = conrey_char.number() #character_conversions.dirichlet_character_conrey_used_in_computation(N,conrey_char.number())
+
                 conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number)
                 
                 ambient_fname = self._db.ambient(N,k,i) 
@@ -1422,7 +1422,7 @@ class CompMF(MongoMF):
                                      level=int(N),
                                      weight=int(k),
                                      chi=int(i),
-                                     cchi=int(conrey_newform_label_character_number),
+                                     cchi=int(conrey_character_number),
                                      newform=int(newform))
                         clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label))
                 
