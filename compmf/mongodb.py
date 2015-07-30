@@ -1364,11 +1364,12 @@ class CompMF(MongoMF):
             # insert the ambient space
             sage_label = "{0}.{1}.{2}".format(N,k,i)
             q = mdb_ambient_files.find_one({'sage_label':sage_label})
+            conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
+
             if q is None: # insert it
                 print N,i
                 conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
                 
-                conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
                 conrey_character_number = character_conversions.dirichlet_character_conrey_used_in_computation(N,i)
                 conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number)
                 
