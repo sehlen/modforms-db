@@ -287,20 +287,34 @@ class MongoMF(object):
         """
         return self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)}).count()
 
-    def get_factors(self,N,k,i,d=None):
+    def get_factors(self,N,k,i,d=None,sources=['mongo','files']):
         r"""
         Get factor nr. d of the space M(N,k,i)
         """
-        s = {'N':int(N),'k':int(k),'chi':int(i)}
-        if not d is None:
-            s['newform']=int(d)
-        res = {}
-        for r in self._newform_factors.find(s):
-            d = r['newform']
-            fid = r['_id']
-            f = self.load_from_mongo('Newform_factors',fid)
-            t = (int(N),int(k),int(i),int(d))
-            res[t] = f
+        res = None
+        if sources == ['mongo']:
+            s = {'N':int(N),'k':int(k),'chi':int(i)}
+            if not d is None:
+                s['newform']=int(d)
+            for r in self._newform_factors.find(s):
+                if res is None:
+                    res = {}
+                d = r['newform']
+                fid = r['_id']
+                f = self.load_from_mongo('Newform_factors',fid)
+                t = (int(N),int(k),int(i),int(d))
+                res[t] = f
+            return res
+        elif source == ['files']:
+            res = self._db.load_factor(N,k,i,d)
+            return res
+        elif len(sources)>1:
+            for ss in sources:
+                res = self.get_factors(N,k,i,d,[ss])
+                if not res is None:
+                    return res
+        else:
+            clogger.critical("Can not load factors, unknown source:{0}".format(sources))
         return res
     
     def get_aps(self,N,k,i,d=None,character_naming='sage',prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','file']):
@@ -318,8 +332,7 @@ class MongoMF(object):
         
         """
 
-            
-        clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
+        clogger.debug("find aps with N,k,i,d={0} from sources:{1}".format((N,k,i,d),sources))            
         res = None
         if sources == ['mongo']:
             if character_naming=='sage':
@@ -330,6 +343,8 @@ class MongoMF(object):
                 s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(i)]}}            
             if not d is None:
                 s['newform']=int(d)
+            clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
+                
             for r in self._aps.find(s):
                 if res is None:
                     res = {}
