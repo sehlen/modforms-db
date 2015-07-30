@@ -620,7 +620,7 @@ class FilenamesMFDB(Filenames):
 
 
 
-    def show_existing_files_db(self,update=False):
+    def show_existing_files_db(self,update=False,details=False):
         r"""
         Display an overview of the existing files.
         """
@@ -635,9 +635,12 @@ class FilenamesMFDB(Filenames):
                 res[N][k] = {}
             res[N][k][i]=newf,d
         Ns = res.keys(); Ns.sort()
-        s=""
+        
+        s="Number of records:{0}".format(len(Ns))
+        s+="in range {0} -- {1} ".format(min(Ns),max(Ns))
+        if not details:
+            return s
         for N in Ns:
-            #s="{0:0>4} \t : \n".format(N)
             ks = res[N].keys(); ks.sort()
             #print "ks=",ks
             for k in ks:
