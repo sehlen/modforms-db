@@ -920,7 +920,7 @@ class CompMF(MongoMF):
             return insert_aps_into_mongodb(aps)
         elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
             ### We have coefficients in mongo, need to save them to file
-            aps = self.get_aps(N,k,i,source=['mongo'])
+            aps = self.get_aps(N,k,i,sources=['mongo'])
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
             return insert_aps_into_filesdb(aps)
         elif len(aps_in_mongo)>=num_factors: #  we are ok anyway
