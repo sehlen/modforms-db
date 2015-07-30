@@ -1395,7 +1395,7 @@ class CompMF(MongoMF):
                            cchi=int(conrey_character_number),
                            newform=int(newform))
 
-                    clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label)
+                    clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label))
                 
                 
 
