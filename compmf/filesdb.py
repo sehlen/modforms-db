@@ -627,6 +627,7 @@ class FilenamesMFDB(Filenames):
         if update:
             self.update_known_db()
         res = {}
+        ii = 0
         for t in self.known(""):
             N,k,i,newf,d = t
             if N not in res:
@@ -634,9 +635,10 @@ class FilenamesMFDB(Filenames):
             if k not in res[N]:
                 res[N][k] = {}
             res[N][k][i]=newf,d
+            ii+=1
         Ns = res.keys(); Ns.sort()
         
-        s="Number of records:{0}".format(len(Ns))
+        s="Number of records:{0}".format(ii)
         s+="in range {0} -- {1} ".format(min(Ns),max(Ns))
         if not details:
             return s
