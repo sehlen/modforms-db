@@ -1408,4 +1408,4 @@ def precision_needed_for_L(N,k,**kwds):
     pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
-    return ceil(RR(pprec)/RR(100))*
+    return ceil(RR(pprec)/RR(100))
