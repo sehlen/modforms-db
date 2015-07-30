@@ -84,18 +84,29 @@ class MongoMF(object):
 
 
         ## The indices we use for the collections given above
-        self._indices = {'Modular_symbols.files' :  {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
-                                               'unique':True,'name':"N_k_cchi"},
-                         'Newform_factors.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-                                             ("newform",pymongo.ASCENDING)],
-                                               'unique':True,'name':"N_k_cchi_d"},
-                         'ap.files': {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-                                                ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
-                                         'unique':True,'name':"N_k_cchi_d"}, 
-                         'Atkin_Lehner.files' : {'keys':  [("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-                                                    ("newform",pymongo.ASCENDING)],
-                                           'unique':True,'name':"N_k_cchi_d"}
-                         }
+        self._indices = [
+        { 'name': 'Modular_symbols.files', 'index':[
+            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
+          'unique':True},
+        { 'name': 'Modular_symbols.files', 'index':[
+            ("hecke_orbit_label",pymongo.ASCENDING)],
+          'unique':True},
+        { 'name': 'Newform_factors.files', 'index':[
+            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+            ("newform",pymongo.ASCENDING)],
+          'unique':True},
+        { 'name': 'Newform_factors.files', 'index':[
+            ("hecke_orbit_label",pymongo.ASCENDING)],
+            'unique':True},
+        { 'name' : 'ap.files', 'index' : [
+            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+            ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
+          'unique':True}, 
+        { 'name' : 'Atkin_Lehner.files', 'index': [
+            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+            ("newform",pymongo.ASCENDING)],
+          'unique':True}
+                         ]
         self._sage_version = sage.version.version
 
     def __repr__(self):
@@ -315,8 +326,11 @@ class MongoMF(object):
             return res
         elif sources == ['files']:
             if character_naming <>'sage':
-                i = character_conversions.sage_character_number_from_conrey_number(N,i)           
-            res = self._db.load_factor(N,k,i,d)
+                i = character_conversions.sage_character_number_from_conrey_number(N,i)
+            if not d is None:
+                res = self._db.load_factor(N,k,i,d)
+            else:
+                
             return res
         elif len(sources)>1:
             for ss in sources:
@@ -812,15 +826,20 @@ class CompMF(MongoMF):
                 r = self._aps.find_one({'filename':fname1})
                 if not r is None:
                     fs_ap.delete(r['_id'])
-                apid = fs_ap.put(dumps( (E,v)),filename=fname1,
-                                 N=int(N),k=int(k),chi=int(i),cchi=int(ci),
-                                 character_galois_orbit=orbit,
-                                 newform=int(d),
-                                 prec = int(pprec),
-                                 cputime = meta.get("cputime",""),
-                                 sage_version = meta.get("version",""),
-                                 hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
-                                 ambient_id=ambient_id)
+                try: 
+                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                                     N=int(N),k=int(k),chi=int(i),cchi=int(ci),
+                                     character_galois_orbit=orbit,
+                                     newform=int(d),
+                                     prec = int(pprec),
+                                     cputime = meta.get("cputime",""),
+                                     sage_version = meta.get("version",""),
+                                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                                     ambient_id=ambient_id)
+                except gridfs.errors.FileExists as e:
+                    clogger.critical("Could not insert coefficients: Error:{0}".format(e.message))
+                    q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
+                    clogger.critical("We have {0} records in the database!".format(q.count()))
                 aps_in_mongo.append(apid)
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
                 # Also insert the corresponding v separately (to protect against changes in sage)
