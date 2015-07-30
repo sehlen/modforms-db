@@ -29,6 +29,7 @@ import pymongo
 import gridfs
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
+from compmf import character_conversions
 from compmf.character_conversions import (
     dirichlet_character_conrey_from_sage_character_number,
     dirichlet_character_conrey_galois_orbit_numbers_from_character_number,
