@@ -799,7 +799,7 @@ class CompMF(MongoMF):
         clogger.debug("key={0}".format(key))
         aps_in_mongo = self._aps.find(key).distinct('_id')
         aps_in_file = 0 
-        clogger.debug("Already have {0} ap lists in mongodb! Need {1}".format(len(aps_in_mongo),num_factors))
+        clogger.debug("Already have {0} ap lists in mongodb! Need at least {1}".format(len(aps_in_mongo),num_factors))
         def insert_aps_into_mongodb(aps):
             r"""
             Insert a dictionary of aps into the mongo database.
@@ -918,15 +918,15 @@ class CompMF(MongoMF):
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,i,d))
                 return aps
             return insert_aps_into_mongodb(aps)
-        elif len(aps_in_mongo) == num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
+        elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
             ### We have coefficients in mongo, need to save them to file
             aps = self.get_aps(N,k,i,source=['mongo'])
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
             return insert_aps_into_filesdb(aps)
-        elif len(aps_in_mongo)==num_factors: #  we are ok anyway
+        elif len(aps_in_mongo)>=num_factors: #  we are ok anyway
             clogger.debug("We have anough coefficients in mongo and do not want to write to file!")
         else:
-            clogger.critical("aps for: {0},{1},{2},{3} could not be computed!".format(N,k,i))
+            clogger.critical("aps for: {0},{1},{2} could not be computed!".format(N,k,i))
         return aps_in_mongo
 
 
