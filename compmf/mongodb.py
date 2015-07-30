@@ -1362,7 +1362,7 @@ class CompMF(MongoMF):
             # insert the ambient space
             sage_label = "{0}.{1}.{2}".format(N,k,i)
             q = mdb_ambient_files.find_one({'sage_label':sage_label})
-            if not q is None: # insert it
+            if q is None: # insert it
                 conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
                 conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
                 conrey_character_number = character_conversions.dirichlet_character_conrey_used_in_computation(N,i)
@@ -1382,7 +1382,7 @@ class CompMF(MongoMF):
                     clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label))
             sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
             q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
-            if not q is None: # insert newform
+            if q is None: # insert newform
                 conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
                 factor_fname = self._db.factor(N,k,i,d) 
                 try:
