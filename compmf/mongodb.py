@@ -1388,14 +1388,14 @@ class CompMF(MongoMF):
             q = mdb_factor_files.find_one({'sage_newform_label':sage_newform_label})
             if q is None: # insert newform
                 conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois_number,orbit_label(newform))
-                factor_fname = self._db.factor(N,k,i,d) 
+                factor_fname = self._db.factor(N,k,i,newform) 
                 try:
-                    B = load(self.factor_basis_matrix(N, k, i, d))
-                    Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
-                    v = load(self.factor_dual_eigenvector(N, k, i, d))
-                    nz = load(self.factor_eigen_nonzero(N, k, i, d))
+                    B = load(self.factor_basis_matrix(N, k, i, newform))
+                    Bd = load(self.factor_dual_basis_matrix(N, k, i, newform))
+                    v = load(self.factor_dual_eigenvector(N, k, i, newform))
+                    nz = load(self.factor_eigen_nonzero(N, k, i, newform))
                 except IOError:
-                    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+                    raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),f)
                 if B._cache is None:
                     B._cache = {}
                 if Bd._cache is None:
