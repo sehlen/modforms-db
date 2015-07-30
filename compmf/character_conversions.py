@@ -134,10 +134,6 @@ def sage_character_to_sage_galois_orbit_number(x):
         i+=1
     raise ValueError,"Could not find Galois orbit of {0}".format(x)
 
-
-
-
-
     
 ## Galois orbit representatives
         
@@ -297,6 +293,21 @@ def conrey_character_number_from_sage_galois_orbit_number(n,i):
     Get the number of the character x corresponding to the (Sage) Galois orbit nr. i in DirichletGroup(n)
     """
     return dirichlet_character_conrey_from_sage_galois_orbit_number(n,i).number()
+
+@cached_function
+def conrey_galois_orbit_number_from_sage_galois_orbit_number(n,i):
+    r"""
+    Get the number of the character x corresponding to the (Sage) Galois orbit nr. i in DirichletGroup(n)
+    """
+    D = dirichlet_group_conrey(n)
+    cchar = D[conrey_character_number_from_sage_galois_orbit_number(n,i)]
+    i = 0
+    for orbit in D.galois_orbits():
+        if cchar in orbit:
+            return i
+        i+=1
+    raise ValueError,"Could not find galois orbit number!"
+    #return dirichlet_character_conrey_from_sage_galois_orbit_number(n,i).number()
 
 
 

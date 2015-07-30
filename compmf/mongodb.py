@@ -57,6 +57,7 @@ class MongoMF(object):
         
         - compute -- Boolean (default True) set to False if you do not want to compute anything.
         """
+        self._raw_db = kwds.get('raw_db','modularforms_raw') # is really a reflection of data which is in the files.
         if pymongo.version_tuple[0] < 3:
             from pymongo import Connection
             _C = Connection(port=port)
@@ -1346,7 +1347,59 @@ class CompMF(MongoMF):
                 
 
 
+    def insert_raw_data(self):
+        mdb = self._mongo_conn[self._db_raw]
+        mdb_files = self._mongo_conn["{0}.files".format(self._db_raw)]        
+        fs_a = gridfs.GridFS(mdb,'ambient_data')
+        fs_f = gridfs.GridFS(mdb,'factor_data')
+        i = 0
+        for (N,k,i,newform,nap) in self._db.known(s):
+            i+=1
+            if i>10:
+                return 
+            # insert the ambient space
+            sage_label = "{0}.{1}.{2}".format(N,k,i)
+            q = mdb_files.find_one({'sage_label':sage_label})
+            if not q is None: # insert it
+                conrey_char = character_conversions.dirichlet_character_conrey_from_sage_character_number(N,i)
+                conrey_galois_number = character_conversions.conrey_galois_orbit_number_from_sage_galois_orbit_number(N,i)
+                conrey_character_number = character_conversions.dirichlet_character_conrey_used_in_computation(N,i)
+                conrey_label = "{0}.{1}.{2}".format(N,k,conrey_galois_number))
                 
+                ambient_fname = self._db.ambient(N,k,i) 
+                ambient = load(ambient_fname)
+                fname = ambient_fname.split("/")[-2]
+                if ambient <> None:
+                    fs_a.put(dumps(ambient),filename=fname,
+                           sage_label=sage_label,
+                           conrey_label=conrey_label,
+                           level=int(N),
+                           weight=int(k),
+                           chi=int(i),
+                           cchi=int(conrey_character_number))
+                    clogger.debug("inserted ambient: {0} / {1}".format(sage_label,conrey_label)
+            sage_newform_label = "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(newform))
+            q = mdb_files.find_one({'sage_newform_label':sage_newform_label})
+            if not q is None: # insert newform
+                conrey_newform_label="{0}.{1}.{2}{3}".format(N,k,conrey_galois)number,orbit_label(newform))
+                factor_fname = self._db.factor(N,k,i,d) 
+                factor = load(factor_fname)
+                fname = factor_fname.split("/")[-2]
+                if factor <> None:
+                    fs_f.put(dumps(factor),filename=fname,
+                           sage_newform_label=sage_newform_label,
+                           conrey_newform_label=conrey_newform_label,
+                           level=int(N),
+                           weight=int(k),
+                           chi=int(i),
+                           cchi=int(conrey_character_number),
+                           newform=int(newform))
+
+                    clogger.debug("inserted newform:{0} / {1}".format(sage_newform_label,conrey_newform_label)
+                
+                
+
+        
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
@@ -1355,6 +1408,4 @@ def precision_needed_for_L(N,k,**kwds):
     pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
-    return ceil(RR(pprec)/RR(100))*100
-
-
+    return ceil(RR(pprec)/RR(100))*
