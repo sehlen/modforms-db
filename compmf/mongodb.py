@@ -825,7 +825,7 @@ class CompMF(MongoMF):
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
-                clogger.debug("Computing aplist! m={0}".format(num_factors))
+                clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
                 aps = self._computedb.compute_aplists(N,k,i,0,pprec,ambient=ambient,save=self._save_to_file)
                 if aps == 0:
                     aps = {}
@@ -1123,7 +1123,7 @@ class CompMF(MongoMF):
         - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
 
         - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
-        - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
+        - 'rechexbck' -- bool: set to True if you want to recheck records already marked as complete.
         """
         recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck,ncpus=ncpus)
         args = []
@@ -1434,4 +1434,4 @@ def precision_needed_for_L(N,k,**kwds):
     pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
-    return ceil(RR(pprec)/RR(100))
+    return ceil(RR(pprec)/RR(100))*100
