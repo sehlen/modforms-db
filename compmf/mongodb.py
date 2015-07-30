@@ -57,7 +57,7 @@ class MongoMF(object):
         
         - compute -- Boolean (default True) set to False if you do not want to compute anything.
         """
-        self._raw_db = kwds.get('raw_db','modularforms_raw') # is really a reflection of data which is in the files.
+        self._db_raw = kwds.get('db_raw','modularforms_raw') # is really a reflection of data which is in the files.
         if pymongo.version_tuple[0] < 3:
             from pymongo import Connection
             _C = Connection(port=port)
