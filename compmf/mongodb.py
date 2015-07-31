@@ -704,14 +704,16 @@ class CompMF(MongoMF):
                 clogger.debug("Could not dump the ambient space!:{0}".format(e))
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
-                            N=int(N),k=int(k),chi=int(i),orbits=int(0),
-                            dima=dima,dimc=dimc,
-                            character_galois_orbit=orbit,
-                            cchi=int(ci),
-                            cputime = meta.get("cputime",""),
-                            sage_version = meta.get("version",""))
-            except gridfs.errors.FileExists:
-                clogger.debug("We can not insert the same record twice!")
+                                N=int(N),k=int(k),chi=int(i),orbits=int(0),
+                                hecke_orbit_label="{0}.{1}.{2}".format(N,k,ci),
+                                dima=dima,dimc=dimc,
+                                character_galois_orbit=orbit,
+                                cchi=int(ci),
+                                cputime = meta.get("cputime",""),
+                                sage_version = meta.get("version",""))
+            except gridfs.errors.FileExists as e:
+                clogger.debug("We can not insert the same record twice! Error:{0}".format(e.message))
+                rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
         else:
             fid = ambient_in_mongo
         clogger.debug("fid={0}".format(fid))
