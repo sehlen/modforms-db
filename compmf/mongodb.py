@@ -132,7 +132,7 @@ class MongoMF(object):
                     keys =  [x[0] for x in ix['keys']]
                     self.remove_duplicates(col,keys,dryrun=noremove)
                     try: 
-                        self._mongodb[col].create_index(ix['keys'],unique=ix['unique'],name=ix['name'])
+                        self._mongodb[r['name']].create_index(r['index'],unique=r['unique'])
                     except pymongo.errors.DuplicateKeyError:
                         clogger.critical("We could not remove all duplicates!")
             # remove duplicates
@@ -473,12 +473,12 @@ class CompMF(MongoMF):
         """
         k0 = kwds.get('k',None)
         clogger.debug("Converting N={0} and k={1}".format(N,k))
-        s = ""
-        if N<>None:
-            s = "N={0}".format(N)
-        if k<>None:
-            s+= " k={0}".format(k)            
-        
+        s = kwds.get('search',"")
+        if s == "":
+            if N<>None:
+                s = "N={0}".format(N)
+            if k<>None:
+                s+= " k={0}".format(k)            
         args = []
         if kwds.get('trivial'):
             for (N,k,i,newforms,nap) in self._db.known(s):
@@ -1192,7 +1192,7 @@ class CompMF(MongoMF):
 
         return res
 
-    def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False):
+    def complete_records(self,nrange=[],krange=[],chi=None,ncpus=1,check_content=False,recheck=False,from_files=True):
         r"""
         Check all records within a specified bound and update / compute the incomplete ones.
 
@@ -1203,7 +1203,7 @@ class CompMF(MongoMF):
         - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
 
         - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
-        - 'rechexbck' -- bool: set to True if you want to recheck records already marked as complete.
+        - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
         """
         recs = self.find_records_needing_completion(nrange,krange,chi=chi,check_content=check_content,recheck=recheck,ncpus=ncpus)
         args = []
@@ -1217,6 +1217,8 @@ class CompMF(MongoMF):
                 clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
                 continue
             args.append((N,k,i))
+        if from_files:
+            N,k,i
         clogger.debug("Completing {0} spaces!".format(len(args)))
         self.get_or_compute_spaces(args,ncpus=ncpus)
         return True
