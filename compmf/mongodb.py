@@ -471,22 +471,19 @@ class CompMF(MongoMF):
         r"""
         Converting records which exists (possibly partly) in the files for a given level and insert into the mongodb.
         """
-        k0 = kwds.get('k',None)
-        clogger.debug("Converting N={0} and k={1}".format(N,k))
-        s = kwds.get('search',"")
-        if s == "":
-            if N<>None:
-                s = "N={0}".format(N)
-            if k<>None:
-                s+= " k={0}".format(k)            
-        args = []
-        if kwds.get('trivial'):
-            for (N,k,i,newforms,nap) in self._db.known(s):
-                if i==0:
-                    args.append((N,k,i))
+        if isinstance(N,basestring):
+            s = N
         else:
-            for (N,k,i,newforms,nap) in self._db.known(s):
-                args.append((N,k,i))
+            s = ""
+            if s == "":
+                if N<>None:
+                    s = "N={0}".format(N)
+                if k<>None:
+                    s+= " k={0}".format(k)            
+        args = []
+        clogger.debug("Converting records matching pattern {0}".format(s))
+        for (N,k,i,newforms,nap) in self._db.known(s):
+            args.append((N,k,i))
         self.get_or_compute_spaces(args,**kwds)
         
     def get_or_compute_spaces(self,args,**kwds):
