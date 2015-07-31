@@ -709,7 +709,7 @@ class CompMF(MongoMF):
                             cchi=int(ci),
                             cputime = meta.get("cputime",""),
                             sage_version = meta.get("version",""))
-            except FileExists:
+            except gridfs.errors.FileExists:
                 clogger.debug("We can not insert the same record twice!")
         else:
             fid = ambient_in_mongo
