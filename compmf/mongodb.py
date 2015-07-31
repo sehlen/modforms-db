@@ -697,6 +697,7 @@ class CompMF(MongoMF):
             dimc = int(ambient.cuspidal_submodule().dimension())
             clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,i),ambient))
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
+            fid = None
             try:
                 dump_ambient = dumps(ambient)
             except Exception as e:
