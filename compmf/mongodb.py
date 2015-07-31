@@ -515,8 +515,11 @@ class CompMF(MongoMF):
         for (N,k,i,newforms,nap) in self._db.known(s):
             if not are_compatible(N,k,i):
                 continue
-            q = self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)})
-            if q.count() == 0:
+            if kwds.get('force',False):
+                q = self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)})
+                if q.count() == 0:
+                    args.append((N,k,i))
+            else:
                 args.append((N,k,i))
         self.get_or_compute_spaces(args,**kwds)
         
