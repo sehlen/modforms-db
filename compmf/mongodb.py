@@ -513,7 +513,11 @@ class CompMF(MongoMF):
         args = []
         clogger.debug("Converting records matching pattern {0}".format(s))
         for (N,k,i,newforms,nap) in self._db.known(s):
-            args.append((N,k,i))
+            if not are_compatible(N,k,i):
+                continue
+            q = self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)})
+            if q.count() == 0:
+                args.append((N,k,i))
         self.get_or_compute_spaces(args,**kwds)
         
     def get_or_compute_spaces(self,args,**kwds):
