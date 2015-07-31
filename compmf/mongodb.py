@@ -701,13 +701,16 @@ class CompMF(MongoMF):
                 dump_ambient = dumps(ambient)
             except Exception as e:
                 clogger.debug("Could not dump the ambient space!:{0}".format(e))
-            fid = fs_ms.put(dumps(ambient),filename=fname,
+            try:
+                fid = fs_ms.put(dumps(ambient),filename=fname,
                             N=int(N),k=int(k),chi=int(i),orbits=int(0),
                             dima=dima,dimc=dimc,
                             character_galois_orbit=orbit,
                             cchi=int(ci),
                             cputime = meta.get("cputime",""),
                             sage_version = meta.get("version",""))
+            except FileExists:
+                clogger.debug("We can not insert the same record twice!")
         else:
             fid = ambient_in_mongo
         clogger.debug("fid={0}".format(fid))
