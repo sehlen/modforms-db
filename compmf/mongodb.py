@@ -714,6 +714,10 @@ class CompMF(MongoMF):
             except gridfs.errors.FileExists as e:
                 clogger.debug("We can not insert the same record twice! Error:{0}".format(e.message))
                 rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+                if rec is None:
+                    clogger.critical("We could nt find the double record!")
+                else:
+                    fid = rec['_id']
         else:
             fid = ambient_in_mongo
         clogger.debug("fid={0}".format(fid))
