@@ -127,14 +127,15 @@ class MongoMF(object):
             if r['name'] in self._mongodb.collection_names():
                 try: 
                     self._mongodb[r['name']].create_index(r['index'],unique=r['unique'])
-                except pymongo.errors.DuplicateKeyError:
-                    print "Removing duplicates!"
-                    keys =  [x[0] for x in ix['keys']]
-                    self.remove_duplicates(col,keys,dryrun=noremove)
-                    try: 
-                        self._mongodb[r['name']].create_index(r['index'],unique=r['unique'])
-                    except pymongo.errors.DuplicateKeyError:
-                        clogger.critical("We could not remove all duplicates!")
+                except pymongo.errors.DuplicateKeyError as e:
+                    print "Error: {0}!".format(e)
+#                    print "Removing duplicates!"
+#                    keys =  [x[0] for x in r['index']]
+#                    self.remove_duplicates(r['name'],keys,dryrun=noremove)
+#                    try: 
+#                        self._mongodb[r['name']].create_index(r['index'],unique=r['unique'])
+#                    except pymongo.errors.DuplicateKeyError:
+#                        clogger.critical("We could not remove all duplicates!")
             # remove duplicates
 
 
@@ -198,7 +199,7 @@ class MongoMF(object):
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
             #print "s=",s
-            q = self._mongodb[ccol].find(s,projection=flds).sort('uploadDate',1)
+            q = self._mongodb[ccol].find(s,projection=flds).sort('uploadDate',pymongo.ASCENDING)
             if q.count()==1:
                 continue
             for rnew in q: 
@@ -212,7 +213,36 @@ class MongoMF(object):
                 else:
                     clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
                     fs.delete(rnew['_id'])
-        
+
+
+    def remove_duplicates1(self,col,key,dryrun=1):
+        r"""
+        Remove duplicate records in collection col for which keys are not unique.
+        """
+        fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
+        if 'files' not in col:
+            ccol='{0}.files'.format(col)
+        else:
+            ccol = col
+        s = {}
+        for r in self._mongodb[ccol].find().sort('uploadDate',pymongo.DESCENDING):
+            id=r['_id']
+            val = r[key]
+            q = self._mongodb[ccol].find({key:val})
+            if q.count()==1:
+                continue
+            for rnew in q: 
+                if rnew['_id']==id:
+                    continue
+                clogger.debug("s = {0}".format(s))
+                clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
+                clogger.debug("Duplicate of {0}".format(r))
+                if dryrun:
+                    clogger.debug("Not really deleting!")
+                else:
+                    clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
+                    fs.delete(rnew['_id'])
+                    
     def show_existing_mongo(self,db='fr'):
         r"""
         Display an overview of the existing records in the mongo db.
