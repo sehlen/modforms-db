@@ -1557,9 +1557,20 @@ class CompMF(MongoMF):
                         clogger.debug("Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),factor_fname))
                     
 
-                
-                
-
+    def check_all_characters(self):
+        r"""
+        
+        """
+        for N in self._newform_factors.distinct('N'):
+            if N < 3:
+                continue
+            for k in self._newform_factors.find({'N':N}).distinct('k'):
+                l = character_conversions.dirichlet_character_sage_galois_orbits_reps(N)
+                l1 = filter(lambda x : x(-1)==(-1)**k,l)
+                o = len(l1)
+                chis = self._newform_factors.find({'N':N,'k':k}).distinct('cchi')
+                if len(chis) >= o:
+                    print N,k,o,chis
         
 def precision_needed_for_L(N,k,**kwds):
     r"""

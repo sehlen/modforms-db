@@ -142,7 +142,7 @@ def dirichlet_character_sage_galois_orbits_reps(N):
     """
     Return representatives for the Galois orbits of Dirichlet characters of level N.
     """
-    return [X[0] for X in DirichletGroup(N).galois_orbits()]
+    return DirichletGroup(N).galois_orbits(reps_only=True)
 
 @cached_function
 def dirichlet_character_conrey_galois_orbits_reps(N):
