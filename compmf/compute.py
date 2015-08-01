@@ -165,16 +165,20 @@ class ComputeMFData(object):
         #eps = DirichletGroup(N).galois_orbits()[i][0]
         # check if the factor already exists by checking for 
         clogger.debug("check if path exists {0}".format(self.files().factor_eigen_nonzero(N, k, i, 0)))
-        if self.files().path_exists(self.files().factor_eigen_nonzero(N, k, i, 0)):
-            return self.files().number_of_known_factors(N,k,i) 
-        t = cputime()
         M = self.files().load_ambient_space(N, k, i)
+        t = cputime()
+        S = M.cuspidal_subspace().new_subspace()
+        if self.files().path_exists(self.files().factor_eigen_nonzero(N, k, i, 0)):
+            known = self.files().number_of_known_factors(N,k,i)
+            needed = S.dimension()
         clogger.debug("M={0}".format(M))
+        clogger.debug("S={0}".format(S))
         if kwds.get('D') is None:
-            D = M.cuspidal_subspace().new_subspace().decomposition()
+            D = S.decomposition()
         else:
             D = kwds['D']
         clogger.debug("D={0}".format(D))
+
         for d in range(len(D)):
             self.files().factor(N,k,i,d,makedir=True)
             f = self.files().factor_basis_matrix(N, k, i, d)
