@@ -462,7 +462,29 @@ class MongoMF(object):
                 if not res is None:
                     return res
         return res
-        
+
+    def check_ramanujan(self):
+        r"""
+        Check Ramanujan bound for ap's in the database (simple chekc to catch trivially wrong stuff)
+        """
+        # first get 
+        for r in self._aps.find():
+            N=r['N']; k=r['k']; chi=r['chi']
+            fid = r['_id']
+            kk = RR(k-1)/RR(2)
+            aps = self.get_aps(N,k,chi)
+            for d in aps.keys():
+                prec in aps[d].keys():
+                    E,v=aps[d][prec][0:2]
+                    c = E*v
+                    i = 0 
+                    for p in primes_first_n(len(c)):
+                        t = c[i]/p**kk
+                        if abs(t)>2:
+                            print "ERROR: a({0})=t for (N,k,chi)={1},{2},{3}".format(p,N,k,chi,t=t)
+                    
+            
+            
 class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
@@ -894,7 +916,7 @@ class CompMF(MongoMF):
                 clogger.debug("E={0}".format(E))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
-                fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i))
+                fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,i).split("/")[-1])
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,i,d)))
