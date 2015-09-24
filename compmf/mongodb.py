@@ -498,8 +498,9 @@ class MongoMF(object):
             Ns,ks,ist,n1,n2 = l[-5:]
             n1 = int(n1); n2=int(n2)
             if n1 > 0:
-                print "n1=",N,k,chi,n1
+                print "n1=",N,k,chi,n1,fname
                 continue
+
             p1 = next_prime(n1); p2=previous_prime(n2)
             E,v = self.load_from_mongo('ap',fid)
             # check first and last coefficients
