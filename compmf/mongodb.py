@@ -1025,11 +1025,11 @@ class CompMF(MongoMF):
         else:
             check_level = 1
         clogger.debug("check_record with level: {0}".format(check_level))
-        s = {'projection':['N','k','chi']}
+        s = {}
         if recheck is False:
             s['complete']={"$lt":check_level+int(1)}
         clogger.debug("s = {0}".format(s))
-        for r in self._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
+        for r in self._modular_symbols.find(s,projection=['N','k','chi']).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             n = r['N']; k=r['k']; chi=r['chi']
             if n==7 and k==3:
                 print r
