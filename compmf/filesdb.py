@@ -505,7 +505,7 @@ class FilenamesMFDB(Filenames):
             if fname == 'ambient.sobj':
                 res['ambient']="{0}/{1}".format(dname,fname)
             d1 = "{0}/{1}".format(dname,fname)
-            if fname.isalpha():
+            if fname.isdigit():
                 res[fname]={}
                 res[fname]['aps']=[]
                 for fname2 in self.listdir(d1):
