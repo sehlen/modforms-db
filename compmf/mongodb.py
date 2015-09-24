@@ -482,7 +482,7 @@ class MongoMF(object):
                     for p in primes_first_n(len(c)):
                         t = c[i].abs()/p**kk
                         if abs(t)>2:
-                            raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,t=t,prec)
+                            raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
                     
             
             
