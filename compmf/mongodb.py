@@ -480,7 +480,7 @@ class MongoMF(object):
                     c = E*v
                     i = 0 
                     for p in primes_first_n(len(c)):
-                        t = abs(c[i])/p**kk
+                        t = c[i].abs()/p**kk
                         if abs(t)>2:
                             raise ArithmeticError,"ERROR: a({0})=t for (N,k,chi)={1},{2},{3}".format(p,N,k,chi,t=t)
                     
