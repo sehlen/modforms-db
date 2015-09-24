@@ -266,7 +266,7 @@ class MongoMF(object):
         Make a list of the latest additions to the database (all collections except .chunks)
         """
 
-        names = [col for col in self._mongodb.collection_names() if '.chunks' not in col]
+        names = [col for col in self._mongodb.collection_names() if '.chunks' not in col and 'indexes' not in col]
         longest = max(map(len,names))
         t =  len(self._mongodb[names[0]].find_one()['uploadDate'].ctime())
         print "{0:{width} {1:{dwidth} {2:{dwidth}}\n".format("Collection","First","Last",width=longest,dwidth=t)
