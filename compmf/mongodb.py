@@ -498,7 +498,7 @@ class MongoMF(object):
             Ns,ks,ist,newform,nmax = l[-5:]
             nmax=int(nmax)
             pmin = 2 # unless otherwise specified this should be the smallest prime in the list
-            pmax=previous_prime(n2)
+            pmax=previous_prime(nmax)
             E,v = self.load_from_mongo('ap',fid)
             # check first and last coefficients
             cpmin = sum([E[0,i]*v[i] for i in range(len(v))])
