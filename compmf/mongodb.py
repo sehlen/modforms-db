@@ -511,6 +511,7 @@ class MongoMF(object):
                 print "a({0})={1}".format(p1,t1)
             if t2>2: # more seriously
                     raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname,t=t2)
+            print "checked ",fname
 
             
 class CompMF(MongoMF):
