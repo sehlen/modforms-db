@@ -272,13 +272,16 @@ class MongoMF(object):
         print "{0:{width}} {1:{dwidth}} {2:{dwidth}}\n".format("Collection","First","Last",width=longest,dwidth=t)
         
         for col in names:
-            r = self._mongodb[col].find().limit(int(1)).sort('uploadDate',int(-1)).next()
-            last = r['uploadDate'].ctime()
-            r = self._mongodb[col].find().limit(int(1)).sort('uploadDate',int(-1)).next()
-            first = r['uploadDate'].ctime()
-
+            try:
+                r = self._mongodb[col].find().limit(int(1)).sort('uploadDate',int(-1)).next()
+                last = r['uploadDate'].ctime()
+                r = self._mongodb[col].find().limit(int(1)).sort('uploadDate',int(-1)).next()
+                first = r['uploadDate'].ctime()
+            except KeyError:
+                last="?"
+                first = "?"
             print "{0:{width}} \t {1} \t {2}\n".format(col,first,last,width=longest)
-            
+                
 ### Routines for accessing the objects stored in the mongo database.
 
     def existing_records_mongo(self,nrange=[],krange=[],complete=1):
