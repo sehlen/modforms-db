@@ -495,21 +495,18 @@ class MongoMF(object):
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
             l = fname.split("-")
-            Ns,ks,ist,n1,n2 = l[-5:]
-            n1 = int(n1); n2=int(n2)
-            if n1 > 0:
-                print "n1=",N,k,chi,n1,fname
-                continue
-
-            p1 = next_prime(n1); p2=previous_prime(n2)
+            Ns,ks,ist,newform,nmax = l[-5:]
+            nmax=int(nmax)
+            pmin = 2 # unless otherwise specified this should be the smallest prime in the list
+            pmax=previous_prime(n2)
             E,v = self.load_from_mongo('ap',fid)
             # check first and last coefficients
             cpmin = sum([E[0,i]*v[i] for i in range(len(v))])
             cpmax = sum([E[-1,i]*v[i] for i in range(len(v))])
-            t1 = cpmin.abs()/p1**kk
-            t2 = cpmax.abs()/p2**kk
+            t1 = cpmin.abs()/2**kk
+            t2 = cpmax.abs()/pmax**kk
             if (t1)>2.0:
-                # we probably need to rewrite the name:
+                # we probably need to change the name:
                 print "fname=",fname
                 print "a({0})={1}".format(p1,t1)
             if t2>2: # more seriously
