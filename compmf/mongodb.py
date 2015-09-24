@@ -486,6 +486,10 @@ class MongoMF(object):
                         if abs(t)>2:
                             raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
                         i+=1
+#    def _mul_nf_elts_appr(self,a,b):
+#        ap = a._pari_()
+#        bp = b._pari_()
+#        return (ap*bp).norm().numerical_approx()
 
     def fix_coefficient_records(self,nlim=10,chi_in=0,check=None):
         from sage.all import next_prime,previous_prime
@@ -523,7 +527,12 @@ class MongoMF(object):
                 self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
             
-
+    def insert_or_compute(self,N,k,i):
+        r"""
+        If the record exists in the files
+        """
+        pass
+        
             
 class CompMF(MongoMF):
     r"""

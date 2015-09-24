@@ -495,9 +495,38 @@ class FilenamesMFDB(Filenames):
         return cursor.execute(cmd)
 
 
-
-
-
+    def files_for_rec(self,N,k,i):
+        r"""
+        Find all files associated with (N,k,i)
+        """
+        res = {}
+        dname = self.space(N,k,i)
+        for fname in self.listdir(dname):
+            if fname == 'ambient.sobj':
+                res['ambient']="{0}/{1}".format(dname,fname)
+            d1 = "{0}/{1}".format(dname,fname)
+            if fname.isalpha():
+                res[fname]={}
+                res[fname]['aps']=[]
+                for fname2 in self.listdir(d1):
+                    if 'aplist' in fname2:
+                        res[fname]['aps'].append("{0}/{1}".format(d1,fname2))
+                    if fname2 == 'B.sobj':
+                        res['B']="{0}/{1}".format(d1,fname2)
+                    if fname2 == 'v.sobj':
+                        res['v']="{0}/{1}".format(d1,fname2)                        
+                    if fname2 == 'Bd.sobj':
+                        res['Bd']="{0}/{1}".format(d1,fname2)
+                    if fname2 == 'nz.sobj':
+                        res['nz']="{0}/{1}".format(d1,fname2)
+        if 'nz' not in res.keys():
+            print "No nz vector!"
+        if 'B' not in res.keys():
+            print "No B vector!"
+        if 'v' not in res.keys():
+            print "No v vector!"        
+        return res
+        
     def find_missing(self, Nrange, krange, irange, fields=None):
         """
         Return generator of
