@@ -272,6 +272,9 @@ class MongoMF(object):
         print "{0:{width}} {1:{dwidth}} {2:{dwidth}}\n".format("Collection","First","Last",width=longest,dwidth=t)
         
         for col in names:
+            if self._mongodb[col].count()==0:
+                print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} ".format(col,"Empty","",width=longest,dwidth=t)
+                continue
             try:
                 r = self._mongodb[col].find().limit(int(1)).sort('uploadDate',int(-1)).next()
                 last = r['uploadDate'].ctime()
@@ -280,7 +283,7 @@ class MongoMF(object):
             except KeyError:
                 last="?"
                 first = "?"
-            print "{0:{width}} \t {1} \t {2}\n".format(col,first,last,width=longest)
+            print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} ".format(col,first,last,width=longest,dwidth=t)
                 
 ### Routines for accessing the objects stored in the mongo database.
 
