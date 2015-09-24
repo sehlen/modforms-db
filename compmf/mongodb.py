@@ -267,7 +267,7 @@ class MongoMF(object):
         """
 
         names = [col for col in self._mongodb.collection_names() if '.chunks' not in col and 'indexes' not in col]
-        names = names.sort()
+        names.sort()
         longest = max(map(len,names))
         t =  len(self._mongodb[names[0]].find_one()['uploadDate'].ctime())
         print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} \t {3}\n".format("Collection","First","Last","Number of records",width=longest,dwidth=t)
