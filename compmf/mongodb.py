@@ -1017,7 +1017,7 @@ class CompMF(MongoMF):
         """
         args = []
         if not isinstance(nrange,(list,tuple)):
-            nranfge = [nrange]
+            nrange = [nrange]
         if not isinstance(krange,(list,tuple)):
             krange = [krange]
         if check_content:
@@ -1031,6 +1031,8 @@ class CompMF(MongoMF):
         clogger.debug("s = {0}".format(s))
         for r in self._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('chi',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             n = r['N']; k=r['k']; chi=r['chi']
+            if n==7 and k==3:
+                print r
             if nrange<>[] and (n < nrange[0] or n > nrange[-1]):
                 continue
             if krange<> [] and (k < krange[-1] or k > krange[0]):
