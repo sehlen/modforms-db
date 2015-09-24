@@ -38,7 +38,7 @@ from compmf.character_conversions import (
     sage_character_to_sage_galois_orbit_number,
     conrey_character_number_from_sage_galois_orbit_number
 )
-from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ
+from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible
 from compmf import clogger
 
