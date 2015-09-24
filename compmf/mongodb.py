@@ -508,11 +508,11 @@ class MongoMF(object):
             t1 = cpmin.abs()/2**kk
             t2 = cpmax.abs()/pmax**kk
             if t2>2: # more seriously, the estimate of the last coefficient is wrong
-                raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname,t=t2)
+                raise ArithmeticError,"ERROR: a({0})>2 for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname)
             if (t1)>2.0:
                 # we probably need to change the name:
                 print "fname=",fname
-                print "a({0})={1}".format(p1,t1)
+                print "a({0})>2".format(p1)
             else:
                 print "fname=",fname," is ok!"
                 self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
