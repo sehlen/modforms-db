@@ -495,6 +495,7 @@ class MongoMF(object):
             N=r['N']; k=r['k']; chi=r['chi']
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
+            print "Checking:",N,k,chi,fname
             l = fname.split("-")
             Ns,ks,ist,newform,nmax = l[-5:]
             nmax=int(nmax)
@@ -506,13 +507,17 @@ class MongoMF(object):
             cpmax = sum([E[-1,i]*v[i] for i in range(len(v))])
             t1 = cpmin.abs()/2**kk
             t2 = cpmax.abs()/pmax**kk
+            if t2>2: # more seriously, the estimate of the last coefficient is wrong
+                raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname,t=t2)
             if (t1)>2.0:
                 # we probably need to change the name:
                 print "fname=",fname
                 print "a({0})={1}".format(p1,t1)
-            if t2>2: # more seriously
-                    raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname,t=t2)
+            else:
+                print "fname=",fname," is ok!"
+                self._aps.update({'_id':fid},{"$set":{"pmax":pmax}})
             print "checked ",fname
+            
 
             
 class CompMF(MongoMF):
