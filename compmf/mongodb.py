@@ -436,7 +436,7 @@ class MongoMF(object):
                 fid=r['_id']; newform = r['newform']; prec = r['prec']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 E,v = self.load_from_mongo('ap',fid)
-                clogger.debug("id={0} and E={1}".format(fid,E))
+                #clogger.debug("id={0} and E={1}".format(fid,E))
                 t = (int(N),int(k),int(i),int(newform))
                 if not res.has_key(newform):
                     res[newform]={}
@@ -480,9 +480,9 @@ class MongoMF(object):
                     c = E*v
                     i = 0 
                     for p in primes_first_n(len(c)):
-                        t = c[i]/p**kk
+                        t = abs(c[i])/p**kk
                         if abs(t)>2:
-                            print "ERROR: a({0})=t for (N,k,chi)={1},{2},{3}".format(p,N,k,chi,t=t)
+                            raise ArithmeticError,"ERROR: a({0})=t for (N,k,chi)={1},{2},{3}".format(p,N,k,chi,t=t)
                     
             
             
