@@ -494,10 +494,7 @@ class MongoMF(object):
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
             l = fname.split("-")
-            if len(l)<>5:
-                print "fname=",fname
-                return 
-            Ns,ks,ist,n1,n2 = fname.split("-")
+            Ns,ks,ist,n1,n2 = l[-5:]
             n1 = int(n1); n2=int(n2)
             if n1 > 0:
                 print "n1=",N,k,chi,n1
