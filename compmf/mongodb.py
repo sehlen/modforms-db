@@ -1020,6 +1020,8 @@ class CompMF(MongoMF):
             nrange = [nrange]
         if not isinstance(krange,(list,tuple)):
             krange = [krange]
+        if isinstance(irange,(int,Integer)):
+            irange = [irange]
         if check_content:
             check_level = 2
         else:
@@ -1285,7 +1287,7 @@ class CompMF(MongoMF):
             if k==1:
                 clogger.debug("Weight 1 is not implemented!")
                 continue
-            if not chi is None and i not in chi:
+            if not chi is None and i not in set(chi):
                 continue
             if not are_compatible(N,k,i):
                 clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
