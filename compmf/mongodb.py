@@ -488,7 +488,7 @@ class MongoMF(object):
                         i+=1
 
     def fix_coefficient_records(self,nlim=10):
-        from sage.all import next_prime
+        from sage.all import next_prime,previous_prime
         for r in self._aps.find({"pmax":{"$exists":False},"N":{"$lt":nlim}}):
             fid = r['_id']
             N=r['N']; k=r['k']; chi=r['chi']
