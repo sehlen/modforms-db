@@ -487,12 +487,14 @@ class MongoMF(object):
                             raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
                         i+=1
 
-    def fix_coefficient_records(self,nlim=10):
+    def fix_coefficient_records(self,nlim=10,chi_in=0):
         from sage.all import next_prime,previous_prime
         #        for r in self._aps.find({"pmax":{"$exists":False},"N":{"$lt":nlim}}):
         for r in self._aps.find({"pmax":{"$exists":False},"N":{"$lt":nlim}}).sort([("N",int(1))]):
             fid = r['_id']
             N=r['N']; k=r['k']; chi=r['chi']
+            if chi_in ==0 and chi <>0:
+                continue
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
             print "Checking:",N,k,chi,fname
