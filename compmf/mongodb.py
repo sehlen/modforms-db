@@ -474,7 +474,7 @@ class MongoMF(object):
             kk = RR(k-1)/RR(2)
             aps = self.get_aps(N,k,chi)
             for d in aps.keys():
-                prec in aps[d].keys():
+                for prec in aps[d].keys():
                     E,v=aps[d][prec][0:2]
                     c = E*v
                     i = 0 
