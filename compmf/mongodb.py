@@ -462,7 +462,9 @@ class MongoMF(object):
                 if not res is None:
                     return res
         return res
-
+    
+#### routines for fixing problems...
+    
     def check_ramanujan(self):
         r"""
         Check Ramanujan bound for ap's in the database (simple chekc to catch trivially wrong stuff)
@@ -479,12 +481,37 @@ class MongoMF(object):
                     E,v=aps[d][prec][0:2]
                     c = E*v
                     i = 0 
-                    for p in primes_first_n(len(c)):
+                    for p in primes_first_n(len(c)):                        
                         t = c[i].abs()/p**kk
                         if abs(t)>2:
                             raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
-                    
-            
+                        i+=1
+
+    def fix_coefficient_records(self,nlim=10):
+        for r in self._aps.find({"$exist":{'pmax':False},"N":{"$lt":nlim}}):
+            fid = r['_id']
+            N=r['N']; k=r['k']; chi=r['chi']
+            kk = RR(k-1)/RR(2)
+            fname = r['filename'].split("/")[-1]
+            Ns,ks,is,n1,n2=fname.split("-")
+            n1 = int(n1); n2=int(n2)
+            if n1 > 0:
+                print "n1=",N,k,chi,n1
+                continue
+            p1 = next_prime(n1); p2=previous_prime(n2)
+            E,v = self.load_from_mongo('ap',fid)
+            # check first and last coefficients
+            cpmin = sum([E[0,i]*v[i] for i in range(len(v))])
+            cpmax = sum([E[-1,i]*v[i] for i in range(len(v))])
+            t1 = cpmin.abs()/p1**kk
+            t2 = cpmax.abs()/p2**kk
+            if (t1)>2.0:
+                # we probably need to rewrite the name:
+                print "fname=",fname
+                print "a({0})={1}".format(p1,t1)
+            if t2>2: # more seriously
+                    raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, fname={4}".format(p2,N,k,chi,fname,t=t2)
+
             
 class CompMF(MongoMF):
     r"""
