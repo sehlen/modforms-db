@@ -166,10 +166,10 @@ def create_index(host='localhost',port=int(37010),only=None):
        {'name':  'webchar', 'index': [
             ('modulus',pymongo.ASCENDING),
             ('number',ASCENDING)],
-                     'unique':False},
-       {'name':  'webchar', 'index': [
-            ('label',ASCENDING)],
-        'unique':True},
+                     'unique':True},
+#       {'name':  'webchar', 'index': [
+#            ('label',ASCENDING)],
+#        'unique':True},
         {'name' : 'webeigenvalues', 'index':[
             ('hecke_orbit_label',ASCENDING)],
          'unique':True}

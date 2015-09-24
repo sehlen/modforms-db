@@ -260,7 +260,26 @@ class MongoMF(object):
         if levels<>[]:
             print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))        
 
-          ### Routines for accessing the objects stored in the mongo database.
+
+    def view_latest(self):
+        r"""
+        Make a list of the latest additions to the database (all collections except .chunks)
+        """
+
+        names = [col for col in self._mongodb.collection_names() if '.chunks' not in col]
+        longest = max(map(len,names))
+        t =  len(D._mongodb[names[0]].find_one()['uploadDate'].ctime())
+        print "{0:{width} {1:{dwidth} {2:{dwidth}}\n".format("Collection","First","Last",width=longest,dwidth=t)
+        
+        for col in names:
+            r = D._mongodb['Modular_symbols.files'].find().limit(int(1)).sort('uploadDate',int(-1)).next()
+            last = r['uploadDate'].ctime()
+            r = D._mongodb['Modular_symbols.files'].find().limit(int(1)).sort('uploadDate',int(-1)).next()
+            first = r['uploadDate'].ctime()
+
+            print "{0:{width}} \t {1} \t {2}\n".format(col,first,last,width=longest)
+            
+### Routines for accessing the objects stored in the mongo database.
 
     def existing_records_mongo(self,nrange=[],krange=[],complete=1):
         r"""
@@ -1571,6 +1590,7 @@ class CompMF(MongoMF):
                 chis = self._newform_factors.find({'N':N,'k':k}).distinct('cchi')
                 if len(chis) >= o:
                     print N,k,o,chis
+                else: print N,k,o,chis
         
 def precision_needed_for_L(N,k,**kwds):
     r"""
