@@ -1287,8 +1287,12 @@ class CompMF(MongoMF):
             if k==1:
                 clogger.debug("Weight 1 is not implemented!")
                 continue
-            if not chi is None and i not in set(chi):
-                continue
+            if isinstance(chi,(list,tuple)):
+                if i not in chi:
+                    continue
+            if isinstance(chi,(int,Integer)):
+                if i <> chi:
+                    continue
             if not are_compatible(N,k,i):
                 clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
                 continue
