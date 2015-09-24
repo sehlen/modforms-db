@@ -458,7 +458,7 @@ class MongoMF(object):
         elif len(sources)>1:
             for ss in sources:
                 res = self.get_aps(N,k,i,d,prec_needed,coeffs,character_naming,[ss])
-                print "res=",res
+                #print "res=",res
                 if not res is None:
                     return res
         return res
@@ -467,7 +467,8 @@ class MongoMF(object):
         r"""
         Check Ramanujan bound for ap's in the database (simple chekc to catch trivially wrong stuff)
         """
-        # first get 
+        # first get
+        from sage.all import primes_first_n
         for r in self._aps.find():
             N=r['N']; k=r['k']; chi=r['chi']
             fid = r['_id']
