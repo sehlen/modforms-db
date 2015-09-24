@@ -267,12 +267,14 @@ class MongoMF(object):
         """
 
         names = [col for col in self._mongodb.collection_names() if '.chunks' not in col and 'indexes' not in col]
+        names = names.sort()
         longest = max(map(len,names))
         t =  len(self._mongodb[names[0]].find_one()['uploadDate'].ctime())
-        print "{0:{width}} {1:{dwidth}} {2:{dwidth}}\n".format("Collection","First","Last",width=longest,dwidth=t)
+        print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} \t {3}\n".format("Collection","First","Last","Number of records",width=longest,dwidth=t)
         
         for col in names:
-            if self._mongodb[col].count()==0:
+            no = self._mongodb[col].count()
+            if no == 0:
                 print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} ".format(col,"Empty","",width=longest,dwidth=t)
                 continue
             try:
@@ -283,7 +285,7 @@ class MongoMF(object):
             except KeyError:
                 last="?"
                 first = "?"
-            print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} ".format(col,first,last,width=longest,dwidth=t)
+            print "{0:{width}} \t {1:{dwidth}} \t {2:{dwidth}} \t {3}".format(col,first,last,no,width=longest,dwidth=t)
                 
 ### Routines for accessing the objects stored in the mongo database.
 
