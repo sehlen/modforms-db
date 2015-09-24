@@ -515,7 +515,7 @@ class MongoMF(object):
                 print "a({0})={1}".format(p1,t1)
             else:
                 print "fname=",fname," is ok!"
-                self._aps.update({'_id':fid},{"$set":{"pmax":pmax}})
+                self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
             
 
