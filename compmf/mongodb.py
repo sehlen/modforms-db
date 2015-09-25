@@ -511,6 +511,7 @@ class MongoMF(object):
             Ns,ks,ist,newform,nmax = l[-5:]
             nmax=int(nmax)
             nump = prime_pi(nmax) #- prime_pi(0)
+            E,v = self.load_from_mongo('ap',fid)
             # check first and last coefficients
             #cpmin = sum([E[0,i]*v[i] for i in range(len(v))])
             #cpmax = sum([E[-1,i]*v[i] for i in range(len(v))])
