@@ -504,8 +504,8 @@ class MongoMF(object):
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
             print "Checking:",N,k,chi,fname
-            l = fname.split("-")
-            if filter(lambda x: not x.isdigit(),l[1:])<>[]:
+            l = fname.split("-")[2:]
+            if filter(lambda x: not x.isdigit(),l)<>[] or len(l)<>5:
                 print "File name in wrong format:{0}".format(fname)
                 continue
             Ns,ks,ist,newform,nmax = l[-5:]
