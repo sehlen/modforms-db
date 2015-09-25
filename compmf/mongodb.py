@@ -492,7 +492,7 @@ class MongoMF(object):
 #        return (ap*bp).norm().numerical_approx()
 
     def fix_coefficient_records(self,nlim=10,chi_in=0,check=None):
-        from sage.all import next_prime,previous_prime
+        from sage.all import next_prime,previous_prime,prime_pi
         for r in self._aps.find({"pmax":{"$exists":False},"N":{"$lt":nlim}}).sort([("N",int(1))]):
             fid = r['_id']
             N=r['N']; k=r['k']; chi=r['chi']
@@ -510,6 +510,7 @@ class MongoMF(object):
                 continue
             Ns,ks,ist,newform,nmax = l[-5:]
             nmax=int(nmax)
+            pmax = previous_prime(nmax)
             nump = prime_pi(nmax) #- prime_pi(0)
             E,v = self.load_from_mongo('ap',fid)
             # check first and last coefficients
