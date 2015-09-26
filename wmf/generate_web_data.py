@@ -564,3 +564,19 @@ def remove_gridfs_duplicates(D,label_in=None):
 #            if fsq.count()>1:
                 
 
+def recompute_existing(D,ncpus=1):
+    params = []
+    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}):
+        level = r['level']; weight=r['weight']; character = r['character']; label=r['label']
+        params.append((level,weight,character))
+    if ncpus>=32:
+        l = generate_one_webmodform_space32(args)
+    elif ncpus>=16:
+        l = generate_one_webmodform_space16(args)        
+    elif ncpus>=8:
+        l = generate_one_webmodform_space8(args)
+    elif ncpus>=4:
+        l = generate_one_webmodform_space4(args)
+    else:
+        l =  generate_one_webmodform_space1_par(args)
+    return list(l)
