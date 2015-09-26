@@ -564,9 +564,9 @@ def remove_gridfs_duplicates(D,label_in=None):
 #            if fsq.count()>1:
                 
 
-def recompute_existing(D,ncpus=1):
+def recompute_existing(D,ncpus=1,llim=10):
     args = []
-    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}):
+    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
         level = r['level']; weight=r['weight']; character = r['character']; label=r['label']
         args.append((level,weight,character))
     print "Recomputing {0} spaces!".format(len(args))
