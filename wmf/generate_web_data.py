@@ -569,14 +569,15 @@ def recompute_existing(D,ncpus=1):
     for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}):
         level = r['level']; weight=r['weight']; character = r['character']; label=r['label']
         params.append((level,weight,character))
+    print "Recomputing {0} spaces!".format(len(params))
     if ncpus>=32:
-        l = generate_one_webmodform_space32(args)
+        l = generate_one_webmodform_space32(args,recompute=True)
     elif ncpus>=16:
-        l = generate_one_webmodform_space16(args)        
+        l = generate_one_webmodform_space16(args,recompute=True)        
     elif ncpus>=8:
-        l = generate_one_webmodform_space8(args)
+        l = generate_one_webmodform_space8(args,recompute=True)
     elif ncpus>=4:
-        l = generate_one_webmodform_space4(args)
+        l = generate_one_webmodform_space4(args,recompute=True)
     else:
-        l =  generate_one_webmodform_space1_par(args)
+        l =  generate_one_webmodform_space1_par(args,recompute=True)
     return list(l)
