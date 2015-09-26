@@ -1685,7 +1685,8 @@ def precision_needed_for_L(N,k,**kwds):
     Returns the precision (number of coefficients) needed to compute the first zero
     of the L-function (as on the LMFDB pages). This bound is taken from there and is probably heuristic.
     """
-    pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
+    from sage.all import ceil
+    pprec = 20 + int(RR(5) * ceil(RR(k) * RR(N).sqrt()))
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
     return ceil(RR(pprec)/RR(100))*100
