@@ -95,7 +95,7 @@ class WebNewForm_computing(WebNewForm):
         else:
             self.compute_additional_properties()
         # update the version to current one 
-        F.version = emf_version    
+        self.version = emf_version    
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
         self.save_to_db()
