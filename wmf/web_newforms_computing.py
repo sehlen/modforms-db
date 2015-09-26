@@ -45,11 +45,11 @@ from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modula
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm,WebEigenvalues
 
 
-from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label
+from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label,parse_newform_label
 
 from wmf import wmf_logger
 from compmf import MongoMF
-
+wmf_logger.setLevel(10)
 
 class WebNewForm_computing(WebNewForm):
     r"""
@@ -65,8 +65,11 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
-        
+        if isinstance(level,basestring):
+            wmf_logger.debug("Calling with newform label:{0}".format(level))
+            level,weight,character,label = parse_newform_label(level)
         super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
+
         self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
         try: 
             self._db = MongoMF(host,port,db)
@@ -74,6 +77,7 @@ class WebNewForm_computing(WebNewForm):
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
+        self.prec = 0
         self._min_prec = 100 ### We want at least this many coefficients
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
@@ -90,6 +94,8 @@ class WebNewForm_computing(WebNewForm):
             self.set_twist_info()
         else:
             self.compute_additional_properties()
+        #for p in self._db_properties:
+        #    print "db prop:",p.name,p._value
         self.save_to_db()
 
     def __repr__(self):
@@ -151,22 +157,28 @@ class WebNewForm_computing(WebNewForm):
         We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
         
         """
+        from sage.all import previous_prime
         wmf_logger.debug("Setting aps!")
-        if self.eigenvalues.prec >= self.prec_needed_for_lfunctions() and reload_from_db is False:
+        wmf_logger.debug("self.prec={0}".format(self.prec))
+        wmf_logger.debug("Eigenvalues prec={0}".format(self.eigenvalues.prec))        
+        wmf_logger.debug("Eigenvalues ={0}".format(self.eigenvalues))
+        needed_prime = previous_prime(max(self._min_prec,self.prec_needed_for_lfunctions()))
+        have_prime = max(self.eigenvalues.primes()) if self.eigenvalues.primes()<>[] else 0
+        if needed_prime <= have_prime and reload_from_db is False:
             return 
-        #try:
+        wmf_logger.debug("Get aps!")
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
         wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
+        wmf_logger.debug("Got ap lists:{0}".format(aps))        
         wmf_logger.debug("Want:{0} coefficients!".format(self.prec_needed_for_lfunctions()))
         ev_set = 0
         precs = []
-        if aps<>{}:
-            if isinstance(aps.values()[0],dict):
-                precs = aps.values()[0].keys()
+        if isinstance(aps,dict):
+            precs = aps.keys()
         wmf_logger.critical("precs={0}".format(precs))
         for prec in precs:
             wmf_logger.debug("Now getting prec@{0}".format(prec))
-            E,v,meta = aps.values()[0][prec]
+            E,v,meta = aps[prec]
             self._available_precisions.append(prec)
             evs = WebEigenvalues(self.hecke_orbit_label,prec)
             evs.E = E
@@ -196,15 +208,17 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Set q-expansion")
         if not self.eigenvalues.has_eigenvalue(2):
             self.set_aps()
-        QR = PowerSeriesRing(self.base_ring,name='q',order='neglex')
+        QR = PowerSeriesRing(QQ,name='q',order='neglex')
         q = QR.gen()
-        res = 0
+        res = 0*q**0
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         self.coefficients(range(1,m))
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
-        self.q_expansion = res
-        self.prec = res.prec()
+        self.q_expansion = res.add_bigoh(n+1)
+#        wmf_logger.debug("Q EXP: {0} of type={1} prec={2}".format(res,type(res),res.prec()))     
+        wmf_logger.debug("Set prec to {0}".format(self.q_expansion.prec()))
+        self.prec = self.q_expansion.prec()
 
     def as_factor(self):
         r"""
@@ -228,10 +242,9 @@ class WebNewForm_computing(WebNewForm):
         r"""
         The base ring of self, that is, the field of values of the character of self. 
         """
+        wmf_logger.critical("base ring={0}".format(self.base_ring))
         if self.base_ring is None or self.base_ring=={}:
             self.base_ring = self.as_factor().base_ring()
-        if self.base_ring == QQ:
-            self.is_rational = True
         
     def set_coefficient_field(self):
         r"""
@@ -240,11 +253,16 @@ class WebNewForm_computing(WebNewForm):
         if not self.eigenvalues.has_eigenvalue(2):
             self.set_aps()
         try:
+            wmf_logger.debug("evs={0}".format(self.eigenvalues))
             self.coefficient_field = self.eigenvalues[2].parent()
             self.coefficient_field_degree = self.coefficient_field.absolute_degree()
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
-
+        if self.coefficient_field_degree == 1:
+            self.is_rational = True
+        else:
+            self.is_rational = False
+            
     def set_absolute_polynomial(self):
         r"""
         Set the absolute polynomial of self.
@@ -275,9 +293,10 @@ class WebNewForm_computing(WebNewForm):
     def prec_needed_for_lfunctions(self):
         r"""
         Calculates the number of coefficients needed for the L-function
-        main page (formula taken from their pages)
+        main page (formula taken from Lfunction.py
         """
-        self._prec_needed_for_lfunctions = int(22 + int(RR(5)*RR(self.weight)*RR(self.level).sqrt()) + 1)
+        from sage.all import ceil
+        self._prec_needed_for_lfunctions = int(20) + int(RR(5)*ceil(RR(self.weight)*RR(self.level).sqrt()))
         return self._prec_needed_for_lfunctions 
     
     def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26):
