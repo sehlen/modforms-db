@@ -56,7 +56,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', prec=10, bitprec=53, parent=None,host='localhost',port=37010,db='modularforms2',recompute=False):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -66,7 +66,7 @@ class WebNewForm_computing(WebNewForm):
         
         """
         
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,prec,bitprec,parent)
+        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
         self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
         try: 
             self._db = MongoMF(host,port,db)
@@ -74,6 +74,7 @@ class WebNewForm_computing(WebNewForm):
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
+        self._min_prec = 100 ### We want at least this many coefficients
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
         self._available_precisions = []
@@ -198,12 +199,12 @@ class WebNewForm_computing(WebNewForm):
         QR = PowerSeriesRing(self.base_ring,name='q',order='neglex')
         q = QR.gen()
         res = 0
-        m = max(self.prec,self.prec_needed_for_lfunctions())
+        m = max(self._min_prec,self.prec_needed_for_lfunctions())
         self.coefficients(range(1,m))
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
         self.q_expansion = res
-
+        self.prec = res.prec()
 
     def as_factor(self):
         r"""

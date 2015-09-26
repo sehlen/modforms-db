@@ -503,7 +503,7 @@ class MongoMF(object):
                     continue
             kk = RR(k-1)/RR(2)
             fname = r['filename'].split("/")[-1]
-            print "Checking:",N,k,chi,fname
+            print "Checking:",N,k,chi,fname,fid
             l = fname.split("-")[2:]
             if filter(lambda x: not x.isdigit(),l)<>[] or len(l)<>5:
                 print "File name in wrong format:{0}".format(fname)
@@ -524,7 +524,7 @@ class MongoMF(object):
                 # we probably need to change the name:
                 print "fname=",fname
             else:
-                print "fname=",fname," is ok!"
+                print "fname=",fname," is ok! rows=",E.nrows()
                 self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
 
