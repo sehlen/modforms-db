@@ -577,7 +577,7 @@ class MongoMF(object):
                 duration = str(now - r['startTime']).split(".")[0]
                 print "{0},{1},{2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['chi'],r['startTime'],duration,r['pid'])
             
-    def clear_running_computations(typc='mf'):
+    def clear_running_computations(self,typec='mf'):
         res = self._computations.delete_many({"type":typec})
         print "Removed {0} computations from db!".format(res.deleted_count)
 
@@ -587,6 +587,7 @@ def unwrap_compute_space(args):
     To overcome some unpickling problems with the builtin parallel decorators.
     """
     args,kwds = args
+    clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
     res = eval("f(*args, **kwds)",sage.all.__dict__,
                {'args':args, 'kwds':kwds,
                 'f':CompMF.compute_and_insert_one_space})
@@ -687,12 +688,14 @@ class CompMF(MongoMF):
         """
         ncpus = kwds.get('ncpus',1)
         pool = Pool(processes=ncpus)
+        clogger.debug("ncpus={0}".format(ncpus))        
         n = len(args)
         if n > 100:
             chunksize = 10
         else:
             chunksize = 1
         args = [(self,x,kwds) for x in args]
+        clogger.debug("args={0}".format(args))
         results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
         for res in results:
             res.get()
