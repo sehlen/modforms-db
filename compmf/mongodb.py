@@ -610,7 +610,6 @@ class CompMF(MongoMF):
     def unwrap(self,args):
         args,kwds = args
         clogger.debug("in self.unwrap: args={0} kwds={1}".format(args,kwds))
-        #unwrap_compute_space(1,12,0)
         return self.compute_and_insert_one_space(args[0],args[1],args[2],**kwds)
         clogger.debug("unwrapped")
 
@@ -1477,7 +1476,7 @@ class CompMF(MongoMF):
         if from_files:
             N,k,i
         clogger.debug("Completing {0} spaces!".format(len(args)))
-        self.get_or_compute_spaces(args,ncpus=ncpus)
+        self.get_or_compute_spaces(args,ncpus=ncpus,compute=True)
         return True
 
 
