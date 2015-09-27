@@ -543,7 +543,7 @@ class MongoMF(object):
         import datetime
         import time
         import os
-        r = {'startTime':datetime.datetime.from_timestamp(time.time()),
+        r = {'startTime':datetime.datetime.fromtimestamp(time.time()),
              'server':os.uname()[1],
              'pid':os.getpid(),
              'type':typec,
@@ -556,13 +556,13 @@ class MongoMF(object):
     def register_computation_closed(self,cid):
         import datetime
         import time
-        now = datetime.datetime.from_timestamp(time.time())
+        now = datetime.datetime.fromtimestamp(time.time())
         self._computations.update({"_id":cid},{"$set":{"stopTime":now}})
 
     def find_running_computations(self,typec='mf'):
         import datetime
         import time
-        now = datetime.datetime.from_timestamp(time.time())
+        now = datetime.datetime.fromtimestamp(time.time())
         res = []
         for t in ['mf','wmf']:
             if t == 'mf':
