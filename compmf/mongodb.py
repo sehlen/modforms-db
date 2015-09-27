@@ -597,7 +597,7 @@ class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
     """
-    def unwrap(args):
+    def unwrap(self,args):
         args,kwds = args
         clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
         res = self.compute_and_insert_one_space(args,**kwds)
