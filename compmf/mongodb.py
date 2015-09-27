@@ -573,7 +573,10 @@ class MongoMF(object):
                 duration = str(now - r['startTime']).split(".")[0]
                 print "{0} \t {1} \t {2} \t {3}".format(r['params'],r['startTime'],duration,r['pid'])
             
-        
+    def clear_running_computations(typc='mf'):
+        res = self._computations.delete_many({"type":typec})
+        print "Removed {0} computations from db!".format(res.deleted_count)
+                                   
 class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
