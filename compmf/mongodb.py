@@ -711,7 +711,7 @@ class CompMF(MongoMF):
             chunksize = 10
         else:
             chunksize = 1
-        args = [(self,x,kwds) for x in args]
+        args = [(x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
 #        results = pool.imap_unordered(self.unwrap,args,chunksize)
 #        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
