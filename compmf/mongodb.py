@@ -63,6 +63,10 @@ class MongoMF(object):
         - compute -- Boolean (default True) set to False if you do not want to compute anything.
         """
         self._db_raw = kwds.get('db_raw','modularforms_raw') # is really a reflection of data which is in the files.
+        self._host = host
+        self._port = int(port)
+        self._verbose = int(verbose)
+        self._db_name = db
         if pymongo.version_tuple[0] < 3:
             from pymongo import Connection
             _C = Connection(port=port)
@@ -73,7 +77,7 @@ class MongoMF(object):
             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
 
-
+        
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
@@ -588,15 +592,20 @@ def unwrap_compute_space(args):
     """
     args,kwds = args
     clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
-    res = eval("(*args, **kwds)",sage.all.__dict__,
-               {'args':args, 'kwds':kwds,
-                'f':CompMF.compute_and_insert_one_space})
-    return res
+    return CompMF.compute_and_insert_one_space(*args,**kwds)
+#    res = eval("(*args, **kwds)",sage.all.__dict__,
+#               {'args':args, 'kwds':kwds,
+#                'f':CompMF.compute_and_insert_one_space})
+#    return res
     
 class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
     """
+
+    def __reduce__(self):
+        return (type(self),(self._datadir,self._host,self._port,self._verbose,self._db_name))
+    
     def unwrap(self,args):
         args,kwds = args
         clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
@@ -622,6 +631,7 @@ class CompMF(MongoMF):
 
         """
         super(CompMF,self).__init__(host,port,verbose,db,**kwds)
+        self._datadir = datadir
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
         assert str(db).isalnum()
@@ -700,9 +710,10 @@ class CompMF(MongoMF):
             chunksize = 10
         else:
             chunksize = 1
-        args = [(x,kwds) for x in args]
+        args = [(self,x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
-        results = pool.imap_unordered(self.unwrap,args,chunksize)
+#        results = pool.imap_unordered(self.unwrap,args,chunksize)
+        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
         for res in results:
             res.get()
         pool.close()
