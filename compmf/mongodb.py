@@ -586,7 +586,7 @@ class MongoMF(object):
         print "Removed {0} computations from db!".format(res.deleted_count)
 
 
-def unwrap_compute_space(args):
+def unwrap_compute_space(D,*args,**kwds):
     r"""
     To overcome some unpickling problems with the builtin parallel decorators.
     """
@@ -610,7 +610,8 @@ class CompMF(MongoMF):
     def unwrap(self,args):
         args,kwds = args
         clogger.debug("in self.unwrap: args={0} kwds={1}".format(args,kwds))
-        return self.test(args,**kwds) #self.compute_and_insert_one_space(args,**kwds)
+        return unwrap_compute_space(self,*args,**kwds)
+#        return self.test(args,**kwds) #self.compute_and_insert_one_space(args,**kwds)
 
     def test(self,*args,**kwds):
         cogger.debug("!!!")
