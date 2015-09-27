@@ -609,9 +609,13 @@ class CompMF(MongoMF):
     
     def unwrap(self,args):
         args,kwds = args
-        clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
-        return self.compute_and_insert_one_space(args,**kwds)
-    
+        clogger.debug("in self.unwrap: args={0} kwds={1}".format(args,kwds))
+        return self.test(args,**kwds) #self.compute_and_insert_one_space(args,**kwds)
+
+    def test(self,*args,**kwds):
+        cogger.debug("!!!")
+        return 1
+
     def __init__(self,datadir='',host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
         r"""
 
