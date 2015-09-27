@@ -40,7 +40,7 @@ from compmf.character_conversions import (
     dirichlet_character_sage_galois_orbit_rep_from_number,
     dirichlet_character_sage_galois_orbits_reps,
     sage_character_to_sage_galois_orbit_number,
-    conrey_character_number_from_sage_galois_orbit_number
+    conrey_character_number_from_sage_galois_orbit_number,
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible
@@ -756,11 +756,13 @@ class CompMF(MongoMF):
         If data for the given space M(N,k,i) exists in either mongo or files database we fetch this data (and possible complete if e.g. more coefficients are needed) and then insert the result into both databases unless explicitly told not to.
 
         """
+        
         clogger.debug("In Compute and/or Insert N,k,i= {0} kwds={1}".format((N,k,i),kwds))        
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         #
-        c = dirichlet_character_conrey_from_sage_character_number(N,i)
-        ci = c.number()        
+        ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
+        #c = dirichlet_character_conrey_from_sage_character_number(N,i)
+        #ci = c.number()        
         cid = self.register_computation(level=N,weight=k,chi=ci,typec='mf')
         if cid == None:
             clogger.critical("Computation with N,k,i={0} is already underway!!".format((N,k,i)))
