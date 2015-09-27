@@ -590,7 +590,7 @@ def unwrap_compute_space(args):
     res = eval("f(*args, **kwds)",sage.all.__dict__,
                {'args':args, 'kwds':kwds,
                 'f':CompMF.compute_and_insert_one_space})
-     return res
+    return res
     
 class CompMF(MongoMF):
     r"""
