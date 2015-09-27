@@ -27,6 +27,10 @@ import os,re,sys
 from string import join
 import pymongo
 import gridfs
+
+import multiprocessing
+from multiprocessing import Pool
+
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf import character_conversions
@@ -576,7 +580,18 @@ class MongoMF(object):
     def clear_running_computations(typc='mf'):
         res = self._computations.delete_many({"type":typec})
         print "Removed {0} computations from db!".format(res.deleted_count)
-                                   
+
+
+def unwrap_compute_space(args):
+    r"""
+    To overcome some unpickling problems with the builtin parallel decorators.
+    """
+    args,kwds = args
+    res = eval("f(*args, **kwds)",sage.all.__dict__,
+               {'args':args, 'kwds':kwds,
+                'f':CompMF.compute_and_insert_one_space})
+     return res
+    
 class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
@@ -671,14 +686,24 @@ class CompMF(MongoMF):
 
         """
         ncpus = kwds.get('ncpus',1)
-        if ncpus==8:
-            return list(self._compute_and_insert_one_space8(args,**kwds))
-        elif ncpus==16:
-            return list(self._compute_and_insert_one_space16(args,**kwds))
-        elif ncpus==32:
-            return list(self._compute_and_insert_one_space32(args,**kwds))
-        else:
-            return [self.compute_and_insert_one_space(x[0],x[1],x[2],**kwds) for x in args]
+        pool = Pool(processes=ncpus)
+        n = len(args)
+        if n > 100:
+            chunksize = 10
+        args = [(self,x,kwds) for x in args]
+        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+        for res in results:
+            res.get()
+        pool.close()
+        pool.join()
+#        if ncpus==8:
+#            return list(self._compute_and_insert_one_space8(args,**kwds))
+#        elif ncpus==16:
+#            return list(self._compute_and_insert_one_space16(args,**kwds))
+#        elif ncpus==32:
+#            return list(self._compute_and_insert_one_space32(args,**kwds))
+#        else:
+#            return [self.compute_and_insert_one_space(x[0],x[1],x[2],**kwds) for x in args]
 
     ## Different levels of parallelization
     @parallel(ncpus=8)
