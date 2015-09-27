@@ -610,8 +610,9 @@ class CompMF(MongoMF):
     def unwrap(self,args):
         args,kwds = args
         clogger.debug("in self.unwrap: args={0} kwds={1}".format(args,kwds))
-        yield unwrap_compute_space(self,*args,**kwds)
-#        return self.test(args,**kwds) #self.compute_and_insert_one_space(args,**kwds)
+        #yield unwrap_compute_space(self,*args,**kwds)
+        yield 1
+        #return self.test(args,**kwds) #self.compute_and_insert_one_space(args,**kwds)
 
     def test(self,*args,**kwds):
         cogger.debug("!!!")
