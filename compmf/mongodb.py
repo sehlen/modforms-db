@@ -713,7 +713,8 @@ class CompMF(MongoMF):
         args = [(self,x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
 #        results = pool.imap_unordered(self.unwrap,args,chunksize)
-        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+#        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+        results = pool.map_async(unwrap_compute_space,args,chunksize)        
         return results
         for res in results:
             res.get()
