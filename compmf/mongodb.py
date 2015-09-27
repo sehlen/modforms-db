@@ -81,7 +81,7 @@ class MongoMF(object):
         self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
         self._twists = self._mongodb["twists"]
         self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
-
+        self._computations = self._mongodb['computations']
 
         ## The indices we use for the collections given above
         self._collections_indexes = [
@@ -535,6 +535,43 @@ class MongoMF(object):
         pass
 
 
+    ### We want to see which computations are going on currently.
+    def register_computation(self,level,weight,chi,typec='mf'):
+        r"""
+        Insert a record in the database registring the start of a computation.
+        """
+        import datetime
+        import time
+        import os
+        r = {'startTime':datetime.datetime.from_timestamp(time.time()),
+             'server':os.uname()[1],
+             'pid':os.getpid(),
+             'type':typec,
+             'N':int(N), 'k':int(k),'chi':int(chi)}
+        fid = self._computations.insert(r)
+        return fid 
+
+    def register_computation_closed(self,cid):
+        import datetime
+        import time
+        now = datetime.datetime.from_timestamp(time.time())
+        self._computations.update({"_id":cid},{"$set":{"stopTime":now}})
+
+    def find_running_computations(self,typec='mf'):
+        import datetime
+        import time
+        now = datetime.datetime.from_timestamp(time.time())
+        res = []
+        for t in ['mf','wmf']:
+            if t == 'mf':
+                print "Modular forms computations"
+            else:
+                print "WebModularForms/NewForms computations"
+            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}):
+                duration = str(now - r['startTime']).split(".")[0]
+                print "{0} \t {1} \t {2} \t {3}".format(r['params'],r['startTime'],duration,r['pid'])
+            
+        
 class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
@@ -661,6 +698,11 @@ class CompMF(MongoMF):
 
         """
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        #
+        c = dirichlet_character_conrey_from_sage_character_number(N,i)
+        ci = c.number()        
+        cid = self.register_computation(level=N,weight=k,chi=ci,typec='mf')
+        
         clogger.debug("Compute and/or Insert {0}".format((N,k,i)))
         clogger.debug("Computing ambient modular symbols")
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
@@ -702,6 +744,7 @@ class CompMF(MongoMF):
         self._modular_symbols.update({'_id':ambient_fid},{"$set":
                                                           {'complete':completeness}})
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        self.register_computation_closed(cid)
         return True
 
     def compute_atkin_lehner(self,N,k,i,**kwds):

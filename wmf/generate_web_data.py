@@ -100,15 +100,17 @@ def generate_one_webmodform_space1_par(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
 
     
-def generate_one_webmodform_space1(level,weight,chi):    
+def generate_one_webmodform_space1(level,weight,chi,host='localhost',port=int(37010)):    
     r"""
     Generates one modform space.
 
     """
-#    print "generate:",level,weight,chi
+    #    print "generate:",level,weight,chi
+    D = MongoMF(host,port)
+    cid = D.register_computation(level=level,weight=weight,chi=chi,typec='wmf')
     M = WebModFormSpace_computing(level,weight,chi)
     M.save_to_db()
-
+    D.register_computation_closed(cid)
 
 def web_modformspace_collection(host='localhost',port=int(37010)):
     try: 
@@ -565,6 +567,7 @@ def remove_gridfs_duplicates(D,label_in=None):
                 
 
 def recompute_existing(D,ncpus=1,llim=10):
+    llim = int(llim)
     args = []
     for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
         level = r['level']; weight=r['weight']; character = r['character']; label=r['label']
