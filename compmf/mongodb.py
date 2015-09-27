@@ -548,6 +548,8 @@ class MongoMF(object):
              'pid':os.getpid(),
              'type':typec,
              'N':int(N), 'k':int(k),'chi':int(chi)}
+        if self._computations.find({'N':r['N'],'k':r['k'],'chi':int(chi)}).count()>0:
+            return None
         fid = self._computations.insert(r)
         return fid 
 
@@ -702,7 +704,8 @@ class CompMF(MongoMF):
         c = dirichlet_character_conrey_from_sage_character_number(N,i)
         ci = c.number()        
         cid = self.register_computation(level=N,weight=k,chi=ci,typec='mf')
-        
+        if cid == None:
+            clogger.critical("Computation with N,k,i={0} is already underway!!".format((N,k,i)))
         clogger.debug("Compute and/or Insert {0}".format((N,k,i)))
         clogger.debug("Computing ambient modular symbols")
         if kwds.get('Nmax',0)<>0 and kwds.get('Nmax')>N:
