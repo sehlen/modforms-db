@@ -592,7 +592,8 @@ def unwrap_compute_space(args):
     """
     args,kwds = args
     clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
-    return CompMF.compute_and_insert_one_space(*args,**kwds)
+    r = CompMF.compute_and_insert_one_space(*args,**kwds)
+    return r
 #    res = eval("(*args, **kwds)",sage.all.__dict__,
 #               {'args':args, 'kwds':kwds,
 #                'f':CompMF.compute_and_insert_one_space})
@@ -713,8 +714,8 @@ class CompMF(MongoMF):
         args = [(self,x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
 #        results = pool.imap_unordered(self.unwrap,args,chunksize)
-#        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
-        results = pool.map_async(unwrap_compute_space,args,chunksize)        
+        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+#        results = pool.map_async(self.unwrap,args,chunksize)        
         return results
         for res in results:
             res.get()
