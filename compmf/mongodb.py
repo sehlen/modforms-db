@@ -690,6 +690,8 @@ class CompMF(MongoMF):
         n = len(args)
         if n > 100:
             chunksize = 10
+        else:
+            chunksize = 1
         args = [(self,x,kwds) for x in args]
         results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
         for res in results:
@@ -1440,7 +1442,7 @@ class CompMF(MongoMF):
                 if i <> chi:
                     continue
             if not are_compatible(N,k,i):
-                clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
+                #clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
                 continue
             args.append((N,k,i))
         if from_files:
