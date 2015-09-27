@@ -588,7 +588,7 @@ def unwrap_compute_space(args):
     """
     args,kwds = args
     clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
-    res = eval("f(*args, **kwds)",sage.all.__dict__,
+    res = eval("(*args, **kwds)",sage.all.__dict__,
                {'args':args, 'kwds':kwds,
                 'f':CompMF.compute_and_insert_one_space})
     return res
@@ -597,6 +597,12 @@ class CompMF(MongoMF):
     r"""
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
     """
+    def unwrap(args):
+        args,kwds = args
+        clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
+        res = self.compute_and_insert_one_space(args,**kwds)
+        return res
+    
     def __init__(self,datadir='',host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
         r"""
 
@@ -696,7 +702,7 @@ class CompMF(MongoMF):
             chunksize = 1
         args = [(self,x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
-        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+        results = pool.imap_unordered(self.unwrap,args,chunksize)
         for res in results:
             res.get()
         pool.close()
