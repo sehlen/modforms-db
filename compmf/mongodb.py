@@ -857,7 +857,7 @@ class CompMF(MongoMF):
             try:
                 dump_ambient = dumps(ambient)
             except Exception as e:
-                clogger.debug("Could not dump the ambient space!:{0}".format(e))
+                clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
                                 N=int(N),k=int(k),chi=int(i),orbits=int(0),
