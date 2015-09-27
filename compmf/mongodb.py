@@ -547,7 +547,7 @@ class MongoMF(object):
              'server':os.uname()[1],
              'pid':os.getpid(),
              'type':typec,
-             'N':int(N), 'k':int(k),'chi':int(chi)}
+             'N':int(level), 'k':int(weight),'chi':int(chi)}
         if self._computations.find({'N':r['N'],'k':r['k'],'chi':int(chi)}).count()>0:
             return None
         fid = self._computations.insert(r)
@@ -571,7 +571,7 @@ class MongoMF(object):
                 print "WebModularForms/NewForms computations"
             for r in self._computations.find({'stopTime':{"$exists":False},'type':t}):
                 duration = str(now - r['startTime']).split(".")[0]
-                print "{0} \t {1} \t {2} \t {3}".format(r['params'],r['startTime'],duration,r['pid'])
+                print "{0},{1},{2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['chi'],r['startTime'],duration,r['pid'])
             
     def clear_running_computations(typc='mf'):
         res = self._computations.delete_many({"type":typec})
