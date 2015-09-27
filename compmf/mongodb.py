@@ -703,7 +703,7 @@ class CompMF(MongoMF):
         Get or compute a list of spaces in parallel.
 
         """
-        ncpus = kwds.get('ncpus',1)
+        ncpus = kwds.pop('ncpus',1)
         pool = Pool(processes=ncpus)
         clogger.debug("ncpus={0}".format(ncpus))        
         n = len(args)
@@ -713,9 +713,9 @@ class CompMF(MongoMF):
             chunksize = 1
         args = [(x,kwds) for x in args]
         clogger.debug("args={0}".format(args))
-#        results = pool.imap_unordered(self.unwrap,args,chunksize)
+        results = pool.imap_unordered(self.unwrap,args,chunksize)
 #        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
-        results = pool.map_async(self.unwrap,args)        
+#        results = pool.map_async(self.unwrap,args)        
         return results
         for res in results:
             res.get()
