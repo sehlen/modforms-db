@@ -714,6 +714,7 @@ class CompMF(MongoMF):
         clogger.debug("args={0}".format(args))
 #        results = pool.imap_unordered(self.unwrap,args,chunksize)
         results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
+        return results
         for res in results:
             res.get()
         pool.close()
