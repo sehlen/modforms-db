@@ -610,8 +610,7 @@ class CompMF(MongoMF):
     def unwrap(self,args):
         args,kwds = args
         clogger.debug("in unwrap: args={0} kwds={1}".format(args,kwds))
-        res = self.compute_and_insert_one_space(args,**kwds)
-        return res
+        return self.compute_and_insert_one_space(args,**kwds)
     
     def __init__(self,datadir='',host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
         r"""
@@ -752,6 +751,7 @@ class CompMF(MongoMF):
         If data for the given space M(N,k,i) exists in either mongo or files database we fetch this data (and possible complete if e.g. more coefficients are needed) and then insert the result into both databases unless explicitly told not to.
 
         """
+        clogger.debug("In Compute and/or Insert N,k,i= {0} kwds={1}".format((N,k,i),kwds))        
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         #
         c = dirichlet_character_conrey_from_sage_character_number(N,i)
