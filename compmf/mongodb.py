@@ -1779,7 +1779,7 @@ class CompMF(MongoMF):
                         clogger.debug("Data is incomplete for factor ({0}) at {1}".format((N,k,i,newform),factor_fname))
 
 
-    def check_all_characters(self,Nmin=4):
+    def check_all_characters2(self,Nmin=4):
         r"""
 
         """
@@ -1795,17 +1795,35 @@ class CompMF(MongoMF):
                     print N,k,o,chis
                 else: print N,k,o,chis
 
-    def check_all_characters(self):
+    def check_all_characters(self,typec='ambient'):
         r"""
         Chck all characters in the database of ambient modular symbol spaces.
         Note that the update only works if there is currently no inddexes on the
         sollection self._modular_symbols but this should be recreated afterwards.
         """
         cnt = 0
-        for r in self._modular_symbols.find():
-            t = self.check_characters_ambient(r['N'],r['k'],r['chi'])
-            if t is False:
-                cnt+=1
+        if typec=='ambient':
+            for r in self._modular_symbols.find():
+                t = self.check_characters_ambient(r['N'],r['k'],r['chi'])
+                if t is False:
+                    cnt+=1
+        else:
+            r in self._modular_symbols.find():
+                aid = r['_id']
+                for f in self._newform_factors.find({'ambient_id':aid}):
+                    fid = f['_id']
+                    newlabel = label_from_param(N,k,r['cchi'],f['newform'])
+                    if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label']:
+                        newfname = "gamma0-factors-{0}".format(f["filename"].split("/")[-1])
+                        self._newform_factors.update({'_id':fid},{"$set":{
+                            "cchi":r['cchi'],
+                            "character_galois_orbit":r['character_galois_orbit'],
+                            'hecke_orbit_label' : newlabel,
+                            "filename":newfname}})
+                        cnt+=1
+                                                     
+                            
+                
         print "Updated {0} records!".format(cnt)
         
     def check_characters_ambient(self,N,k,i):
