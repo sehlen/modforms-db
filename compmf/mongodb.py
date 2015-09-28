@@ -1814,8 +1814,27 @@ class CompMF(MongoMF):
         cchi = r['cchi']
         fid = r['_id']
         M = self.get_ambient(N,k,i)
+        if r['dimc']==0:
         if M is None:
-            raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
+            # This space is probably empty due to inconsistency.
+            # Check the character we say that we have
+            x =  dirichlet_character_sage_galois_orbit_rep_from_number(N,i)
+            cx =  dirichlet_character_conrey_from_sage_galois_orbit_number(N,i)
+            cxx = conrey_character_from_number()
+            if cx.sage_character() == x and cx==cxx:
+                return True
+            ci = cx.number()
+            orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
+            label = "{0}.{1}.{2}".format(N,k,ci)
+            print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
+            self._modular_symbols.update({'_id':fid},
+                                         {"$set":{'character_galois_orbit':orbit,
+                                                  'cchi':ci,
+                                                  "hecke_orbit_label":label}})
+            return False
+            #raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
+        # If the space is non-empty and in the datbase we make an extra check that
+        # we indeed have the character which was used in the space
         x1 = M.character()
         for x2 in dirichlet_group_conrey(N):
             if x1 == x2.sage_character():
