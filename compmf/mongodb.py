@@ -41,6 +41,8 @@ from compmf.character_conversions import (
     dirichlet_character_sage_galois_orbits_reps,
     sage_character_to_sage_galois_orbit_number,
     conrey_character_number_from_sage_galois_orbit_number,
+    dirichlet_character_conrey_from_sage_galois_orbit_number,
+    dirichlet_group_conrey
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible
@@ -201,8 +203,10 @@ class MongoMF(object):
                 except KeyError as e:
                     if k=='cchi':
                         clogger.warning("rec without cchi: r={0}".format(r))
-                        c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
-                        ci = c.number()
+                        ci = conrey_character_number_from_sage_galois_orbit_number(r['N'],r['chi'])
+#
+#                        c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
+#                        ci = c.number()
                         self._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
                         clogger.debug("Added cchi!")
                     #raise KeyError,e.message
@@ -815,8 +819,9 @@ class CompMF(MongoMF):
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
         """
         verbose = kwds.get('verbose',0)
-        c = dirichlet_character_conrey_from_sage_character_number(N,i)
-        ci = c.number()
+        c = dirichlet_character_conrey_from_sage_galois_orbit_number(N,i)
+        #ci = c.number()
+        ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
         if not c.is_trivial(): #or c.multiplicative_order()==2):
             return []
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'chi':int(i),'cchi':int(ci)}).distinct('_id')
@@ -858,7 +863,8 @@ class CompMF(MongoMF):
         files_ms = self._modular_symbols
         fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
         verbose = kwds.get('verbose',0)
-        ci = dirichlet_character_conrey_from_sage_character_number(N,i).number()
+        ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
+#        ci = dirichlet_character_conrey_from_sage_character_number(N,i).number()
         save_in_file = kwds.get('save_in_file',True)
         compute = kwds.get('compute',self._do_computations)
         # We first see if this space is already in the mongo database.
@@ -948,7 +954,7 @@ class CompMF(MongoMF):
         compute = kwds.get('compute',self._do_computations)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,i,**kwds)
-        ci = dirichlet_character_conrey_from_sage_character_number(N,i).number()
+        ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
         if ambient_id is None:
             clogger.debug("No ambient space!")
             ambient_id = self.compute_ambient(N,k,i,**kwds)
@@ -1042,8 +1048,9 @@ class CompMF(MongoMF):
 
         compute = kwds.get('compute',self._do_computations)
         verbose = kwds.get('verbose')
-        c = dirichlet_character_conrey_from_sage_character_number(N,i)
-        ci = c.number()
+        #        c = dirichlet_character_conrey_from_sage_character_number(N,i)
+        #        ci = c.number()
+        ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
         orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
@@ -1502,8 +1509,9 @@ class CompMF(MongoMF):
             clogger.debug("checking record: {0}".format(r))
             if cchi is None:
                 clogger.debug("We don't have a Conrey character for r={0}".format(r))
-                c = dirichlet_character_conrey_from_sage_character_number(N,chi)
-                cchi = c.number()
+                #c = dirichlet_character_conrey_from_sage_character_number(N,chi)
+                #cchi = c.number()
+                cchi =conrey_character_number_from_sage_galois_orbit_number(N,chi)
                 for col in self._file_collections:
                     if col=='Modular_symbols':
                         self._mongodb['{0}.files'.format(col)].update({'_id':id},{"$set":{'cchi':cchi}})
@@ -1786,6 +1794,39 @@ class CompMF(MongoMF):
                     print N,k,o,chis
                 else: print N,k,o,chis
 
+    def check_all_characters(self):
+        cnt = 0
+        for r in self._modular_symbols.find():
+            t = self.check_characters_ambient(r['N'],r['k'],r['chi'])
+            if t is False:
+                cnt+=1
+        print "Updated {0} records!".format(cnt)
+        
+    def check_characters_ambient(self,N,k,i):
+        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+        if r is None:
+            return
+        cchi = r['cchi']
+        fid = r['_id']
+        M = self.get_ambient(N,k,i)
+        x1 = M.character()
+        for x2 in dirichlet_group_conrey(N):
+            if x1 == x2.sage_character():
+                ci = x2.number()
+                if ci == cchi:
+                    return True
+                orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
+                label = "{0}.{1}.{2}".format(N,k,ci)
+                print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
+                self._modular_symbols.update({'_id':fid},
+                                             {"$set":{'character_galois_orbit':orbit,
+                                                      'cchi':ci,
+                                                      "hecke_orbit_label":label}}) 
+
+                return False
+        raise ArithmeticError,"Could not find appropriate Conrey character!"
+
+    
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
@@ -1796,3 +1837,4 @@ def precision_needed_for_L(N,k,**kwds):
     pprec = max(pprec,kwds.get('pprec',100))
     ## Get even hundreds of primes to look nicer.
     return ceil(RR(pprec)/RR(100))*100
+
