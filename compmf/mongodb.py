@@ -1808,7 +1808,7 @@ class CompMF(MongoMF):
                 if t is False:
                     cnt+=1
         else:
-            r in self._modular_symbols.find():
+            for r in self._modular_symbols.find():
                 aid = r['_id']
                 for f in self._newform_factors.find({'ambient_id':aid}):
                     fid = f['_id']
