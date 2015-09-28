@@ -1795,6 +1795,11 @@ class CompMF(MongoMF):
                 else: print N,k,o,chis
 
     def check_all_characters(self):
+        r"""
+        Chck all characters in the database of ambient modular symbol spaces.
+        Note that the update only works if there is currently no inddexes on the
+        sollection self._modular_symbols but this should be recreated afterwards.
+        """
         cnt = 0
         for r in self._modular_symbols.find():
             t = self.check_characters_ambient(r['N'],r['k'],r['chi'])
