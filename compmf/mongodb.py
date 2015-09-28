@@ -1813,7 +1813,7 @@ class CompMF(MongoMF):
                 aid = r['_id']
                 for f in self._newform_factors.find({'ambient_id':aid}):
                     fid = f['_id']
-                    newlabel = label_from_param(N,k,r['cchi'],f['newform'])
+                    newlabel = label_from_param(r['N'],r['k'],r['cchi'],f['newform'])
                     if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label']:
                         newfname = "gamma0-factors-{0}".format(f["filename"].split("/")[-1])
                         self._newform_factors.update({'_id':fid},{"$set":{
