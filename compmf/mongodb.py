@@ -1814,6 +1814,8 @@ class CompMF(MongoMF):
         cchi = r['cchi']
         fid = r['_id']
         M = self.get_ambient(N,k,i)
+        if M is None:
+            raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
         x1 = M.character()
         for x2 in dirichlet_group_conrey(N):
             if x1 == x2.sage_character():
