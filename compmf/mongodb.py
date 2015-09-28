@@ -1814,7 +1814,6 @@ class CompMF(MongoMF):
         cchi = r['cchi']
         fid = r['_id']
         M = self.get_ambient(N,k,i)
-        if r['dimc']==0:
         if M is None:
             # This space is probably empty due to inconsistency.
             # Check the character we say that we have
