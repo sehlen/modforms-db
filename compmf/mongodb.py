@@ -1801,6 +1801,7 @@ class CompMF(MongoMF):
         Note that the update only works if there is currently no inddexes on the
         sollection self._modular_symbols but this should be recreated afterwards.
         """
+        from utils import label_from_param
         cnt = 0
         if typec=='ambient':
             for r in self._modular_symbols.find():
