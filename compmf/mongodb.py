@@ -42,7 +42,8 @@ from compmf.character_conversions import (
     sage_character_to_sage_galois_orbit_number,
     conrey_character_number_from_sage_galois_orbit_number,
     dirichlet_character_conrey_from_sage_galois_orbit_number,
-    dirichlet_group_conrey
+    dirichlet_group_conrey,
+    conrey_character_from_number
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible
@@ -1819,7 +1820,7 @@ class CompMF(MongoMF):
             # Check the character we say that we have
             x =  dirichlet_character_sage_galois_orbit_rep_from_number(N,i)
             cx =  dirichlet_character_conrey_from_sage_galois_orbit_number(N,i)
-            cxx = conrey_character_from_number()
+            cxx = conrey_character_from_number(N,cchi)
             if cx.sage_character() == x and cx==cxx:
                 return True
             ci = cx.number()
