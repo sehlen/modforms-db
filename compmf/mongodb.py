@@ -372,6 +372,11 @@ class MongoMF(object):
         r"""
         Get factor nr. d of the space M(N,k,i)
         """
+        from utils import orbit_index_from_label,param_from_label
+        if isinstance(N,basestring):
+            N,k,i,d = param_from_label(N)
+        if isinstance(d,basestring):
+            d = orbit_index_from_label(d)
         res = None
         if sources == ['mongo']:
             if character_naming=='sage':
@@ -1826,8 +1831,11 @@ class CompMF(MongoMF):
                             
                 
         print "Updated {0} records!".format(cnt)
+
+    
         
     def check_characters_ambient(self,N,k,i):
+        from character_conversions import dirichlet_character_sage_galois_orbits_reps
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
         if r is None:
             return
@@ -1843,6 +1851,7 @@ class CompMF(MongoMF):
             if cx.sage_character() == x and cx==cxx:
                 return True
             ci = cx.number()
+            
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             label = "{0}.{1}.{2}".format(N,k,ci)
             print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
@@ -1854,18 +1863,31 @@ class CompMF(MongoMF):
             #raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
         # If the space is non-empty and in the datbase we make an extra check that
         # we indeed have the character which was used in the space
+        fname = 'gamma0-ambient-modsym-00101-002-006'
         x1 = M.character()
+        reps = dirichlet_character_sage_galois_orbits_reps(N)
+        si = None
+        for j in range(len(reps)):
+            if x in reps[j].galois_orbit():
+                si = int(j)
+                break
+        if si <> r['chi']:
+            clogger.debug("Wrong character number! chi={0} and orbit of x={1}".format(r['chi'],si))
+            if si is None:
+                raise ArithmeticError,"Could not find correct character for N,k,i={0},{1},{2}".format(N,k,i)
         for x2 in dirichlet_group_conrey(N):
             if x1 == x2.sage_character():
                 ci = x2.number()
-                if ci == cchi:
+                if ci == cchi and si == r['chi']:
                     return True
                 orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
+                # we might need to update the filename as well
                 label = "{0}.{1}.{2}".format(N,k,ci)
                 print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
                 self._modular_symbols.update({'_id':fid},
                                              {"$set":{'character_galois_orbit':orbit,
                                                       'cchi':ci,
+                                                      'chi':si,
                                                       "hecke_orbit_label":label}}) 
 
                 return False
