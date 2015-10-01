@@ -57,6 +57,7 @@ Galois orbits:
  - dirichlet_character_conrey_galois_orbit_embeddings(N,xi):
  - dirichlet_character_to_int(chi,convention='Conrey'):
 
+ - conrey_orbit_number_
 """
 
 from sage.all import cached_function,QQ,trivial_character,ModularSymbols,Mod
@@ -224,9 +225,10 @@ def dirichlet_character_conrey_from_sage_galois_orbit_number(n,i):
     Return x in DirichletGroup_conrey(n) corresponding to y=DirichletGroup(n).galois_orbits()[i][0]
     """
     D = dirichlet_group_sage(n)
-    x = D.galois_orbits()[i][0]
+    # We need to find the correct orbit as given by the ordering in .galois_orbits(reps_only=True)
+    x = D.galois_orbits(reps_only=True)[i]
     for c in dirichlet_group_conrey(n):
-        if c.sage_character() == x:
+        if c.sage_character() in x.galois_orbit():
             return c
     raise ValueError,"No Conrey character for {0},{1}".format(n,i)
     
