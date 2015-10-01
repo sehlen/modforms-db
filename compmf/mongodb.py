@@ -1940,7 +1940,7 @@ class CompMF(MongoMF):
                     orbit_nr = j
                     break
             if orbit_nr == 0:
-                raise ArithmeticError,"Could not find the correct Galois orbit for N,chi={0},{1}".format(N,i)
+                raise ArithmeticError,"Could not find the correct Galois orbit for N,k,chi={0},{1},{2} eps={3}".format(N,k,i,eps)
             mnamenew = self._db.ambient(N,k,i)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
