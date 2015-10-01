@@ -1911,6 +1911,7 @@ class CompMF(MongoMF):
                     pass
 
     def check_characters_in_files(self):
+        from sage.all import trivial_character
         rename_list = []
         for N,k,i,d,ap in self._db.known("N<10000"):
             ## find the character in file...
