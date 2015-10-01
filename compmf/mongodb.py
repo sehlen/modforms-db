@@ -1912,11 +1912,19 @@ class CompMF(MongoMF):
 
     def check_characters_in_files(self):
         from sage.all import trivial_character
+        from sage.all import dimension_new_cusp_forms
         rename_list = []
+        missing = []
         for N,k,i,d,ap in self._db.known("N<10000"):
             ## find the character in file...
             mname = self._db.ambient(N,k,i)
-            modsym = load(mname)
+            try:
+                modsym = load(mname)
+            except IOError:
+                if k % 2 == 0 and i==0:
+                    missing.append((N,k,i))
+                    clogger.debug("Space {0} is missing!".format((N,k,i)))
+                continue
             rels  = modsym['rels']
             F = rels.base_ring()
             if i == 0:
