@@ -1868,7 +1868,7 @@ class CompMF(MongoMF):
         reps = dirichlet_character_sage_galois_orbits_reps(N)
         si = None
         for j in range(len(reps)):
-            if x in reps[j].galois_orbit():
+            if x1 in reps[j].galois_orbit():
                 si = int(j)
                 break
         if si <> r['chi']:
