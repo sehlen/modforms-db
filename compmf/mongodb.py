@@ -1911,7 +1911,7 @@ class CompMF(MongoMF):
                     pass
 
     def check_characters_in_files(self):
-        from sage.all import trivial_character
+        from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
         rename_list = []
         missing = []
