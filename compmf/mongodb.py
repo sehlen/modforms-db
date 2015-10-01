@@ -1931,7 +1931,7 @@ class CompMF(MongoMF):
                 eps = trivial_character(N)
                 # this is always ok
                 continue
-            eps = DirichletGroup(N, F)(eps)
+            eps = DirichletGroup(N, F)(modsym['eps'])
             reps = eps.parent().galois_orbits(reps_only=True)
             orbit_nr = -1
             for j in range(len(reps)):
