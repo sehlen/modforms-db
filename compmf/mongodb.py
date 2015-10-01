@@ -1933,11 +1933,11 @@ class CompMF(MongoMF):
                 continue
             eps = DirichletGroup(N, F)(eps)
             reps = eps.parent().galois_orbits(reps_only=True)
-            orbit_nr = 0
+            orbit_nr = -1
             for j in range(len(reps)):
                 if eps in reps[j].galois_orbit():
                     # The correct galois orbit number for this space is then j
-                    clogger.debug("eps is in orbit {0}".format(j))
+                    clogger.debug("eps:{0} is in orbit {1}: {2}".format(eps,j,reps[j].galois_orbit())
                     orbit_nr = j
                     break
             if orbit_nr == 0:
