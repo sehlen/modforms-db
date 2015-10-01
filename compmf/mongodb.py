@@ -93,7 +93,8 @@ class MongoMF(object):
         self._twists = self._mongodb["twists"]
         self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
         self._computations = self._mongodb['computations']
-
+        self._galois_orbits = self._mongodb['galois_orbits']
+        
         ## The indices we use for the collections given above
         self._collections_indexes = [
         { 'name': 'Modular_symbols.files', 'index':[
@@ -1893,7 +1894,53 @@ class CompMF(MongoMF):
                 return False
         raise ArithmeticError,"Could not find appropriate Conrey character!"
 
-    
+
+    def create_galois_orbits_maps(self,nmax):
+        r"""
+        Set up a database with correspondences between the two ordering of Galois orbits.
+        """
+        raise NotImplementedError,"Haven't done this yet"
+        for N in range(2,nmax):
+            if self._galois_orbits.find({'N':int(N)}).count()>0:
+                continue
+            D = dirichlet_group_sage(N)
+            D = dirichlet_group_conrey(N)            
+            reps = D.galois_orbits(reps_only=True)
+            for x in reps:
+                for y in x.galois_orbit():
+                    pass
+
+    def check_characters_in_files(self):
+        rename_list = []
+        for N,k,i,d,ap in self._db.known("N<10000"):
+            ## find the character in file...
+            mname = self._db.ambient(N,k,i)
+            modsym = load(mname)
+            rels  = modsym['rels']
+            F = rels.base_ring()
+            if i == 0:
+                eps = trivial_character(N)
+                # this is always ok
+                continue
+            eps = DirichletGroup(N, F)(eps)
+            reps = eps.parent().galois_orbits(reps_only=True)
+            orbit_nr = 0
+            for j in range(len(reps)):
+                if eps in reps[j].galois_orbit():
+                    # The correct galois orbit number for this space is then j
+                    orbit_nr = j
+                    break
+            if orbit_nr == 0:
+                raise ArithmeticError,"Could not find the correct Galois orbit for N,chi={0},{1}".format(N,i)
+            mnamenew = self._db.ambient(N,k,i)
+            clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
+            if self._db.isdir(mnamenew):
+                clogger.debug("\t Directory {0} already exists!".format(mnamenew)
+            else:
+                rename_list.append([mname,mnamenew])
+        print "Need to change name of {0} directories!".format(rename_list)
+
+            
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
