@@ -1937,6 +1937,7 @@ class CompMF(MongoMF):
             for j in range(len(reps)):
                 if eps in reps[j].galois_orbit():
                     # The correct galois orbit number for this space is then j
+                    clogger.debug("eps is in orbit {0}".format(j))
                     orbit_nr = j
                     break
             if orbit_nr == 0:
