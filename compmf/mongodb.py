@@ -1935,9 +1935,10 @@ class CompMF(MongoMF):
             mnamenew = self._db.ambient(N,k,i)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
-                clogger.debug("\t Directory {0} already exists!".format(mnamenew)
+                clogger.debug("\t Directory {0} already exists!".format(mnamenew))
             else:
                 rename_list.append([mname,mnamenew])
+                modsym['space']=(int(N),int(k),int(orbit_nr))
         print "Need to change name of {0} directories!".format(rename_list)
 
             
