@@ -1910,12 +1910,12 @@ class CompMF(MongoMF):
                 for y in x.galois_orbit():
                     pass
 
-    def check_characters_in_files(self):
+    def check_characters_in_files(self,nmax=10000):
         from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
         rename_list = []
         missing = []
-        for N,k,i,d,ap in self._db.known("N<10000"):
+        for N,k,i,d,ap in self._db.known("N<{0}".format(nmax)):
             ## find the character in file...
             mname = self._db.ambient(N,k,i)
             try:
