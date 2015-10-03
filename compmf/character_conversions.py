@@ -107,6 +107,8 @@ def conrey_character_to_number(x):
     r"""
     Return the odulus and number of the character nr. x
     """
+    if x.modulus() == 1:
+        return 1,1
     return x.modulus(),x.number()
 
 @cached_function    
@@ -167,6 +169,11 @@ def conrey_character_number_to_conrey_galois_orbit_number(n,i):
     Return the number of the galois orbit in DirichletGroup_conrey(n).galois_orbits()
     which contains the Dirichlet character DirichletGroup_conrey(n)[i]
     """
+    if n == 1:
+        if i == 1 or i == 0:
+            return 1
+        else:
+            raise ArithmeticError,"Could not find an orbit for (n,i)={0}".format((n,i))    
     j = 0
     for o in dirichlet_group_conrey_galois_orbits(n):
         for x in o:
@@ -251,6 +258,11 @@ def dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,xi):
     Return the representative of the Galois orbit nr. i modulo N
     """    
     D = dirichlet_character_conrey_galois_orbits_reps(n)
+    if n == 1:
+        if xi == 0 or xi == 1:
+            return D[0]
+        else:
+            raise ValueError,"Character nr {0} mod {1} does not have a rep!".format(xi,n)
     orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi)
     for x in D:
         if x.number() in orbit:
@@ -356,6 +368,8 @@ def conrey_character_number_from_sage_galois_orbit_number(n,i):
     r"""
     Get the number of the character x corresponding to the (Sage) Galois orbit nr. i in DirichletGroup(n)
     """
+    if n == 1:
+        return 1
     return dirichlet_character_conrey_from_sage_galois_orbit_number(n,i).number()
 
 @cached_function
@@ -449,6 +463,8 @@ def dirichlet_character_to_int(chi,convention='Conrey'):
         return dirichlet_character_sage_galois_orbits_reps(chi.modulus()).index(x)
     elif convention=='Conrey':
         x = dirichlet_character_conrey_galois_orbit_rep(chi)
+        if x.modulus() == 1:
+            return 1
         return x.number()
     else:
         raise ValueError("convention must be one of 'Sage' or 'Conrey' ")
