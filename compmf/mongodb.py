@@ -50,7 +50,7 @@ from utils import are_compatible
 from compmf import clogger
 
 class MongoMF(object):
-    def __init__(self,host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
+    def __init__(self,host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
         r"""
         Mongo database for modular forms.
 
@@ -628,7 +628,7 @@ class CompMF(MongoMF):
         cogger.debug("!!!")
         return 1
 
-    def __init__(self,datadir='',host='localhost',port=37010,verbose=0,db='modularforms2',**kwds):
+    def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
         r"""
 
         INPUT:
@@ -646,7 +646,7 @@ class CompMF(MongoMF):
 
 
         """
-        super(CompMF,self).__init__(host,port,verbose,db,**kwds)
+        super(CompMF,self).__init__(host,port,db,verbose,**kwds)
         self._datadir = datadir
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
@@ -1898,6 +1898,13 @@ class CompMF(MongoMF):
     def create_galois_orbits_maps(self,nmax):
         r"""
         Set up a database with correspondences between the two ordering of Galois orbits.
+        Records are of the form:
+        ## A character is given by e.g.:
+        {'N':63,'values':['1','zeta6'],'conrey_number':i,
+        'orbit':[],
+        'orbit_no':j
+        'galois_orbit_sage':k }
+        {'N','sage_
         """
         raise NotImplementedError,"Haven't done this yet"
         for N in range(2,nmax):
@@ -1910,6 +1917,23 @@ class CompMF(MongoMF):
                 for y in x.galois_orbit():
                     pass
 
+    def get_record_from_character(self,x):
+        r"""
+        Input a Sage character x and output a record for database.
+        """
+        
+        DC = dirichlet_group_conrey(x.modulus())
+        #vals = map(str,x.values_on_gens())
+        # The generators of (Z/NZ)^* given by sage
+        gens = list(IntegerModRing(c.modulus()).unit_group().gens_values())
+        gens.sort()
+        # To make sure that we have the values of the character on these generators...
+        vals = map(x,gens)
+        clogger.debug("Gens of Z/{0}Z:{1}".format(x.modulus(),gens))
+        clogger.debug("Values : {2}".format(vals))
+        for c in 
+        
+            
     def check_characters_in_files(self,nmax=10000):
         from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
@@ -1949,8 +1973,9 @@ class CompMF(MongoMF):
             else:
                 rename_list.append([mname,mnamenew])
                 modsym['space']=(int(N),int(k),int(orbit_nr))
+                #save(modsym,mname) # save wih updated space name
         print "Need to change name of {0} directories!".format(rename_list)
-
+        return missing,rename_list
             
 def precision_needed_for_L(N,k,**kwds):
     r"""
