@@ -29,17 +29,23 @@ Available functions:
 Groups of Dirichlet Characters:
  - dirichlet_group_conrey(n)
  - dirichlet_group_sage(n)
-Convert between characters and numbers (in same system)
-- conrey_character_from_number(n,i) -- return a Conrey character from a conrey number
- - conrey_character_to_number(x) -- return the numer of character 
+
+Convert between characters and numbers (in same system) 
+ - conrey_character_from_number(n,i) -- return a Conrey character from a conrey number
+ - conrey_character_to_number(x) -- return the number of character 
  - sage_character_from_number(n,i)
  - sage_character_to_number(x)
+ - sage_character_to_conrey_galois_orbit_number(x)
+ - sage_character_to_conrey_character(x)
+ - conrey_character_number_to_conrey_galois_orbit_number(n,i)
+ 
+
 Galois orbits:
+ - dirichlet_group_conrey_galois_orbits(n)
  - dirichlet_character_sage_galois_orbits_reps(N)
  - dirichlet_character_conrey_galois_orbits_reps(N)
 
-- sage_character_to_sage_galois_orbit_number(x) -- take a Sage character and return its index in the Galois orbit
-
+- sage_character_to_sage_galois_orbit_number(x) -- take a Sage character and return its index in the Galois orbit given by DirichletGroup(n).galois_orbits(reps_only=True)
 
  - dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi)
  - dirichlet_character_conrey_galois_orbit_rep_from_character_number(n,xi)
@@ -75,7 +81,7 @@ def dirichlet_group_conrey(n):
     if n > 0:
         return DirichletGroup_conrey(n)
     raise ValueError,"No Dirichlet Group of modulus 0!"
-    
+
 @cached_function
 def dirichlet_group_sage(n):
     r"""
@@ -135,7 +141,63 @@ def sage_character_to_sage_galois_orbit_number(x):
         i+=1
     raise ValueError,"Could not find Galois orbit of {0}".format(x)
 
+def sage_character_to_conrey_character(x):
+    r"""
+    Return the Corney character corresponding to the sage character x
+    """
+    for y in dirichlet_group_conrey(x.modulus()):
+        if x == y.sage_character():
+            return y
+
+def sage_character_to_conrey_galois_orbit_number(x):
+    r"""
+    Return the number of the Galois orbit in DirichletGroup_conrey whjich contains x
+    """
+    i = 0
+    for o in dirichlet_group_conrey_galois_orbits(x.modulus()):
+        for y in o:
+            if y.sage_character() == x:
+                return i
+        i+=1
+    raise ArithmeticError,"Could not find an orbit for x={0}".format(x)
+
+
+def conrey_character_number_to_conrey_galois_orbit_number(n,i):
+    r"""
+    Return the number of the galois orbit in DirichletGroup_conrey(n).galois_orbits()
+    which contains the Dirichlet character DirichletGroup_conrey(n)[i]
+    """
+    j = 0
+    for o in dirichlet_group_conrey_galois_orbits(n):
+        for x in o:
+            if x.number() == i:
+                return j
+        j+=1
+    raise ArithmeticError,"Could not find an orbit for (n,i)={0}".format((n,i))    
+# Galois orbits
+
+@cached_function
+def dirichlet_group_conrey_galois_orbits(n):
+    if n > 0:
+        return dirichlet_group_conrey(n).galois_orbits()
+    raise ValueError,"No Dirichlet Group of modulus 0!"
+
+@cached_function
+def dirichlet_group_sage_galois_orbits(n):
+    r"""
+    Returns the Galois orbits of the (Sage) DirichletGroup(n)
+    in the same ordering as given by the reps_only=True option.
+    """
+    if n == 0:
+        raise ValueError,"No Dirichlet Group of modulus 0!"        
+    l = dirichlet_group_sage(n).galois_orbits(reps_only=True)
+    res = []
+    for x in l:
+        res.append(x.galois_orbit())
+    return res
     
+
+
 ## Galois orbit representatives
         
 @cached_function

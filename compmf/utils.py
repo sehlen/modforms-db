@@ -54,8 +54,11 @@ def are_compatible(modulus,weight,si):
     x = character_conversions.dirichlet_character_sage_galois_orbit_rep_from_number(modulus,si)
     return (x.is_even() and weight % 2 == 0) or (x.is_odd() and weight % 2 == 1)
 
-def label_from_param(N,k,i,d):
-    return "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(d))
+def label_from_param(N,k,i,d=None):
+    if not d is None:
+        return "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(d))
+    else:
+        return "{0}.{1}.{2}{3}".format(N,k,i)
 
 def param_from_label(lab):
     t = lab.split(".")
@@ -63,7 +66,16 @@ def param_from_label(lab):
         raise ValueError
     N=int(t[0]); k = int(t[1])
     s = t[2]
-    delim = map(lambda x:x.isalpha(),s).index(True)
-    i = int(s[0:delim])
-    label =s[delim:]
-    return (N,k,i,label)
+    if s.isdigit():
+        i = int(s)
+        return (N,k,i)
+    else:
+        l = map(lambda x:x.isalpha(),s)
+        delim = l.index(True)
+        i = int(s[0:delim])
+        label =s[delim:]
+        return (N,k,i,label)        
+
+
+
+

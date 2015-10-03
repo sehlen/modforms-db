@@ -19,6 +19,8 @@
 r"""
 Programs for inserting modular forms data into a mongo database. By default we are also synchronizing with a file-system based datbase.
 
+NOTE: All future interaction with the database should use Conrey's character numbering scheme!
+
 """
 
 
@@ -151,111 +153,111 @@ class MongoMF(object):
             # remove duplicates
 
 
-    def remove_duplicates(self,col,keys,dryrun=1):
-        r"""
-        Remove duplicates from mongo db
+#     def remove_duplicates(self,col,keys,dryrun=1):
+#         r"""
+#         Remove duplicates from mongo db
 
 
-        """
-        from sage.all import deepcopy
-        if 'files' not in col:
-            ccol='{0}.files'.format(col)
-        else:
-            ccol = col
-        clogger.debug("ccol={0}".format(ccol))
-        clogger.debug("keys={0}".format(keys))
-        flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
+#         """
+#         from sage.all import deepcopy
+#         if 'files' not in col:
+#             ccol='{0}.files'.format(col)
+#         else:
+#             ccol = col
+#         clogger.debug("ccol={0}".format(ccol))
+#         clogger.debug("keys={0}".format(keys))
+#         flds = deepcopy(keys); flds.extend(['uploadDate','filename','_id','chi'])
 
-        clogger.debug("flds={0}".format(flds))
-        nnmax = max(self._mongodb[ccol].find().distinct('N'))
-        args = []
-        if 'ap' in col:
-            step=50
-        else:
-            step = 100
-            flds.append('prec')
-        #h = RR(nnmax)/32.0
-        for j in range(RR(nnmax)/RR(step)):
-            nmin = j*step; nmax = (j+1)*step
-            args.append((col,keys,flds,dryrun,nmin,nmax))
-        return list(self.remove_duplicates32(args))
+#         clogger.debug("flds={0}".format(flds))
+#         nnmax = max(self._mongodb[ccol].find().distinct('N'))
+#         args = []
+#         if 'ap' in col:
+#             step=50
+#         else:
+#             step = 100
+#             flds.append('prec')
+#         #h = RR(nnmax)/32.0
+#         for j in range(RR(nnmax)/RR(step)):
+#             nmin = j*step; nmax = (j+1)*step
+#             args.append((col,keys,flds,dryrun,nmin,nmax))
+#         return list(self.remove_duplicates32(args))
 
-    @parallel(ncpus=32)
-    def remove_duplicates32(self,col,keys,flds,dryrun=1,nmin=0,nmax=10000):
-        r"""
-        Remove duplicate records in collection col for which keys are not unique.
-        """
+#     @parallel(ncpus=32)
+#     def remove_duplicates32(self,col,keys,flds,dryrun=1,nmin=0,nmax=10000):
+#         r"""
+#         Remove duplicate records in collection col for which keys are not unique.
+#         """
 
-        #keys = [x[0] for x in keys]
-        fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
-        if 'files' not in col:
-            ccol='{0}.files'.format(col)
-        else:
-            ccol = col
-        s = {}
-        clogger.debug("nmin = {0} \t nmax= {1} \t col={2} \t ccol={3}".format(nmin,nmax,col,ccol))
-        #if ccol=='Newform_factors.files':
-        s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
-        for r in self._mongodb[ccol].find(s,projection=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
-            id=r['_id']
-            s = {}
-            for k in keys:
-                try:
-                    s[k]=r[k]
-                except KeyError as e:
-                    if k=='cchi':
-                        clogger.warning("rec without cchi: r={0}".format(r))
-                        ci = conrey_character_number_from_sage_galois_orbit_number(r['N'],r['chi'])
-#
-#                        c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
-#                        ci = c.number()
-                        self._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
-                        clogger.debug("Added cchi!")
-                    #raise KeyError,e.message
-            #print "s=",s
-            q = self._mongodb[ccol].find(s,projection=flds).sort('uploadDate',pymongo.ASCENDING)
-            if q.count()==1:
-                continue
-            for rnew in q:
-                if rnew['_id']==id:
-                    continue
-                clogger.debug("s = {0}".format(s))
-                clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
-                clogger.debug("Duplicate of {0}".format(r))
-                if dryrun:
-                    clogger.debug("Not really deleting!")
-                else:
-                    clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
-                    fs.delete(rnew['_id'])
+#         #keys = [x[0] for x in keys]
+#         fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
+#         if 'files' not in col:
+#             ccol='{0}.files'.format(col)
+#         else:
+#             ccol = col
+#         s = {}
+#         clogger.debug("nmin = {0} \t nmax= {1} \t col={2} \t ccol={3}".format(nmin,nmax,col,ccol))
+#         #if ccol=='Newform_factors.files':
+#         s = {'N':{"$lt":int(nmax),"$gt":int(nmin)-1}}
+#         for r in self._mongodb[ccol].find(s,projection=flds).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING),('uploadDate',pymongo.DESCENDING)]):
+#             id=r['_id']
+#             s = {}
+#             for k in keys:
+#                 try:
+#                     s[k]=r[k]
+#                 except KeyError as e:
+#                     if k=='cchi':
+#                         clogger.warning("rec without cchi: r={0}".format(r))
+#                         ci = conrey_character_number_from_sage_galois_orbit_number(r['N'],r['chi'])
+# #
+# #                        c = dirichlet_character_conrey_from_sage_character_number(r['N'],r['chi'])
+# #                        ci = c.number()
+#                         self._mongodb[ccol].update({'_id':r['_id']},{"$set":{'cchi':ci}})
+#                         clogger.debug("Added cchi!")
+#                     #raise KeyError,e.message
+#             #print "s=",s
+#             q = self._mongodb[ccol].find(s,projection=flds).sort('uploadDate',pymongo.ASCENDING)
+#             if q.count()==1:
+#                 continue
+#             for rnew in q:
+#                 if rnew['_id']==id:
+#                     continue
+#                 clogger.debug("s = {0}".format(s))
+#                 clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
+#                 clogger.debug("Duplicate of {0}".format(r))
+#                 if dryrun:
+#                     clogger.debug("Not really deleting!")
+#                 else:
+#                     clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
+#                     fs.delete(rnew['_id'])
 
 
-    def remove_duplicates1(self,col,key,dryrun=1):
-        r"""
-        Remove duplicate records in collection col for which keys are not unique.
-        """
-        fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
-        if 'files' not in col:
-            ccol='{0}.files'.format(col)
-        else:
-            ccol = col
-        s = {}
-        for r in self._mongodb[ccol].find().sort('uploadDate',pymongo.DESCENDING):
-            id=r['_id']
-            val = r[key]
-            q = self._mongodb[ccol].find({key:val})
-            if q.count()==1:
-                continue
-            for rnew in q:
-                if rnew['_id']==id:
-                    continue
-                clogger.debug("s = {0}".format(s))
-                clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
-                clogger.debug("Duplicate of {0}".format(r))
-                if dryrun:
-                    clogger.debug("Not really deleting!")
-                else:
-                    clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
-                    fs.delete(rnew['_id'])
+#     def remove_duplicates1(self,col,key,dryrun=1):
+#         r"""
+#         Remove duplicate records in collection col for which keys are not unique.
+#         """
+#         fs = gridfs.GridFS(self._mongodb,col.split(".")[0])
+#         if 'files' not in col:
+#             ccol='{0}.files'.format(col)
+#         else:
+#             ccol = col
+#         s = {}
+#         for r in self._mongodb[ccol].find().sort('uploadDate',pymongo.DESCENDING):
+#             id=r['_id']
+#             val = r[key]
+#             q = self._mongodb[ccol].find({key:val})
+#             if q.count()==1:
+#                 continue
+#             for rnew in q:
+#                 if rnew['_id']==id:
+#                     continue
+#                 clogger.debug("s = {0}".format(s))
+#                 clogger.debug("Removing record {0} in collection {1}".format(rnew,col))
+#                 clogger.debug("Duplicate of {0}".format(r))
+#                 if dryrun:
+#                     clogger.debug("Not really deleting!")
+#                 else:
+#                     clogger.debug("We are really deleting {0} from {1}".format(rnew['_id'],fs._GridFS__collection))
+#                     fs.delete(rnew['_id'])
 
     def show_existing_mongo(self,db='fr'):
         r"""
@@ -332,25 +334,48 @@ class MongoMF(object):
         fs = gridfs.GridFS(self._mongodb,col)
         return loads(fs.get(fid).read())
 
+    def get_parameters_from_input(self,*args,**kwds):
+        r"""
+        Extract the parameters: Level,weight,conrey_character_no
+        from the input.
+        """
+        if isinstance(args[0],basestring):
+            N,k,i = param_from_label(args[0])
+        elif len(args)==3:
+            N,k,i = args
+        elif len(args)==4:
+            N,k,i,d = args
+        #    
+        return int(N),int(k),int(i)
+    
     def get_ambient(self,N,k,i,**kwds):
         r"""
         Return the ambient space M(N,k,i)
 
+        INPUT:
+         - 'N' -- integer (level) or string of the form 'N.k.i' (label)
+         - 'k' -- integer (weight)
+         - 'i' -- integer (Character number modulo N in Conrey's numbering)
         keywords:
             - compute (True) -- if True compute an ambient space if it is not in the database.
             - get_record (False) -- if True return the database record instead of the space.
         """
         ambient_id = kwds.get('ambient_id',None)
+        if isinstance(N,basestring):
+            N,k,i = param_from_label(N)
+        N = int(N); k = int(k); i = int(i)
         if ambient_id is None:
-            if kwds.get('compute',True):
+            s = {'N':N,'k':k,'character_galois_orbit':{"$in":[i]}}
+            f =self._modular_symbols.find_one(s)
+            #print f
+            if f is None and kwds.get('compute',False):
                 ambient_id = self.compute_ambient(N,k,i,**kwds)
+            elif f is None:
+                return None
             else:
-                ids = self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)}).distinct('_id')
-                if ids==[]:
-                    return None
-                ambient_id = ids[0]
-        if kwds.get('get_record',False):
-            return self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)})
+                if kwds.get('get_record',False):
+                    return f
+                ambient_id = f['_id']
         return self.load_from_mongo('Modular_symbols',ambient_id)
 
     def get_dimc(self,N,k,i):
@@ -358,7 +383,9 @@ class MongoMF(object):
         Get dimension of cusp forms in S_k(N,i).
 
         """
-        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)},projection=['dimc'])
+        if isinstance(N,basestring):
+            N,k,i = param_from_label(N)
+        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(i)},projection=['dimc'])
         if r is None:
             return -1
         return r.get('dimc',-1)
@@ -367,7 +394,9 @@ class MongoMF(object):
         r"""
         Return the number of factors.
         """
-        return self._newform_factors.find({'N':int(N),'k':int(k),'chi':int(i)}).count()
+        if isinstance(N,basestring):
+            N,k,i = param_from_label(N)
+        return self._newform_factors.find({'N':int(N),'k':int(k),'cchi':int(i)}).count()
 
     def get_factors(self,N,k,i,d=None,character_naming='sage',sources=['mongo','files']):
         r"""
@@ -922,6 +951,7 @@ class CompMF(MongoMF):
             dima = int(ambient.dimension())
             dimc = int(ambient.cuspidal_submodule().dimension())
             clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,i),ambient))
+            on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             fid = None
             try:
@@ -930,8 +960,12 @@ class CompMF(MongoMF):
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
-                                N=int(N),k=int(k),chi=int(i),orbits=int(0),
-                                hecke_orbit_label="{0}.{1}.{2}".format(N,k,ci),
+                                N=int(N),k=int(k),nfactors=int(0),
+                                sage_orbit_no=int(i),
+                                orbits=int(0),
+                                space_label="{0}.{1}.{2}".format(N,k,ci),
+                                space_orbit_label="{0}.{1}.{2}".format(N,k,on),
+                                conrey_galois_orbit_number=int(on),
                                 dima=dima,dimc=dimc,
                                 character_galois_orbit=orbit,
                                 cchi=int(ci),
@@ -1801,7 +1835,7 @@ class CompMF(MongoMF):
                     print N,k,o,chis
                 else: print N,k,o,chis
 
-    def check_all_characters(self,typec='ambient'):
+    def check_all_characters(self,typec='ambient',dry_run=0):
         r"""
         Chck all characters in the database of ambient modular symbol spaces.
         Note that the update only works if there is currently no inddexes on the
@@ -1811,7 +1845,7 @@ class CompMF(MongoMF):
         cnt = 0
         if typec=='ambient':
             for r in self._modular_symbols.find():
-                t = self.check_characters_ambient(r['N'],r['k'],r['chi'])
+                t = self.check_characters_ambient(r['N'],r['k'],r['chi'],dry_run=dry_run,verbose=0)
                 if t is False:
                     cnt+=1
         else:
@@ -1820,13 +1854,16 @@ class CompMF(MongoMF):
                 for f in self._newform_factors.find({'ambient_id':aid}):
                     fid = f['_id']
                     newlabel = label_from_param(r['N'],r['k'],r['cchi'],f['newform'])
-                    if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label']:
+                    if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label'] or f.get('conrey_galois_orbit_number') is None:
                         newfname = "gamma0-factors-{0}".format(f["filename"].split("/")[-1])
-                        self._newform_factors.update({'_id':fid},{"$set":{
+                        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                        updates = {
                             "cchi":r['cchi'],
                             "character_galois_orbit":r['character_galois_orbit'],
                             'hecke_orbit_label' : newlabel,
-                            "filename":newfname}})
+                            "filename":newfname,
+                            "conrey_galois_orbit_number":on}
+                        self._newform_factors.update({'_id':fid},{"$set":updates})
                         cnt+=1
                                                      
                             
@@ -1835,14 +1872,15 @@ class CompMF(MongoMF):
 
     
         
-    def check_characters_ambient(self,N,k,i):
-        from character_conversions import dirichlet_character_sage_galois_orbits_reps
+    def check_characters_ambient(self,N,k,i,verbose=0,dry_run=0):
+        from character_conversions import dirichlet_character_sage_galois_orbits_reps,conrey_character_number_to_conrey_galois_orbit_number
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
         if r is None:
             return
         cchi = r['cchi']
         fid = r['_id']
-        M = self.get_ambient(N,k,i)
+        print "Get ambient with ",N,k,cchi
+        M = self.get_ambient(N,k,cchi)
         if M is None:
             # This space is probably empty due to inconsistency.
             # Check the character we say that we have
@@ -1855,17 +1893,24 @@ class CompMF(MongoMF):
             
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             label = "{0}.{1}.{2}".format(N,k,ci)
-            print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
-            self._modular_symbols.update({'_id':fid},
-                                         {"$set":{'character_galois_orbit':orbit,
-                                                  'cchi':ci,
-                                                  "hecke_orbit_label":label}})
+            updates =  {'character_galois_orbit':orbit,
+                        'cchi':ci,
+                        "hecke_orbit_label":label}
+            if verbose>0:
+                clogger.debug("Updating {0} -> {1}".format(r['hecke_orbit_label'],label))
+                clogger.debug("Updates: {0}".format(updates))
+            if dry_run == 1:
+                return False
+            self._modular_symbols.update({'_id':fid},{"$set":updates})
+
             return False
             #raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
         # If the space is non-empty and in the datbase we make an extra check that
         # we indeed have the character which was used in the space
         fname = 'gamma0-ambient-modsym-00101-002-006'
         x1 = M.character()
+        if verbose>0:
+            clogger.debug("x1={0}".format(x1))
         reps = dirichlet_character_sage_galois_orbits_reps(N)
         si = None
         for j in range(len(reps)):
@@ -1876,21 +1921,34 @@ class CompMF(MongoMF):
             clogger.debug("Wrong character number! chi={0} and orbit of x={1}".format(r['chi'],si))
             if si is None:
                 raise ArithmeticError,"Could not find correct character for N,k,i={0},{1},{2}".format(N,k,i)
+        # Need to get the Conrey character number
+        
         for x2 in dirichlet_group_conrey(N):
             if x1 == x2.sage_character():
                 ci = x2.number()
-                if ci == cchi and si == r['chi']:
+                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                if ci == cchi and si == r['chi'] and r.get('conrey_galois_orbit_number',-1)==on:
                     return True
                 orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
                 # we might need to update the filename as well
                 label = "{0}.{1}.{2}".format(N,k,ci)
-                print "Updating {0} -> {1}".format(r['hecke_orbit_label'],label)
-                self._modular_symbols.update({'_id':fid},
-                                             {"$set":{'character_galois_orbit':orbit,
-                                                      'cchi':ci,
-                                                      'chi':si,
-                                                      "hecke_orbit_label":label}}) 
-
+                orbit_label = "{0}.{1}.{2}".format(N,k,on)
+                updates = {
+                    'character_galois_orbit':orbit,
+                    'cchi':ci,
+                    'chi':si,
+                    'nfactors':r['orbits'],
+                    "space_label":label,
+                    "space_orbit_label":orbit_label,
+                    "conrey_galois_orbit_number":on}
+                if verbose>0:
+                    clogger.debug("Updating {0} -> {1}".format(r['hecke_orbit_label'],label))
+                    clogger.debug("updates: {0}".format(updates))
+                if dry_run == 1:
+                    if verbose>0:
+                        clogger.debug("We do not modify the database!")
+                    return False
+                self._modular_symbols.update({'_id':fid},{"$set":updates})
                 return False
         raise ArithmeticError,"Could not find appropriate Conrey character!"
 
@@ -1931,8 +1989,8 @@ class CompMF(MongoMF):
         vals = map(x,gens)
         clogger.debug("Gens of Z/{0}Z:{1}".format(x.modulus(),gens))
         clogger.debug("Values : {2}".format(vals))
-        for c in 
-        
+        rec={'N':int(x.modulus()),'gens':gens,'vals':vals}
+
             
     def check_characters_in_files(self,nmax=10000):
         from sage.all import trivial_character,DirichletGroup
@@ -1976,7 +2034,12 @@ class CompMF(MongoMF):
                 #save(modsym,mname) # save wih updated space name
         print "Need to change name of {0} directories!".format(rename_list)
         return missing,rename_list
+
+      
+        
             
+
+
 def precision_needed_for_L(N,k,**kwds):
     r"""
     Returns the precision (number of coefficients) needed to compute the first zero
