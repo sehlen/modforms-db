@@ -51,8 +51,7 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
-from compmf.character_conversions import dirichlet_character_sage_galois_orbit_rep_from_number,dirichlet_character_sage_galois_orbits_reps
-
+from compmf.character_conversions import dirichlet_character_sage_galois_orbits_reps,dirichlet_character_sage_from_conrey_character_number
 from compmf import clogger
 
     
@@ -79,31 +78,36 @@ class ComputeMFData(object):
     #@fork    
     def compute_ambient_space(self,N, k, i,**kwds):#
         r"""
-        Compute the ambient space M(N,k,i) and save as file. 
+        Compute the ambient space M(N,k,i) and save as file.
+        N is a modulus, k is the weight and i is the character number
+        in the Conrey ordering.
         """
+        from character_conversions import dirichlet_character_conrey_galois_orbits_reps
         clogger.debug("compute ambient space {0}".format((N,k,i)))
         if i == 'all':
-            j = 0
             sgn = (-1)**k
-            for g in dirichlet_character_sage_galois_orbits_reps(N):
-                if g(-1) == sgn:
-                    self.compute_ambient_space(N,k,j,**kwds)
-                j+=1
-            return
-        if i == 'quadratic':
-            G = DirichletGroup(N).galois_orbits()
-            sgn = (-1)**k
-            j = 0
-            for g in dirichlet_character_sage_galois_orbits_reps(N):
-                if g(-1) == sgn and g.order()==2:
-                    self.compute_ambient_space(N,k,j,**kwds)
-                j+=1
-            return
-        filename = self.files().ambient(N, k, i)
+            for j in dirichlet_character_conrey_galois_orbits_reps(N):
+                for g in dirichlet_character_sage_galois_orbits_reps(N):
+                    if g(-1) == sgn:
+                        self.compute_ambient_space(N,k,j ,**kwds)
+        return
+        # if i == 'quadratic':
+        #     G = DirichletGroup(N).galois_orbits()
+        #     sgn = (-1)**k
+        #     j = 0
+        #     for g in dirichlet_character_sage_galois_orbits_reps(N):
+        #         if g(-1) == sgn and g.order()==2:
+        #             self.compute_ambient_space(N,k,j,**kwds)
+        #         j+=1
+        #     return
+        eps = dirichlet_character_sage_from_conrey_character_number(N,i)
+        ii = sage_character_to_sage_galois_orbit_number(eps)
+        ## for the moment we still use the  Sage numbering for the files...
+        filename = self.files().ambient(N, k, ii)
         clogger.debug("filename={0}".format(filename))
         if self.files().path_exists(filename):
             return
-        eps = dirichlet_character_sage_galois_orbit_rep_from_number(N, i)
+        #        eps = dirichlet_character_sage_galois_orbit_rep_from_number(N, i)
         t = cputime()
         M = kwds.get('M',None)
         if M ==  None or M.sign()<>N or M.weight()<>k or M.level()<>N or M.character()<> eps or not is_ModularSymbolsSpace(M):
