@@ -351,14 +351,13 @@ class MongoMF(object):
     
     def get_ambient(self,N,k,i,**kwds):
         r"""
-        Return the ambient space M(N,k,i)
+        Return an ambient space M(N,k,i') for some i' in the Galois orbit of i
 
         INPUT:
          - 'N' -- integer (level) or string of the form 'N.k.i' (label)
          - 'k' -- integer (weight)
          - 'i' -- integer (Character number modulo N in Conrey's numbering)
         keywords:
-            - compute (True) -- if True compute an ambient space if it is not in the database.
             - get_record (False) -- if True return the database record instead of the space.
         """
         ambient_id = kwds.get('ambient_id',None)
@@ -366,12 +365,12 @@ class MongoMF(object):
             N,k,i = param_from_label(N)
         N = int(N); k = int(k); i = int(i)
         if ambient_id is None:
-            s = {'N':N,'k':k,'character_galois_orbit':{"$in":[i]}}
-            f =self._modular_symbols.find_one(s)
-            #print f
-            if f is None and kwds.get('compute',False):
-                ambient_id = self.compute_ambient(N,k,i,**kwds)
-            elif f is None:
+            s = {'N':N,'k':k,'cchi':i}
+            f = self._modular_symbols.find_one(s)
+            if f is None:
+                s = {'N':N,'k':k,'character_galois_orbit':{"$in":[i]}}
+                f = self._modular_symbols.find(s)
+            if f is None:
                 return None
             else:
                 if kwds.get('get_record',False):
@@ -397,9 +396,19 @@ class MongoMF(object):
         """
         if isinstance(N,basestring):
             N,k,i = param_from_label(N)
-        return self._newform_factors.find({'N':int(N),'k':int(k),'cchi':int(i)}).count()
+        s = {'N':N,'k':k,'cchi':int(i)}
+        nf = self._newform_factors.find(s).count()
+        if nf > 0:
+            return nf
+        # make sure we count the number of factors for a given element in the Galois orbit
+        s= {'N':N,'k':k,'character_galois_orbit':{"$in":[int(i)]}}
+        q = self._newform_factors.find_one(s)
+        if q is None:
+            return 0
+        s= {'N':N,'k':k,'cchi':q['cchi']}
+        return self._newform_factors.find(s).count()
 
-    def get_factors(self,N,k,i,d=None,character_naming='sage',sources=['mongo','files']):
+    def get_factors(self,N,k,i,d=None,character_naming='conrey',sources=['mongo','files']):
         r"""
         Get factor nr. d of the space M(N,k,i)
         """
@@ -431,8 +440,7 @@ class MongoMF(object):
                     res[t] = f
             return res
         elif sources == ['files']:
-            if character_naming <>'sage':
-                i = character_conversions.sage_character_number_from_conrey_number(N,i)
+            i = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,i)
             if not d is None:
                 res = self._db.load_factor(N,k,i,d)
             else:
@@ -440,7 +448,9 @@ class MongoMF(object):
                     res = {}
                 nfacts = self._db.number_of_known_factors(N,k,i)
                 for d in range(nfacts):
-                    res[d]=self._db.load_factor(N,k,i,d)
+                    F = self._db.load_factor(N,k,i,d)
+                    if not F is None:
+                        res[d]=F
             return res
         elif len(sources)>1:
             for ss in sources:
@@ -2016,6 +2026,7 @@ class CompMF(MongoMF):
         from sage.all import dimension_new_cusp_forms
         from character_conversions import sage_character_to_conrey_galois_orbit_number,sage_character_to_conrey_character
         from dirichlet_conrey import DirichletGroup_conrey
+        import os
         rename_list = []
         missing = []
         for N,k,i,d,ap in self._db.known("N<{0}".format(nmax)):
@@ -2049,19 +2060,24 @@ class CompMF(MongoMF):
             if j == i:
                 clogger.debug("File {0} is ok!".format(mname))
                 continue
-            clogger.debug("eps={0} \t conrey_eps = {1} conrey_i={2},\t conrey_gal_nr={3}".format(eps,conrey_eps,conrey_i,j))
-            clogger.debug("Conrey eps:{0}".format(DirichletGroup_conrey(N).from_sage_character(eps)))
-            clogger.debug("Sage eps.values:{0}".format(eps.values()))
-            clogger.debug("Conrey eps.values:{0}".format(conrey_eps.values()))
+#            clogger.debug("eps={0} \t conrey_eps = {1} conrey_i={2},\t conrey_gal_nr={3}".format(eps,conrey_eps,conrey_i,j))
+#            clogger.debug("Conrey eps:{0}".format(DirichletGroup_conrey(N).from_sage_character(eps)))
+#            clogger.debug("Sage eps.values:{0}".format(eps.values()))
+#            clogger.debug("Conrey eps.values:{0}".format(conrey_eps.values()))
             
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
-                clogger.debug("\t Directory {0} already exists!".format(mnamenew))
+                clogger.critical("\t Directory {0} already exists!".format(mnamenew))
             else:
                 rename_list.append([mname,mnamenew])
-                modsym['space']=(int(N),int(k),int(conrey_i))
-                save(modsym,mname) # save wih updated space name
+                t = (int(N),int(k),int(conrey_i))
+                if modsym['space'] <> t:
+                    modsym['space'] = t
+                    save(modsym,mname) # save wih updated space name
+                mname1 = mname.replace("ambient.sobj","")
+                mnamenew1 = mnamenew.replace("ambient.sobj","")                
+                os.rename(mname1,mnamenew1)
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
