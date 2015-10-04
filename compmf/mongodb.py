@@ -39,7 +39,8 @@ from compmf import character_conversions
 from compmf.character_conversions import (
     dirichlet_character_conrey_from_sage_character_number,
     dirichlet_character_conrey_galois_orbit_numbers_from_character_number,
-    dirichlet_character_sage_galois_orbit_rep_from_number,
+#    dirichlet_character_sage_galois_orbit_rep_from_number,
+    dirichlet_character_sage_from_conrey_character_number,
     dirichlet_character_sage_galois_orbits_reps,
     sage_character_to_sage_galois_orbit_number,
     conrey_character_number_from_sage_galois_orbit_number,
@@ -1346,7 +1347,8 @@ class CompMF(MongoMF):
                 clogger.debug("Sum of dimensions of factors: {0}".format(d))
                 #if M is None:
                 if i <> 0:
-                    d1 = dimension_new_cusp_forms(dirichlet_character_sage_galois_orbit_rep_from_number(N,i),k)
+                    eps = dirichlet_character_sage_from_conrey_character_number(N,i)
+                    d1 = dimension_new_cusp_forms(eps,k)
                 else:
                     d1 = dimension_new_cusp_forms(N,k)
                 clogger.debug("Dimension of space is: {0}".format(d1))
