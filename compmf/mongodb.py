@@ -2057,9 +2057,9 @@ class CompMF(MongoMF):
                 continue
             conrey_i = conrey_eps.number()
             NN,j = sage_character_to_conrey_galois_orbit_number(eps)
-            if j == i:
-                clogger.debug("File {0} is ok!".format(mname))
-                continue
+            #if j == i:
+            #    clogger.debug("File {0} is ok!".format(mname))
+            #    continue
 #            clogger.debug("eps={0} \t conrey_eps = {1} conrey_i={2},\t conrey_gal_nr={3}".format(eps,conrey_eps,conrey_i,j))
 #            clogger.debug("Conrey eps:{0}".format(DirichletGroup_conrey(N).from_sage_character(eps)))
 #            clogger.debug("Sage eps.values:{0}".format(eps.values()))
@@ -2067,16 +2067,16 @@ class CompMF(MongoMF):
             
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
+            rename_list.append([mname,mnamenew])
+            t = (int(N),int(k),int(conrey_i))
+            if modsym['space'] <> t:
+                modsym['space'] = t
+                save(modsym,mname) # save wih updated space name
+            mname1 = mname.replace("ambient.sobj","")
+            mnamenew1 = mnamenew.replace("/ambient.sobj","/")
+            mnamenew1 = mnamenew.replace("modforms-db","modforms-db2")
             if self._db.isdir(mnamenew):
                 clogger.critical("\t Directory {0} already exists!".format(mnamenew))
-            else:
-                rename_list.append([mname,mnamenew])
-                t = (int(N),int(k),int(conrey_i))
-                if modsym['space'] <> t:
-                    modsym['space'] = t
-                    save(modsym,mname) # save wih updated space name
-                mname1 = mname.replace("ambient.sobj","")
-                mnamenew1 = mnamenew.replace("ambient.sobj","")                
                 os.rename(mname1,mnamenew1)
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
