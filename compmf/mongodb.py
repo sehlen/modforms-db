@@ -2012,6 +2012,8 @@ class CompMF(MongoMF):
     def check_characters_in_files(self,nmax=10000):
         from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
+        from character_conversions import sage_character_to_conrey_galois_orbit_number
+        
         rename_list = []
         missing = []
         for N,k,i,d,ap in self._db.known("N<{0}".format(nmax)):
@@ -2031,24 +2033,16 @@ class CompMF(MongoMF):
                 # this is always ok
                 continue
             eps = DirichletGroup(N, F)(modsym['eps'])
-            reps = eps.parent().galois_orbits(reps_only=True)
-            orbit_nr = -1
-            for j in range(len(reps)):
-                if eps in reps[j].galois_orbit():
-                    # The correct galois orbit number for this space is then j
-                    #clogger.debug("eps:{0} is in orbit {1}: {2}".format(eps,j,reps[j].galois_orbit()))
-                    orbit_nr = j
-                    break
-            if orbit_nr == 0:
-                raise ArithmeticError,"Could not find the correct Galois orbit for N,k,chi={0},{1},{2} eps={3}".format(N,k,i,eps)
-            mnamenew = self._db.ambient(N,k,i)
+            conrey_i = sage_character_to_conrey_character(eps).number()
+            j = sage_character_to_conrey_galois_orbit_number(eps)
+            mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
                 clogger.debug("\t Directory {0} already exists!".format(mnamenew))
             else:
                 rename_list.append([mname,mnamenew])
-                modsym['space']=(int(N),int(k),int(orbit_nr))
-                #save(modsym,mname) # save wih updated space name
+                modsym['space']=(int(N),int(k),int(conrey_i))
+                save(modsym,mname) # save wih updated space name
         print "Need to change name of {0} directories!".format(rename_list)
         return missing,rename_list
 
