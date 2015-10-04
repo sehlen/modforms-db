@@ -2039,6 +2039,7 @@ class CompMF(MongoMF):
             if j == i:
                 clogger.debug("File {0} is ok!".format(mname))
                 continue
+            clogger.debug("eps={0} \t conrey_i={1},\t conrey_gal_nr={2}".format(eps,conrey_i,j))
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
@@ -2047,7 +2048,7 @@ class CompMF(MongoMF):
                 rename_list.append([mname,mnamenew])
                 modsym['space']=(int(N),int(k),int(conrey_i))
                 save(modsym,mname) # save wih updated space name
-        print "Need to change name of {0} directories!".format(rename_list)
+        print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
       
