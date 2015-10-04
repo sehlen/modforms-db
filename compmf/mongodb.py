@@ -2015,6 +2015,7 @@ class CompMF(MongoMF):
         from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
         from character_conversions import sage_character_to_conrey_galois_orbit_number,sage_character_to_conrey_character
+        from dirichlet_conrey import DirichletGroup_conrey
         rename_list = []
         missing = []
         for N,k,i,d,ap in self._db.known("N<{0}".format(nmax)):
