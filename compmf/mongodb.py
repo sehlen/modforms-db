@@ -2075,9 +2075,10 @@ class CompMF(MongoMF):
             mnamenew1 = mnamenew.replace("modforms-db","modforms-db2")
             if self._db.isdir(mnamenew):
                 clogger.critical("\t Directory {0} already exists!".format(mnamenew))
-            clogger.debug("Will change filename from {0} to {1}".format(mname,mnamenew))
-            os.rename(mname1,mnamenew1)
-            rename_list.append([mname,mnamenew])            
+            else:
+                clogger.debug("Will change filename from {0} to {1}".format(mname,mnamenew))
+                os.rename(mname1,mnamenew1)
+                rename_list.append([mname,mnamenew])            
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
