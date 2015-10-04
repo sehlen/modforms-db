@@ -2034,12 +2034,13 @@ class CompMF(MongoMF):
                 # this is always ok
                 continue
             eps = DirichletGroup(N, F)(modsym['eps'])
-            conrey_i = sage_character_to_conrey_character(eps).number()
+            conrey_eps = sage_character_to_conrey_character(eps)
+            conrey_i = conrey_eps.number()
             NN,j = sage_character_to_conrey_galois_orbit_number(eps)
             if j == i:
                 clogger.debug("File {0} is ok!".format(mname))
                 continue
-            clogger.debug("eps={0} \t conrey_i={1},\t conrey_gal_nr={2}".format(eps,conrey_i,j))
+            clogger.debug("eps={0} \t conrey_eps = {1} conrey_i={2},\t conrey_gal_nr={3}".format(eps,conrey_eps,conrey_i,j))
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
