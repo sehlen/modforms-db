@@ -60,6 +60,8 @@ from compmf import clogger
 class ComputeMFData(object):
     r"""
     Use Williams methods to compute tables of modular forms data
+
+    NOTE: We now assume Conrey's ordering of characters.
     """
     def __init__(self,db,compute_ambient=False):
         r"""
@@ -101,7 +103,7 @@ class ComputeMFData(object):
         #         j+=1
         #     return
         eps = dirichlet_character_sage_from_conrey_character_number(N,i)
-        ii = sage_character_to_sage_galois_orbit_number(eps)
+        N,ii = sage_character_to_sage_galois_orbit_number(eps)
         ## for the moment we still use the  Sage numbering for the files...
         filename = self.files().ambient(N, k, ii)
         clogger.debug("filename={0}".format(filename))
