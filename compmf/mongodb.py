@@ -2043,6 +2043,9 @@ class CompMF(MongoMF):
                 continue
             clogger.debug("eps={0} \t conrey_eps = {1} conrey_i={2},\t conrey_gal_nr={3}".format(eps,conrey_eps,conrey_i,j))
             clogger.debug("Conrey eps:{0}".format(DirichletGroup_conrey(N).from_sage_character(eps)))
+            clogger.debug("Sage eps.values:{0}".format(eps.values()))
+            clogger.debug("Conrey eps.values:{0}".format(conrey_eps.values()))
+            
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
