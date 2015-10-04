@@ -267,7 +267,7 @@ def conrey_to_conrey_(x,number_format='character_number',output='character'):
      - 'number_format' -- string (in ['character_number','galois_orbit_number','galois_orbit_rep']
      - 'output' -- string (in ['character_number','galois_orbit','galois_orbit_number']
     """
-    if output not in ['character','character_number','galois_orbit','galois_orbit_number','galois_orbit_rep']:
+    if output not in ['character','character_number','galois_orbit','galois_orbit_number','galois_orbit_rep','galois_orbit_numbers_list']:
         raise ValueError,"Conversion from Sage character to {0} is not implemented!".format(output)
     if not isinstance(x,(tuple,list)) and not isinstance(x, DirichletCharacter_conrey):
         raise ValueError,"Conversion from Conrey character in format {0} to {1} is not implemented!".format(x,output)           
@@ -301,10 +301,10 @@ def conrey_to_conrey_(x,number_format='character_number',output='character'):
         return o
     if output == 'galois_orbit_numbers_list':
         return map(lambda x:x.number(),o)
-    if oputput == 'galois_orbit_rep':
+    if output == 'galois_orbit_rep':
         return o[0]
     try:
-        i = dirichlet_character_conrey_galois_orbits_reps(N).index(o[0])
+        i = dirichlet_character_conrey_galois_orbits_reps(N).index(o[0].number())
         return x.modulus(),i
     except IndexError:
         raise ValueError,"Could not find Galois orbit of {0}".format(x)
