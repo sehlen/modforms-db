@@ -1842,21 +1842,28 @@ class CompMF(MongoMF):
         sollection self._modular_symbols but this should be recreated afterwards.
         """
         from utils import label_from_param
+        from character_conversions import dirichlet_character_sage_galois_orbits_reps,conrey_character_number_to_conrey_galois_orbit_number,sage_character_to_sage_galois_orbit_number, sage_character_to_conrey_character,conrey_character_number_to_conrey_galois_orbit_number
         cnt = 0
         if typec=='ambient':
-            for r in self._modular_symbols.find():
+            for r in self._modular_symbols.find({'space_label':{"$exists":False}}):
                 t = self.check_characters_ambient(r['N'],r['k'],r['chi'],dry_run=dry_run,verbose=0)
-                if t is False:
-                    cnt+=1
+                if t > 0:
+                    cnt+=t
         else:
             for r in self._modular_symbols.find():
                 aid = r['_id']
+                N = r['N']
                 for f in self._newform_factors.find({'ambient_id':aid}):
                     fid = f['_id']
+                    # Make sure again we have the correct character....
+                    factor = self.load_from_mongo('Newform_factors',fid)
+                    x = factor.character()
+                    assert sage_character_to_sage_galois_orbit_number(x)==f['chi']
+                    assert f['cchi'] == sage_character_to_conrey_character(x).number()
                     newlabel = label_from_param(r['N'],r['k'],r['cchi'],f['newform'])
                     if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label'] or f.get('conrey_galois_orbit_number') is None:
                         newfname = "gamma0-factors-{0}".format(f["filename"].split("/")[-1])
-                        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                        on = conrey_character_number_to_conrey_galois_orbit_number(N,f['cchi'])
                         updates = {
                             "cchi":r['cchi'],
                             "character_galois_orbit":r['character_galois_orbit'],
@@ -1870,15 +1877,24 @@ class CompMF(MongoMF):
                 
         print "Updated {0} records!".format(cnt)
 
-    
-        
     def check_characters_ambient(self,N,k,i,verbose=0,dry_run=0):
         from character_conversions import dirichlet_character_sage_galois_orbits_reps,conrey_character_number_to_conrey_galois_orbit_number
-        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
-        if r is None:
-            return
+        q = self._modular_symbols.find({'N':int(N),'k':int(k),'chi':int(i)})
+        if q is None:
+            return 0
+        cnt = 0
+        for r in q:
+            t = self.check_characters_one_ambient(r,verbose,dry_run)
+            if t is True:
+                cnt +=1
+        return cnt
+    
+    def check_characters_one_ambient(self,r,verbose=0,dry_run=0):
+        from character_conversions import dirichlet_character_sage_galois_orbits_reps,conrey_character_number_to_conrey_galois_orbit_number
+        #r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(i)})
         cchi = r['cchi']
         fid = r['_id']
+        N = r['N']; k=r['k']; chi=r['chi']
         print "Get ambient with ",N,k,cchi
         M = self.get_ambient(N,k,cchi)
         if M is None:
@@ -1907,7 +1923,7 @@ class CompMF(MongoMF):
             #raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
         # If the space is non-empty and in the datbase we make an extra check that
         # we indeed have the character which was used in the space
-        fname = 'gamma0-ambient-modsym-00101-002-006'
+        #fname = 'gamma0-ambient-modsym-00101-002-006'
         x1 = M.character()
         if verbose>0:
             clogger.debug("x1={0}".format(x1))
@@ -1927,6 +1943,7 @@ class CompMF(MongoMF):
             if x1 == x2.sage_character():
                 ci = x2.number()
                 on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                clogger.debug("on: {0} and r={1}".format(on,r))
                 if ci == cchi and si == r['chi'] and r.get('conrey_galois_orbit_number',-1)==on:
                     return True
                 orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
