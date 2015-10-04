@@ -2071,14 +2071,13 @@ class CompMF(MongoMF):
                 modsym['space'] = t
                 save(modsym,mname) # save wih updated space name
             mname1 = mname.replace("ambient.sobj","")
-            mnamenew1 = mnamenew.replace("/ambient.sobj","/")
-            mnamenew1 = mnamenew.replace("modforms-db","modforms-db2")
-            if self._db.isdir(mnamenew):
-                clogger.critical("\t Directory {0} already exists!".format(mnamenew))
+            mnamenew1 = mnamenew.replace("/ambient.sobj","-c/")
+            if self._db.isdir(mnamenew1):
+                clogger.critical("\t Directory {0} already exists!".format(mnamenew1))
             else:
-                clogger.debug("Will change filename from {0} to {1}".format(mname,mnamenew))
+                clogger.debug("Will change filename from {0} to {1}".format(mname1,mnamenew1))
                 os.rename(mname1,mnamenew1)
-                rename_list.append([mname,mnamenew])            
+                rename_list.append([mname1,mnamenew1])            
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
