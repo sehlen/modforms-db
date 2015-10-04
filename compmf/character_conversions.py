@@ -304,7 +304,7 @@ def conrey_to_conrey_(x,number_format='character_number',output='character'):
     if output == 'galois_orbit_rep':
         return o[0]
     try:
-        i = dirichlet_character_conrey_galois_orbits_reps(N).index(o[0].number())
+        i = dirichlet_character_conrey_galois_orbits_reps(x.modulus()).index(o[0].number())
         return x.modulus(),i
     except IndexError:
         raise ValueError,"Could not find Galois orbit of {0}".format(x)
