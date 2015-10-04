@@ -2081,8 +2081,10 @@ class CompMF(MongoMF):
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
-      
+    def _remove_c_from_filename(self):
         
+        for N,k,i,d,ap in self._db.known():
+            mname = self._db.ambient(N,k,j)        
             
 
 

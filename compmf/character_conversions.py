@@ -314,7 +314,11 @@ def sage_character_to_conrey_character(x):
     r"""
     Return the Corney character corresponding to the sage character x
     """
-    return dirichlet_group_conrey(x.modulus()).from_sage_character(x)
+    ## Until system dirichlet_conrey is updated...
+    for y in dirichlet_group_conrey(x.modulus()):
+        if y.sage_character() == x:
+            return y
+    #return dirichlet_group_conrey(x.modulus()).from_sage_character(x)
 
 def sage_character_to_conrey_galois_orbit_number(x):
     r"""
