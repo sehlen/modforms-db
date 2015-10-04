@@ -2034,8 +2034,16 @@ class CompMF(MongoMF):
                 eps = trivial_character(N)
                 # this is always ok
                 continue
-            eps = DirichletGroup(N, F)(modsym['eps'])
+            if F==QQ:
+                eps = DirichletGroup(N)(modsym['eps'])
+            else:
+                eps = DirichletGroup(N,F)(modsym['eps'])
+            # Instead of constructing the DirichletgGroup with base_ring since this
+            # messes up the conversion to Conrey characters we make sure afterwards...
             conrey_eps = sage_character_to_conrey_character(eps)
+            if conrey_eps.sage_character()<>eps:
+                clogger.critical("We do not get the correct character for {0}".format(mname))
+                continue
             conrey_i = conrey_eps.number()
             NN,j = sage_character_to_conrey_galois_orbit_number(eps)
             if j == i:
