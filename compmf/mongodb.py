@@ -2036,6 +2036,9 @@ class CompMF(MongoMF):
             eps = DirichletGroup(N, F)(modsym['eps'])
             conrey_i = sage_character_to_conrey_character(eps).number()
             NN,j = sage_character_to_conrey_galois_orbit_number(eps)
+            if j == i:
+                clogger.debug("File {0} is ok!".format(mname))
+                continue
             mnamenew = self._db.ambient(N,k,j)
             clogger.debug("Need to change filename from {0} to {1}".format(mname,mnamenew))
             if self._db.isdir(mnamenew):
