@@ -75,26 +75,34 @@ class WebModFormSpace_computing(WebModFormSpace):
         """
         if isinstance(level,str):  ## It is probable a label
             level,weight,character = map(int,level.split("."))
-        wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))      
+        wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))
+        self._host = host; self._port=int(port); self._dbname = db
         
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
         wmf_logger.debug("Super class is inited!")
+        self._rec = {}
+        self.setup_modular_symbols_db()
+        self.compute_additional_properties()
+
+    def setup_modular_symbols_db(self):
+        r"""
+        Connect to the mongodb with modular symbols and fetch the current record.
+        """
         try: 
-            self._db = MongoMF(host,port,db)
+            self._db = MongoMF(self._host,self._port,self._dbname)
             # find the record in the database which corresponds to self
-            s = {'N':int(level),'k':int(weight),
-                 'character_galois_orbit':{"$in":[int(character)]}}
+            s = {'N':int(self.level),'k':int(self.weight),
+                 'character_galois_orbit':{"$in":[int(self.character.number)]}}
             self._rec = self._db._modular_symbols.find_one(s)
             if self._rec is None:
-                logger.critical("Could not find the space {0} in the database! This should be computed first".format((level,weight,character)))
+                wmf_logger.critical("Could not find the space {0} in the database! This should be computed first".format((level,weight,character)))
+                self._rec={}
                 return
         except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
-            self._db = None
-        self.compute_additional_properties()
-
-
-
+            self._db = None  
+            self._rec = {}
+            
     def _repr_(self):
         r"""
         Return string representation of self.
@@ -134,12 +142,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         Get a list of numbers of the characters in the Galois orbit of the character of self.
 
         """
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_numbers_from_character_number
-        if self._character_galois_orbit is None or self._character_galois_orbit == []:
-            if self.level==1:
-                self._character_galois_orbit=[int(1)]
-            else:
-                self._character_galois_orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(self.character.modulus,self.character.number)
+        self._character_galois_orbit = self._rec.get('character_galois_orbit',[])
+        
 
     def set_galois_orbit_embeddings(self):
         r"""
@@ -152,34 +156,42 @@ class WebModFormSpace_computing(WebModFormSpace):
         r"""
         Returns canonical representative of the Galois orbit of the character of self.
 
-        """
-        #self.character_orbit_rep = self.character.character.galois_orbit()[0]
-        from compmf.character_conversions import dirichlet_character_conrey_galois_orbit_rep_from_character_number
-        self.character_orbit_rep = dirichlet_character_conrey_galois_orbit_rep_from_character_number(self.level,self.character.number)
+        """        
+        from compmf.character_conversions import conrey_character_from_number
+        n = min(self._character_galois_orbit)
+        self.character_orbit_rep = conrey_character_from_number(n)
+        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,welf.weight,n)
 
     def set_character_used_in_computation(self):
        r"""
        Get the character which was used in the computation of the data.
        NOTE: The character indicated by the space_label SHOULD be the character we used for the data. 
        """
+       from compmf.character_conversions import conrey_character_from_number
        self.character_used_in_computation = conrey_character_from_number(self.character.modulus,self.character.number)
 
 
     def set_dimensions(self):
         r"""
-        The dimension of the subspace of newforms in self.
+        The dimension of the subspace of newforms in self. This should all be in the database.
         """
-        if self.character.number != 1 and self.level<>1:
-            x = self.character.sage_character
-        else:
-            x = self.level
-        k = self.weight
-        # Ambient modular formsspace
-        self.dimension_modular_forms = int(dimension_modular_forms(x,k))
-        # Cuspidal subspace
-        self.dimension_cusp_forms = int(dimension_cusp_forms(x,k))
-        # New cuspidal subspace 
-        self.dimension_new_cusp_forms = int(dimension_new_cusp_forms(x,k))
+
+        self.dimension_modular_forms = self._rec.get('dima',-1)
+        self.dimension_cusp_forms = self._rec.get('dimc',-1)
+        self.dimension_new_cusp_forms = self._rec.get('dimn',-1)
+        if self.dimension_modular_forms < 0 or self.dimension_cusp_forms < 0 or self.dimension_cusp_forms < 0:
+            ## If we didn't get dimensions we compute them.
+            if self.character.number != 1 and self.level<>1:
+                x = self.character.sage_character
+            else:
+                x = self.level
+            k = self.weight
+            # Ambient modular formsspace
+            self.dimension_modular_forms = int(dimension_modular_forms(x,k))
+            # Cuspidal subspace
+            self.dimension_cusp_forms = int(dimension_cusp_forms(x,k))
+            # New cuspidal subspace 
+            self.dimension_new_cusp_forms = int(dimension_new_cusp_forms(x,k))
         if self.cuspidal == 0:
             self.dimension = self.dimension_modular_forms
         else:
