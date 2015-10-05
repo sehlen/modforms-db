@@ -67,11 +67,11 @@ Convert between characters and numbers (in same system)
  - dirichlet_character_sage_from_conrey_galois_orbit_number(n,i):
 
  - dirichlet_character_conrey_galois_orbit_rep_from_sage_character(x):
- - dirichlet_character_sagey_galois_orbit_rep_from_sage_character(x):
+ - dirichlet_character_sage_galois_orbit_rep_from_sage_character(x):
  - conrey_character_number_from_sage_galois_orbit_number(n,i):
  - conrey_galois_orbit_number_from_sage_galois_orbit_number(n,i)
 
-
+ - sage_galois_orbit_number_from_conrey_character_number(n,i)
 ## Should not be used since it is not always correct
 ## - dirichlet_character_conrey_used_in_computation(N,xi):
  - dirichlet_character_conrey_galois_orbit_embeddings(N,xi):
@@ -104,6 +104,12 @@ def dirichlet_group_conrey(n):
 def dirichlet_group_conrey_galois_orbits(n):
     if n > 0:
         return dirichlet_group_conrey(n).galois_orbits()
+    raise ValueError,"No Dirichlet Group of modulus 0!"
+
+@cached_function
+def dirichlet_group_conrey_galois_orbits_numbers(n):
+    if n > 0:
+        return dirichlet_group_conrey(n)._galois_orbits()
     raise ValueError,"No Dirichlet Group of modulus 0!"
 
 
@@ -176,7 +182,7 @@ def conrey_character_to_number(x):
 @cached_function    
 def conrey_character_from_galois_orbit_number(n,i):
     r"""
-    Return character nr. i in DirichletGroup_conrey(n) 
+    Return the representative of orbit nr. i in DirichletGroup_conrey(n).galois_orbits()
     """
     return conrey_to_conrey_((n,i),number_format='galois_orbit_number',output='character')
     
@@ -210,6 +216,10 @@ def sage_character_to_sage_galois_orbit_number(x):
     Return the number of the (Sage) galois orbit which contains x
     """
     return sage_to_sage_(x,output='galois_orbit_number')
+
+def sage_galois_orbit_number_from_conrey_character_number(n,i):
+    x = dirichlet_character_sage_from_conrey_character_number(n,i)
+    return sage_character_to_sage_galois_orbit_number(x)
 
 ## The two main conversion functions
 def sage_to_sage_(x,number_format='galois_orbit_number',output='character'):
