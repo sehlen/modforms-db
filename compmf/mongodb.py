@@ -1858,9 +1858,12 @@ class CompMF(MongoMF):
         for N,k,on,d,ap in self._db.known():
             mname = self._db.space(N,k,on)
             tmp = mname + "-c"
+            if self._db.isdir(mname):
+                clogger.critical("Could not move {0} to {1}: Already existing!",format(tmp,mname))
             if self._db.isdir(tmp):
                 os.rename(tmp,mname)
-                print "Renamed: {0} -- {1}".format(tmp,mname)
+                clogger.debug("Renamed {0} --> {1}".format(tmp,mname))
+                  
 
 def precision_needed_for_L(N,k,**kwds):
     r"""
