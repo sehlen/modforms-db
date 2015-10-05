@@ -1811,7 +1811,7 @@ class CompMF(MongoMF):
             except IOError:
                 if k % 2 == 0 and i==0:
                     missing.append((N,k,i))
-                    clogger.debug("Space {0} is missing!".format((N,k,i)))
+                    #clogger.debug("Space {0} is missing!".format((N,k,i)))
                 continue
             rels  = modsym['rels']
             F = rels.base_ring()
