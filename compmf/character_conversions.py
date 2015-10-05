@@ -496,15 +496,15 @@ def dirichlet_character_conrey_galois_orbit_embeddings(N,xi):
        for the coefficients of a modular form contained in the database.
        Considering the space $S_k(N,\chi)$, where $\chi = \chi_N(m, \cdot)$,
        if embeddings()[m] = n, then $\zeta_{\phi(N)}$ is mapped to
-       $\mathrm{exp}(2\pi i n /\phi(N))$.
+       $\zeta_{\phi(N)}^n = \mathrm{exp}(2\pi i n /\phi(N))$.
     """    
     embeddings = {}
     base_number = 0
-    x = conrey_character_from_number(N,xi)
+    #x = conrey_character_from_number(N,xi)
     #N = x.modulus()
     #base_number = dirichlet_character_conrey_used_in_computation(N,xi)
-    base_number = conrey_to_conrey((N,xi),number_format='character_number',
-                                   output='galois_orbit_rep')
+    base_number = xi #conrey_to_conrey_((N,xi),number_format='character_number',
+                     #              output='galois_orbit_rep')
     embeddings[base_number] = 1
     for n in range(2,N):
         if gcd(n,N) == 1:
