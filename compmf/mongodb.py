@@ -746,7 +746,7 @@ class CompMF(MongoMF):
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
         """
         verbose = kwds.get('verbose',0)
-        form character_conversions import (
+        from character_conversions import (
             dirichlet_character_conrey_galois_orbit_numbers_from_character_number,
             conrey_character_number_to_conrey_galois_orbit_number,
             sage_galois_orbit_number_from_conrey_character_number)
@@ -1858,7 +1858,7 @@ class CompMF(MongoMF):
         for N,k,on,d,ap in self._db.known():
             mname = self._db.space(N,k,on)
             tmp = mname + "-c"
-            self._db.isdir(tmp):
+            if self._db.isdir(tmp):
                 os.rename(tmp,mname)
                 print "Renamed: {0} -- {1}".format(tmp,mname)
 
