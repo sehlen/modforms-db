@@ -367,7 +367,7 @@ class MongoMF(object):
             N,k,ci = param_from_label(N)
         N = int(N); k = int(k); ci = int(ci)
         if ambient_id is None:
-            s = {'N':N,'k':k,'cchi':i}
+            s = {'N':N,'k':k,'cchi':ci}
             f = self._modular_symbols.find_one(s)
             if f is None:
                 s = {'N':N,'k':k,'character_galois_orbit':{"$in":[ci]}}
@@ -846,6 +846,7 @@ class CompMF(MongoMF):
                 ambient = self._db.load_ambient_space(N,k,ci)
             dima = int(ambient.dimension())
             dimc = int(ambient.cuspidal_submodule().dimension())
+            dimn = int(ambient.cuspidal_submodule().new_submodule().dimension())
             clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,ci),ambient))
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
@@ -864,7 +865,7 @@ class CompMF(MongoMF):
                                 space_label="{0}.{1}.{2}".format(N,k,ci),
                                 space_orbit_label="{0}.{1}.{2}".format(N,k,on),
                                 conrey_galois_orbit_number=int(on),
-                                dima=dima,dimc=dimc,
+                                dima=dima,dimc=dimc,dimn=dimn,
                                 character_galois_orbit=orbit,
                                 cchi=int(ci),
                                 cputime = meta.get("cputime",""),
@@ -2184,3 +2185,14 @@ class CheckingDB(CompMF):
                 print "fname=",fname," is ok! rows=",E.nrows()
                 self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
+
+    def add_dimension_newforms(self):
+        for r in self._modular_symbols.find({'dimn':{"$exists":False}}):
+            aid = r['_id']
+            M = self.load_from_mongo('Modular_symbols',aid)
+            if M is None:
+                continue
+            S = M.cuspidal_submodule().new_submodule()
+            dimn = int(S.dimension())
+            self._modular_symbols.update({'_id':aid},{"$set":{"dimn":dimn}})
+            clogger.debug("dimn {0}  = {1}".format(r['space_label'],dimn))

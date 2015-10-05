@@ -13,7 +13,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-r""" Class for newforms in format which can be presented on the web easily
+r""" Class for spaces of modular forms which can be presented on the web easily
 
 
 AUTHORS:
@@ -81,6 +81,13 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("Super class is inited!")
         try: 
             self._db = MongoMF(host,port,db)
+            # find the record in the database which corresponds to self
+            s = {'N':int(level),'k':int(weight),
+                 'character_galois_orbit':{"$in":[int(character)]}}
+            self._rec = self._db._modular_symbols.find_one(s)
+            if self._rec is None:
+                logger.critical("Could not find the space {0} in the database! This should be computed first".format((level,weight,character)))
+                return
         except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
@@ -153,11 +160,9 @@ class WebModFormSpace_computing(WebModFormSpace):
     def set_character_used_in_computation(self):
        r"""
        Get the character which was used in the computation of the data.
+       NOTE: The character indicated by the space_label SHOULD be the character we used for the data. 
        """
-       from compmf.character_conversions import dirichlet_character_conrey_used_in_computation
-       if not self.character_used_in_computation is None:
-           return 
-       self.character_used_in_computation = dirichlet_character_conrey_used_in_computation(self.character.modulus,self.character.number)
+       self.character_used_in_computation = conrey_character_from_number(self.character.modulus,self.character.number)
 
 
     def set_dimensions(self):
