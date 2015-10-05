@@ -53,9 +53,9 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['k']={"$gt":int(weight_range[0]-1),"$lt":int(weight_range[-1]+1)}
     if chi_range <>[]:
         if len(chi_range)==1:
-            s['chi']=int(chi_range[0])
+            s['cchi']=int(chi_range[0])
         else:
-            s['chi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
+            s['cchi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
     s['complete']={"$gt":0}
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     try:
@@ -63,11 +63,11 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     except AttributeError:
         webmodformspace = 'webmodformspace'
     for r in q:
-        N = r['N']; k=r['k']; chi=r['cchi']
+        N = r['N']; k=r['k']; cchi=r['cchi']
         if recompute is False:
             if D._mongodb['webmodformspace'].find({'level':int(N),'weight':int(k),'character':int(chi)}).count()>0:
                 continue
-        args.append((N,k,chi))
+        args.append((N,k,cchi))
     print "s=",s
     print "args=",args
     print "ncpus=",ncpus
@@ -100,15 +100,15 @@ def generate_one_webmodform_space1_par(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
 
     
-def generate_one_webmodform_space1(level,weight,chi,host='localhost',port=int(37010)):    
+def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(37010)):    
     r"""
     Generates one modform space.
 
     """
     #    print "generate:",level,weight,chi
     D = MongoMF(host=host,port=port)
-    cid = D.register_computation(level=level,weight=weight,chi=chi,typec='wmf')
-    M = WebModFormSpace_computing(level,weight,chi)
+    cid = D.register_computation(level=level,weight=weight,cchi=cchi,typec='wmf')
+    M = WebModFormSpace_computing(level,weight,cchi)
     M.save_to_db()
     D.register_computation_closed(cid)
 
