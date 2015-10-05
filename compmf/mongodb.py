@@ -1799,11 +1799,13 @@ class CompMF(MongoMF):
         import os
         rename_list = []
         missing = []
-        for N,k,i,d,ap in self._db.known("{0}<N<{1}".format(nmin,nmax)):
+        for N,k,i,d,ap in self._db.known("N<{1} AND N>{0}".format(nmin,nmax)):
             ## find the character in file...
-            mname = self._db.ambient(N,k,i)
-            if not self._db.isdir(mname):
+            sname = self._db.space(N,k,i)
+            if not self._db.isdir(sname):
+                clogger.debug("Space {0} is missing!".format((N,k,i)))
                 continue
+            mname = self._db.ambient(N,k,i)            
             try:
                 modsym = load(mname)
             except IOError:
@@ -1838,18 +1840,17 @@ class CompMF(MongoMF):
 #            clogger.debug("Conrey eps.values:{0}".format(conrey_eps.values()))
             
             mnamenew = self._db.ambient(N,k,j)
+            snamenew = self._db.space(N,k,j)
             t = (int(N),int(k),int(conrey_i))
             if modsym['space'] <> t:
                 modsym['space'] = t
                 save(modsym,mname) # save wih updated space name
-            mname1 = mname.replace("ambient.sobj","")
-            mnamenew1 = mnamenew.replace("/ambient.sobj","-c/")
-            if self._db.isdir(mnamenew1):
-                clogger.critical("\t Directory {0} already exists!".format(mnamenew1))
+            if self._db.isdir(snamenew):
+                clogger.critical("\t Directory {0} already exists!".format(snamenew))
             else:
-                clogger.debug("Will change filename from {0} to {1}".format(mname1,mnamenew1))
-                os.rename(mname1,mnamenew1)
-                rename_list.append([mname1,mnamenew1])            
+                clogger.debug("Will change filename from {0} to {1}".format(sname,snamenew))
+                os.rename(sname,snamenew)
+                rename_list.append([sname,snamenew])            
         print "Need to change name of {0} directories!".format(len(rename_list))
         return missing,rename_list
 
