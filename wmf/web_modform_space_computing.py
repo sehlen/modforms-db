@@ -95,7 +95,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'character_galois_orbit':{"$in":[int(self.character.number)]}}
             self._rec = self._db._modular_symbols.find_one(s)
             if self._rec is None:
-                wmf_logger.critical("Could not find the space {0} in the database! This should be computed first".format((level,weight,character)))
+                wmf_logger.critical("Could not find the space {0} in the database! This should be computed first".format((self.level,self.weight,self.character)))
                 self._rec={}
                 return
         except pymongo.errors.ConnectionFailure as e:
