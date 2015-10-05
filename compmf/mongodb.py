@@ -1803,7 +1803,7 @@ class CompMF(MongoMF):
             ## find the character in file...
             sname = self._db.space(N,k,i)
             if not self._db.isdir(sname):
-                clogger.debug("Space {0} is missing!".format((N,k,i)))
+                #clogger.debug("Space {0} is missing!".format((N,k,i)))
                 continue
             mname = self._db.ambient(N,k,i)            
             try:
@@ -1811,7 +1811,7 @@ class CompMF(MongoMF):
             except IOError:
                 if k % 2 == 0 and i==0:
                     missing.append((N,k,i))
-                    #clogger.debug("Space {0} is missing!".format((N,k,i)))
+                    clogger.debug("Space {0} is missing at {1}!".format((N,k,i),sname))
                 continue
             rels  = modsym['rels']
             F = rels.base_ring()
