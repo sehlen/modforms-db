@@ -37,7 +37,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
 
     """
     try: 
-        D  = CompMF(host,port)
+        D  = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     args = []; s={}
@@ -106,7 +106,7 @@ def generate_one_webmodform_space1(level,weight,chi,host='localhost',port=int(37
 
     """
     #    print "generate:",level,weight,chi
-    D = CompMF(host,port)
+    D = CompMF(host=host,port=port)
     cid = D.register_computation(level=level,weight=weight,chi=chi,typec='wmf')
     M = WebModFormSpace_computing(level,weight,chi)
     M.save_to_db()
@@ -114,7 +114,7 @@ def generate_one_webmodform_space1(level,weight,chi,host='localhost',port=int(37
 
 def web_modformspace_collection(host='localhost',port=int(37010)):
     try: 
-        D  = CompMF(host,port)
+        D = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     try:
@@ -125,7 +125,7 @@ def web_modformspace_collection(host='localhost',port=int(37010)):
 
 def web_newform_collection(host='localhost',port=int(37010)):
     try: 
-        D  = CompMF(host,port)
+        D = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     try:
@@ -140,7 +140,7 @@ from pymongo import IndexModel, ASCENDING, DESCENDING
 
 def create_index(host='localhost',port=int(37010),only=None):
     #c = web_newform_collection(host,port)
-    C  = CompMF(host,port)
+    C = CompMF(host=host,port=port)
     D = C._mongodb
     collections_indices = [
         {'name':'webnewforms', 'index':[
@@ -214,7 +214,7 @@ def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=
     We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
     """
     try: 
-        D  = CompMF(host,port)
+        D = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     try:
@@ -349,7 +349,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
     We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
     """
     try: 
-        D  = CompMF(host,port)
+        D  = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     try:
@@ -420,7 +420,7 @@ def drop_webmodform_data(host='localhost',port=int(37010)):
     Drop all collections related to webnewforms and webmodforms
     """
     try: 
-        D  = CompMF(host,port)
+        D  = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     try:
@@ -441,7 +441,7 @@ def drop_webmodform_data(host='localhost',port=int(37010)):
 def dimension_from_db(level,weight,chi=None,group='gamma0'):
     import json
     try: 
-        D  = CompMF(host,port)
+        D  = CompMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     db = D._mongodb['webmodformspace_dimension']
@@ -478,8 +478,7 @@ def web_modformspace_in_db(host='localhost',port=int(37010)):
 
 from wmf.web_modform_space_computing import orbit_label
 def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
-    import compmf
-    D = compmf.CompMF(host,port)
+    D  = CompMF(host=host,port=port)
     for r in D._aps.find({"hecke_orbit_label":{"$exists":False}}).sort('N',int(1)):
     #{'name':{"$exists":False}}):
         N=r['N']
@@ -500,7 +499,7 @@ def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
 def add_hecke_orbits(host='localhost',port=int(37010)):
     import compmf
     from utils import orbit_label
-    D = compmf.CompMF(host,port)
+    D  = CompMF(host=host,port=port)
     spaces = D._mongodb.webmodformspace.distinct('galois_orbit_name') 
     for label in spaces:
         N,k,i = map(int,label.split("."))
