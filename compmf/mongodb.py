@@ -1816,7 +1816,7 @@ class CompMF(MongoMF):
             except ValueError as e:
                 clogger.critical("Could not load {0} at {1} due to:{2}".format((N,k,i),sname,e.message))
                 f = open('needs_recomputation', 'a')
-                f.write((N,k,i))
+                f.write("{0},{1},{2}".format(N,k,i))
                 f.close()
                 continue
             rels  = modsym['rels']
