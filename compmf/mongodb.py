@@ -1841,6 +1841,7 @@ class CompMF(MongoMF):
             
             mnamenew = self._db.ambient(N,k,j)
             snamenew = self._db.space(N,k,j)
+            snamenew = snamenew+"-c"
             t = (int(N),int(k),int(conrey_i))
             if modsym['space'] <> t:
                 modsym['space'] = t
