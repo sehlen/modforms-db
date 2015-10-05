@@ -573,7 +573,7 @@ class CompMF(MongoMF):
         return s
 
     def __reduce__(self):
-        return (type(self),(self._datadir,self._host,self._port,self._verbose,self._db_name))
+        return (type(self),(self._datadir,self._host,self._port,self._db_name,self._verbose))
     
 
     def show_existing_files(self):
@@ -2186,13 +2186,28 @@ class CheckingDB(CompMF):
                 self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
 
-    def add_dimension_newforms(self):
+            
+    def add_dimension_newforms(self,**kwds):
+
+        ncpus = kwds.pop('ncpus',1)
+        pool = Pool(processes=ncpus)
+        clogger.debug("ncpus={0}".format(ncpus))     
+        ambient_ids = []
         for r in self._modular_symbols.find({'dimn':{"$exists":False}}):
-            aid = r['_id']
-            M = self.load_from_mongo('Modular_symbols',aid)
-            if M is None:
-                continue
-            S = M.cuspidal_submodule().new_submodule()
-            dimn = int(S.dimension())
-            self._modular_symbols.update({'_id':aid},{"$set":{"dimn":dimn}})
-            clogger.debug("dimn {0}  = {1}".format(r['space_label'],dimn))
+            ambient_ids.append({'space_label':r['space_label'],'aid':r['_id']})
+        chunksize = 20
+        results = pool.imap_unordered(self.add_one_dimn,ambient_ids,chunksize)
+        for res in results:
+            res.get()
+        pool.close()
+        pool.join()
+
+    def add_one_dimn(self,r):
+        M = self.load_from_mongo('Modular_symbols',r['aid'])
+        if M is None:
+            return
+        clogger.debug("M={0}".format(r['space_label']))
+        S = M.cuspidal_submodule().new_submodule()
+        dimn = int(S.dimension())
+        clogger.debug("dimn {0}  = {1}".format(r['space_label'],dimn))
+        return self._modular_symbols.update({'_id':r['aid']},{"$set":{"dimn":dimn}})
