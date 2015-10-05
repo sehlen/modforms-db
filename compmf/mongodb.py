@@ -371,7 +371,7 @@ class MongoMF(object):
             f = self._modular_symbols.find_one(s)
             if f is None:
                 s = {'N':N,'k':k,'character_galois_orbit':{"$in":[ci]}}
-                f = self._modular_symbols.find(s)
+                f = self._modular_symbols.find_one(s)
             if f is None:
                 return None
             else:
