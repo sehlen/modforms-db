@@ -1813,6 +1813,12 @@ class CompMF(MongoMF):
                     missing.append((N,k,i))
                     clogger.debug("Space {0} is missing at {1}!".format((N,k,i),sname))
                 continue
+            except ValueError as e:
+                clogger.critical("Could not load {0} at {1} due to:{2}".format((N,k,i),sname,e.message))
+                f = open('needs_recomputation', 'a')
+                f.write((N,k,i))
+                f.close()
+                continue
             rels  = modsym['rels']
             F = rels.base_ring()
             if i == 0:
