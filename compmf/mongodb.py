@@ -524,6 +524,54 @@ class MongoMF(object):
                     return res
         return res
 
+
+    ### We want to see which computations are going on currently.
+    def register_computation(self,level,weight,cchi,typec='mf'):
+        r"""
+        Insert a record in the database registring the start of a computation.
+        """
+        import datetime
+        import time
+        import os
+        r = {'startTime':datetime.datetime.fromtimestamp(time.time()),
+             'server':os.uname()[1],
+             'pid':os.getpid(),
+             'type':typec,
+             'N':int(level), 'k':int(weight),'cchi':int(cchi)}
+        if self._computations.find({'N':r['N'],'k':r['k'],'cchi':int(cchi)}).count()>0:
+            return None
+        fid = self._computations.insert(r)
+        return fid 
+
+    def register_computation_closed(self,cid):
+        import datetime
+        import time
+        now = datetime.datetime.fromtimestamp(time.time())
+        self._computations.update({"_id":cid},{"$set":{"stopTime":now}})
+
+    def find_running_computations(self,typec='mf'):
+        import datetime
+        import time
+        now = datetime.datetime.fromtimestamp(time.time())
+        res = []
+        for t in ['mf','wmf']:
+            if t == 'mf':
+                print "Modular forms computations"
+            else:
+                print "WebModularForms/NewForms computations"
+            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}):
+                duration = str(now - r['startTime']).split(".")[0]
+                print "{0},{1},{2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['chi'],r['startTime'],duration,r['pid'])
+            
+    def clear_running_computations(self,typec='mf'):
+        res = self._computations.delete_many({"type":typec})
+        print "Removed {0} computations from db!".format(res.deleted_count)
+
+        
+                    
+
+
+
 # def unwrap_compute_space(D,*args,**kwds):
 #     r"""
 #     To overcome some unpickling problems with the builtin parallel decorators.
@@ -1557,51 +1605,6 @@ class CompMF(MongoMF):
                         clogger.debug("Data is incomplete for factor ({0}) at {1}".format((N,k,on,newform),factor_fname))
 
 
-        ### We want to see which computations are going on currently.
-    def register_computation(self,level,weight,cchi,typec='mf'):
-        r"""
-        Insert a record in the database registring the start of a computation.
-        """
-        import datetime
-        import time
-        import os
-        r = {'startTime':datetime.datetime.fromtimestamp(time.time()),
-             'server':os.uname()[1],
-             'pid':os.getpid(),
-             'type':typec,
-             'N':int(level), 'k':int(weight),'cchi':int(cchi)}
-        if self._computations.find({'N':r['N'],'k':r['k'],'cchi':int(cchi)}).count()>0:
-            return None
-        fid = self._computations.insert(r)
-        return fid 
-
-    def register_computation_closed(self,cid):
-        import datetime
-        import time
-        now = datetime.datetime.fromtimestamp(time.time())
-        self._computations.update({"_id":cid},{"$set":{"stopTime":now}})
-
-    def find_running_computations(self,typec='mf'):
-        import datetime
-        import time
-        now = datetime.datetime.fromtimestamp(time.time())
-        res = []
-        for t in ['mf','wmf']:
-            if t == 'mf':
-                print "Modular forms computations"
-            else:
-                print "WebModularForms/NewForms computations"
-            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}):
-                duration = str(now - r['startTime']).split(".")[0]
-                print "{0},{1},{2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['chi'],r['startTime'],duration,r['pid'])
-            
-    def clear_running_computations(self,typec='mf'):
-        res = self._computations.delete_many({"type":typec})
-        print "Removed {0} computations from db!".format(res.deleted_count)
-
-        
-                    
-
     def check_all_characters2(self,Nmin=4):
         r"""
 
@@ -1894,7 +1897,7 @@ class CheckingDB(CompMF):
     """
     def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
         r"""
-
+'',
         INPUT:
 
         - datadir -- string:  root directory of the file system database
