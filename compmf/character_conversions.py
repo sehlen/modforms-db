@@ -146,17 +146,22 @@ def dirichlet_character_sage_galois_orbits_reps(N):
     return DirichletGroup(N).galois_orbits(reps_only=True)
 
 @cached_function
-def dirichlet_character_conrey_galois_orbits_reps(N):
+def dirichlet_character_conrey_galois_orbits_reps(N,format='numbers'):
     """
     Return list of representatives for the Galois orbits of Conrey Dirichlet characters of level N.
     We always take the one that has the smallest index.
     """
     D = dirichlet_group_conrey(N)
     if N == 1:
+        if format == 'numbers':
+            return [1]
         return [D[1]]
     reps = []
     for o in D._galois_orbits():
-        reps.append(min(o))
+        if format == 'numbers':        
+            reps.append(min(o))
+        else:
+            reps.append(D[min(o)])
     return reps
     
 
@@ -166,7 +171,7 @@ def dirichlet_character_conrey_galois_orbits_reps(N):
 # x <---> x.number()
 # And Sage characters correspond to their index in their associated DirichletGroup
 # x <---> DirichletGroup(N).index(x)
-@cached_function    
+#@cached_function    
 def conrey_character_from_number(n,i):
     r"""
     Return character nr. i in DirichletGroup_conrey(n) 
@@ -282,9 +287,12 @@ def conrey_to_conrey_(x,number_format='character_number',output='character'):
     if not isinstance(x,(tuple,list)) and not isinstance(x, DirichletCharacter_conrey):
         raise ValueError,"Conversion from Conrey character in format {0} to {1} is not implemented!".format(x,output)           
     if isinstance(x,tuple):
-        if len(x) <> 2 or not isinstance(x[0],(int,Integer)) or not isinstance(x[1],(int,Integer)):
+        if len(x) <> 2:
             raise ValueError,"Input: {0} is not a tuple of the form (n,i) !".format(x)
-        N,i  = x
+        try:
+            N = int(x[0]); i = int(x[1])
+        except:
+            raise ValueError,"Input: {0} is not a tuple of the form (n,i) !".format(x)
         if N<1:
             raise ValueError,"There is no Dirichlet group of modulus {0}!".format(N)
         D =  dirichlet_group_conrey(N)
@@ -314,7 +322,7 @@ def conrey_to_conrey_(x,number_format='character_number',output='character'):
     if output == 'galois_orbit_rep':
         return o[0]
     try:
-        i = dirichlet_character_conrey_galois_orbits_reps(x.modulus()).index(o[0].number())
+        i = dirichlet_character_conrey_galois_orbits_reps(x.modulus(),format='number').index(o[0].number())
         return x.modulus(),i
     except IndexError:
         raise ValueError,"Could not find Galois orbit of {0}".format(x)
