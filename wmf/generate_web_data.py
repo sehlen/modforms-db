@@ -585,6 +585,7 @@ def recompute_existing(D,ncpus=1,llim=10):
     return list(l)
 
 def remove_newform_with_label(D,hecke_orbit_label):
+    import gridfs
     coll = D._mongodb['webnewforms']
     key = {'hecke_orbit_label':hecke_orbit_label}
     if all:
@@ -593,11 +594,12 @@ def remove_newform_with_label(D,hecke_orbit_label):
         r = coll.delete_one(key) # delete meta records
     if r.deleted_count == 0:
         wmf_logger.debug("There was no meta record present matching {0}".format(key))
-    fs = D._mongodb['webnewforms.files']
-    r = D._file_collection.find_one(key)
+    file_collection = D._mongodb['webnewforms.files']
+    r = file_collection.find_one(key)
     if r is None:
         raise IndexError("Record does not exist")
     fid = r['_id']
+    fs = gridfs.GridFS(D._mongodb,'webnewforms')
     fs.delete(fid)
                 
     
