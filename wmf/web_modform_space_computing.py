@@ -159,8 +159,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         """        
         from compmf.character_conversions import conrey_character_from_number
         n = min(self._character_galois_orbit)
-        self.character_orbit_rep = conrey_character_from_number(n)
-        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,welf.weight,n)
+        self.character_orbit_rep = conrey_character_from_number(self.level,n)
+        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,n)
 
     def set_character_used_in_computation(self):
        r"""
