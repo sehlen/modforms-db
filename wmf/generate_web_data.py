@@ -594,7 +594,7 @@ def remove_newform_with_label(D,hecke_orbit_label):
     if r.deleted_count == 0:
         wmf_logger.debug("There was no meta record present matching {0}".format(key))
     fs = D._mongodb['webnewforms.files']
-    r = self._file_collection.find_one(key)
+    r = D._file_collection.find_one(key)
     if r is None:
         raise IndexError("Record does not exist")
     fid = r['_id']
