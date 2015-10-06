@@ -51,7 +51,7 @@ def are_compatible(modulus,weight,si):
     where x is a representative of the si-th galois orbit of charaters of modulus N in Sage numbering scheme.
     """
     import character_conversions
-    x = character_conversions.dirichlet_character_sage_galois_orbit_rep_from_number(modulus,si)
+    x = character_conversions.conrey_character_from_number(modulus,si)
     return (x.is_even() and weight % 2 == 0) or (x.is_odd() and weight % 2 == 1)
 
 def label_from_param(N,k,i,d=None):

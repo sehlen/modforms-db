@@ -188,7 +188,7 @@ class WebNewForm_computing(WebNewForm):
         We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
         
         """
-        from sage.all import previous_prime
+        from sage.all import previous_prime,prime_pi
         wmf_logger.debug("Setting aps!")
         wmf_logger.debug("self.prec={0}".format(self.prec))
         wmf_logger.debug("Eigenvalues prec={0}".format(self.eigenvalues.prec))        
@@ -210,6 +210,8 @@ class WebNewForm_computing(WebNewForm):
         for prec in precs:
             wmf_logger.debug("Now getting prec@{0}".format(prec))
             E,v,meta = aps[prec]
+            if E.nrows() <> prime_pi(prec):
+                raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
             self._available_precisions.append(prec)
             evs = WebEigenvalues(self.hecke_orbit_label,prec)
             evs.E = E
@@ -246,6 +248,7 @@ class WebNewForm_computing(WebNewForm):
         self.coefficients(range(1,m))
         ### Include small sanity check
         c2 = self.coefficient(2)
+        wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
             t = c2.complex_embedding()/RR(2)**((self.weight-1.0)/2.0)
         else:
