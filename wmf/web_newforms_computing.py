@@ -169,7 +169,7 @@ class WebNewForm_computing(WebNewForm):
         if needed_prime <= have_prime and reload_from_db is False:
             return 
         wmf_logger.debug("Get aps!")
-        aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number(),character_naming='conrey')
+        aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number())
         wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
         wmf_logger.debug("Got ap lists:{0}".format(aps))        
         wmf_logger.debug("Want:{0} coefficients!".format(self.prec_needed_for_lfunctions()))
