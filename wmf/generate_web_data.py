@@ -597,7 +597,7 @@ def remove_newform_with_label(D,hecke_orbit_label):
     file_collection = D._mongodb['webnewforms.files']
     r = file_collection.find_one(key)
     if r is None:
-        raise IndexError("Record does not exist")
+        raise IndexError("Record does not exist: {0}".format(key))
     fid = r['_id']
     fs = gridfs.GridFS(D._mongodb,'webnewforms')
     fs.delete(fid)
