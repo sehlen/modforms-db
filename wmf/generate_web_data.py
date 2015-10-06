@@ -583,3 +583,35 @@ def recompute_existing(D,ncpus=1,llim=10):
     else:
         l =  generate_one_webmodform_space1_par(args,recompute=True)
     return list(l)
+
+def remove_newform_with_label(D,hecke_orbit_label):
+    coll = D._mongodb['webnewforms']
+    key = {'hecke_orbit_label':hecke_orbit_label}
+    if all:
+        r = coll.delete_many(key) # delete meta records
+    else:
+        r = coll.delete_one(key) # delete meta records
+    if r.deleted_count == 0:
+        emf_logger.debug("There was no meta record present matching {0}".format(key))
+    fs = D._mongodb['webnewforms.files']
+    r = self._file_collection.find_one(key)
+    if r is None:
+        raise IndexError("Record does not exist")
+    fid = r['_id']
+    fs.delete(fid)
+                
+    
+def recompute_newforms(D):
+    q = D._mongodb['webnewforms'].find({"$where": "this.q_expansion.length < 10"}).distinct('hecke_orbit_label')
+    for label in q:
+        remove_newform_with_label(D,q)
+    args = []
+    for label in q:
+        # remove the alphabetic label at the end
+        la = "".join([x for x in label if x.isalpha()])
+        label = label.replace(la,"")
+        N,k,i = label.split(".")
+        N = int(N); k = int(k); i = int(i)
+        args.append((N,k,i))
+    l =  generate_one_webmodform_space32(args,recompute=True)
+    return list(l)
