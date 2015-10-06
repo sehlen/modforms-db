@@ -200,7 +200,7 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Get aps!")
         aps = self._db.get_aps(self.level,self.weight,self.character.number,self.newform_number())
         wmf_logger.debug("Got ap lists:{0}".format(len(aps)))
-        wmf_logger.debug("Got ap lists:{0}".format(aps))        
+        wmf_logger.debug("Got ap lists with keys:{0}".format(aps.keys()))        
         wmf_logger.debug("Want:{0} coefficients!".format(self.prec_needed_for_lfunctions()))
         ev_set = 0
         precs = []
@@ -246,7 +246,7 @@ class WebNewForm_computing(WebNewForm):
         self.coefficients(range(1,m))
         ### Include small sanity check
         c2 = self.coefficient(2)
-        if c2.base_ring() <> QQ:
+        if c2.parent() <> QQ:
             t = c2.complex_embedding()/RR(2)**((self.weight-1.0)/2.0)
         else:
             t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
