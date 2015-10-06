@@ -606,7 +606,7 @@ def remove_newform_with_label(D,hecke_orbit_label):
 def recompute_newforms(D):
     q = D._mongodb['webnewforms'].find({"$where": "this.q_expansion.length < 10"}).distinct('hecke_orbit_label')
     for label in q:
-        remove_newform_with_label(D,q)
+        remove_newform_with_label(D,label)
     args = []
     for label in q:
         # remove the alphabetic label at the end
