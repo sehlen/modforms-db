@@ -65,17 +65,23 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
-        if isinstance(level,basestring):
-            wmf_logger.debug("Calling with newform label:{0}".format(level))
-            level,weight,character,label = parse_newform_label(level)
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
-
-        self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:
             logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
+            return
+        if isinstance(level,basestring):
+            wmf_logger.debug("Calling with newform label:{0}".format(level))
+            level,weight,character,label = parse_newform_label(level)
+        
+        if self.is_in_modularforms_db(level,weight,character,label) == 0:
+            wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
+            return None
+        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
+        self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
+
+
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self.prec = 0
         self._min_prec = 100 ### We want at least this many coefficients
@@ -87,8 +93,9 @@ class WebNewForm_computing(WebNewForm):
         self._twist_info = None
         self._as_polynomial_in_E4_and_E6 = None
         ## If it is in the database we don't need to compute everything unless we specify recompute=True
-        if self._db._mongodb[self._collection_name].find({'hecke_orbit_label':self.hecke_orbit_label}).count()>0 and recompute is False:
-            wmf_logger.debug("getting data from db")
+        s = {'hecke_orbit_label':self.hecke_orbit_label}
+        if self._db._mongodb[self._collection_name].find(s).count()>0 and recompute is False:
+            wmf_logger.debug("getting data from db : {0}".format(self._db._mongodb[self._collection_name].find_one(s)))
             self.update_from_db()
             self.compute_satake_parameters_numeric()
             self.set_twist_info()
@@ -103,10 +110,32 @@ class WebNewForm_computing(WebNewForm):
     def __repr__(self):
         r"""
         """
-        s = "WebNewform for computing in S_{0}({1},chi_{2}) with label {3}".format(self.weight,self.level,self.character.number,self.label)
+        try: 
+            if self.dimension == 0:
+                s = "Zero "
+            else:
+                s  = ""
+                s += "WebNewform for computing in S_{0}({1},chi_{2}) with label {3}".format(self.weight,self.level,self.character.number,self.label)
+        except AttributeError:
+            s = "Empty WebNewForm"
         return s
         
-        
+    def is_in_modularforms_db(self,level,weight,character,label):
+        r"""
+        check if we have a corresponding record in the database. Otherwise we need to comp[ute it first.
+        """
+        orbit_label = newform_label(level,weight,character,label)
+        s = {'hecke_orbit_label':orbit_label}
+        n = self._db._mongodb['Newform_factors.files'].find(s).count()
+        m = self._db._mongodb['ap.files'].find(s).count()
+        if n == 0:
+            wmf_logger.debug("No newform factor for {0} in the database!".format(orbit_label))
+        if m == 0:
+            wmf_logger.debug("No aps factor for {0} in the database!".format(orbit_label))
+        if m==0 or n==0:
+            return 0 
+        return 1
+    
     def compute_additional_properties(self):
         r"""
         Compute everything we need.
@@ -215,6 +244,14 @@ class WebNewForm_computing(WebNewForm):
         res = 0*q**0
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         self.coefficients(range(1,m))
+        ### Include small sanity check
+        c2 = self.coefficient(2)
+        if c2.base_ring() <> QQ:
+            t = c2.complex_embedding()/RR(2)**((self.weight-1.0)/2.0)
+        else:
+            t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+        if abs(t) > 2:
+            raise ValueError,"The aps in the coefficients are incorrect for {0} Please check!".format(self.hecke_orbit_label)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
         self.q_expansion = res.add_bigoh(n+1)
@@ -411,18 +448,19 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("Check character d={0}".format(d))            
             if not ZZ(d**2).divides(ZZ(N)):
                 continue
-            D = dirichlet_character_conrey_galois_orbits_reps(d)
+            D = dirichlet_character_conrey_galois_orbits_reps(d,format='characters')
             ## We know that N = lcm(M,d^2)
             M = ZZ(N).divide_knowing_divisible_by(d ** 2)
             for MM in M*d.divisors():
                 wmf_logger.debug("Check space M={0}".format(MM))
                 ## We have to check if self.character  = x*y^2
                 ## where x is a character mod M and y mod d
-                DM = dirichlet_character_conrey_galois_orbits_reps(MM)  ## These are the spaces which might be in the database
+                DM = dirichlet_character_conrey_galois_orbits_reps(MM,format='characters')  ## These are the spaces which might be in the database
                 xt = conrey_character_from_number(N,1) ## the trivial character mod N
                 for x in DM:
                     for y in D:
                         ## Get the decomposition of left hand side (since multiplication of character with different modulus is not implemented in DirichletGroup_conrey)
+                        #wmf_logger.debug("y={0}".format(y))
                         lhs_decomp = {}
                         for xx in x.decomposition():
                             if not lhs_decomp.has_key(xx.conductor()):
