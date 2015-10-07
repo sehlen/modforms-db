@@ -620,6 +620,7 @@ def recompute_newforms(D):
 
 
 def recheck_and_compute_1(D):
+    from sage.all import loads
     import gridfs
     coll = D._mongodb['webnewforms']
     file_collection = D._mongodb['webnewforms.files']
