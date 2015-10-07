@@ -617,3 +617,34 @@ def recompute_newforms(D):
         args.append((N,k,i))
     l =  generate_one_webmodform_space32(args,recompute=True)
     return list(l)
+
+
+def recheck_and_compute_1(D):
+    import gridfs
+    coll = D._mongodb['webnewforms']
+    file_collection = D._mongodb['webnewforms.files']
+    labels_to_remove = []
+    for r in coll.find():
+        label = r['hecke_orbit_label']
+        r = file_collection.find_one({'hecke_orbit_label':label})
+        fid = r['_id']
+        fs = gridfs.GridFS(D._mongodb,'webnewforms')
+        frec = loads(fs.get(fid).read())
+        emb = frec.get('_embeddings')
+        if emb is None:
+            continue
+        k =RR(r['weight'])
+        c2 = emb['values'][2][0]/2.0**((k-1)/2.0)
+        if abs(c2)>2:
+            wmf_logger.debug("Record {0} has too large c(2):{1}".format(label,c2))
+            labels_to_remove.append(label)
+    args = []
+    for label in labels_to_remove:
+        remove_newform_with_label(D,label)
+        la = "".join([x for x in label if x.isalpha()])
+        label = label.replace(la,"")
+        N,k,i = label.split(".")
+        N = int(N); k = int(k); i = int(i)
+        args.append((N,k,i))
+    l =  generate_one_webmodform_space32(args,recompute=True)
+    return len(list(l))
