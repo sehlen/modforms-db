@@ -635,6 +635,8 @@ def recheck_and_compute_1(D):
         if emb is None:
             continue
         k =RR(r['weight'])
+        if not emb.has_key('values'):
+            wmf_logger.debug("Record {0} embedding {1} has no values".format(label,emb))
         c2 = emb['values'][2][0]/2.0**((k-1)/2.0)
         if abs(c2)>2:
             wmf_logger.debug("Record {0} has too large c(2):{1}".format(label,c2))
