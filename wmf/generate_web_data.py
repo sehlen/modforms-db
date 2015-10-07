@@ -627,8 +627,8 @@ def recheck_and_compute_1(D):
     labels_to_remove = []
     for r in coll.find():
         label = r['hecke_orbit_label']
-        r = file_collection.find_one({'hecke_orbit_label':label})
-        fid = r['_id']
+        rr = file_collection.find_one({'hecke_orbit_label':label})
+        fid = rr['_id']
         fs = gridfs.GridFS(D._mongodb,'webnewforms')
         frec = loads(fs.get(fid).read())
         emb = frec.get('_embeddings')
