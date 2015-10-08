@@ -840,10 +840,10 @@ class WebNewForm_computing(WebNewForm):
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
                 app = RF(ap)*p**(-0.5*(k-1))
-                #wmf_logger.debug("chip={0}".format(chip))
-                #wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
+                wmf_logger.debug("chip={0}".format(chip))
+                wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
                 #wmf_logger.debug("ap={0}".format(ap))
-                #wmf_logger.debug("ap.parent()={0}".format(ap.parent()))
+                wmf_logger.debug("apo.parent()={0}".format(app.parent()))
                 chip = QQ(chip)
                 f1 = 4 * chip - app ** 2
                 #wmf_logger.debug("f1p={0}".format(f1))
