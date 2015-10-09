@@ -97,7 +97,9 @@ class WebNewForm_computing(WebNewForm):
         if self._db._mongodb[self._collection_name].find(s).count()>0 and recompute is False:
             wmf_logger.debug("getting data from db : {0}".format(self._db._mongodb[self._collection_name].find_one(s)))
             self.update_from_db()
+            wmf_logger.debug("Updated self from db!")
             self.compute_satake_parameters_numeric()
+            wmf_logger.debug("computed satake parameters!")            
             self.set_twist_info()
         else:
             self.compute_additional_properties()
@@ -809,8 +811,8 @@ class WebNewForm_computing(WebNewForm):
             return 
         K = self.coefficient_field
         degree = K.absolute_degree()
-        #wmf_logger.debug("K={0}".format(K))
-        #wmf_logger.debug("degree={0}".format(degree))
+        wmf_logger.debug("K={0}".format(K))
+        wmf_logger.debug("degree={0}".format(degree))
         RF = RealField(bits)
         CF = ComplexField(bits)
         ps = prime_range(prec)
@@ -839,11 +841,11 @@ class WebNewForm_computing(WebNewForm):
              
             # ap=self._f.coefficients(ZZ(prec))[p]
             if K.absolute_degree()==1:
-                app = RF(ap)*p**(-0.5*(k-1))
                 wmf_logger.debug("chip={0}".format(chip))
                 wmf_logger.debug("chip.parent()={0}".format(chip.parent()))
                 #wmf_logger.debug("ap={0}".format(ap))
                 wmf_logger.debug("apo.parent()={0}".format(app.parent()))
+                app = RF(ap)*p**(-0.5*(k-1))
                 chip = QQ(chip)
                 f1 = 4 * chip - app ** 2
                 #wmf_logger.debug("f1p={0}".format(f1))
@@ -855,10 +857,10 @@ class WebNewForm_computing(WebNewForm):
                 alphas[0][p] = CF(alpha_p)
             else:
                 for jj in range(degree):
-                    app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
                     wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
                     wmf_logger.debug("app={0}".format(app))
                     wmf_logger.debug("jj={0}".format(jj))            
+                    app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
                     if not hasattr(chip,'complex_embeddings'):
                         f1 = (4 * CF(chip)  - app ** 2)
                     else:
