@@ -98,8 +98,8 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("getting data from db : {0}".format(self._db._mongodb[self._collection_name].find_one(s)))
             self.update_from_db()
             wmf_logger.debug("Updated self from db!")
-            self.compute_satake_parameters_numeric()
-            wmf_logger.debug("computed satake parameters!")            
+            #self.compute_satake_parameters_numeric()
+            #wmf_logger.debug("computed satake parameters!")            
             self.set_twist_info()
         else:
             self.compute_additional_properties()
@@ -857,10 +857,10 @@ class WebNewForm_computing(WebNewForm):
                 alphas[0][p] = CF(alpha_p)
             else:
                 for jj in range(degree):
+                    app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
                     wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
                     wmf_logger.debug("app={0}".format(app))
                     wmf_logger.debug("jj={0}".format(jj))            
-                    app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
                     if not hasattr(chip,'complex_embeddings'):
                         f1 = (4 * CF(chip)  - app ** 2)
                     else:
