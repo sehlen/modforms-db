@@ -363,7 +363,7 @@ def dirichlet_character_conrey_galois_orbit_numbers_from_character_number(n,xi):
     r"""
     Return the numbers of the characters in the galois orbit of the conrey character chi(n,xi)
     """
-    conrey_to_conrey_((n,xi),number_format='character_number',output='galois_orbit_number')
+    return conrey_to_conrey_((n,xi),number_format='character_number',output='galois_orbit_number')
 
 
 @cached_function    
