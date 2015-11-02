@@ -2057,7 +2057,7 @@ class CheckingDB(CompMF):
                 res['modular_symbols']=False
             else:
                 res['modular_symbols']=True
-            rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(ci)})
+            rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)})
             clogger.debug("rec={0}".format(rec))
             numf = rec['orbits']
             ambient_id = rec['_id']
