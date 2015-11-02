@@ -782,7 +782,7 @@ class CompMF(MongoMF):
         ci is a Conrey character number.
         
         """
-        
+        N = int(N); k = int(k); ci = int(ci)
         clogger.debug("In Compute and/or Insert N,k,i= {0} kwds={1}".format((N,k,ci),kwds))        
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         #
