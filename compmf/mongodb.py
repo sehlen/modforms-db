@@ -280,6 +280,47 @@ class MongoMF(object):
             print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))
 
 
+    def show_how_many_complete(self,nrange=[0,50],krange=[2,12]):
+        r"""
+        Check up to which levels and weights we have a complete set of records...
+        """
+        from sage.all import flatten,dimension_cusp_forms,Gamma1
+        files = self._modular_symbols
+        factors = self._newform_factors
+        levels = files.distinct('N')
+        levels.sort()
+        weights = files.distinct('k')
+        completed={}
+        missing=[]
+        for N in range(nrange[0],nrange[1]):
+            gal_orbits = character_conversions.dirichlet_group_conrey_galois_orbits_numbers(N)
+            ##
+            
+            print "Galois orbits for {0}: {1}".format(N,gal_orbits)
+            even_orbits = flatten(filter(lambda x:conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+            odd_orbits = flatten(filter(lambda x: not conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+            print "even orbits for {0} = {1}".format(N,even_orbits)
+            for k in range(krange[0],krange[1]):
+                orbits = files.find({'N':N,'k':k,'complete':{"$gt":int(0)}}).distinct('character_galois_orbit')
+                if orbits == []:
+                    if dimension_cusp_forms(Gamma1(N),k)>0:
+                        print "missing space: N={0}, k={1}".format(N,k)
+                    else:
+                        continue
+                # This returnes all character numbers from all orbits.
+                if k % 2 == 0:
+                    if orbits <> even_orbits:
+                        print "orbits in db=",orbits
+                        print "even orbits=",even_orbits
+                else:
+                    if orbits <> odd_orbits:
+                        print "orbits in db=",orbits
+                        print "odd orbits=",odd_orbits                        
+                    #print N,orbits==even_orbits
+                    
+                #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
+                
+        
     def view_latest(self):
         r"""
         Make a list of the latest additions to the database (all collections except .chunks)
@@ -1207,8 +1248,8 @@ class CompMF(MongoMF):
             s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
         if cchi=='trivial' or cchi==1:
             s['cchi'] = int(1)
-        elif isinstance(chi,list):
-            s['cchi'] = {"$in":map(int,chi)}
+        elif isinstance(cchi,list):
+            s['cchi'] = {"$in":map(int,cchi)}
         args = []
         clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
@@ -1795,7 +1836,7 @@ class CompMF(MongoMF):
         rec={'N':int(x.modulus()),'gens':gens,'vals':vals}
 
             
-    def check_characters_in_files(self,nmin=1,nmax=10000):
+    def check_characters_in_files(self,nmin=1,nmax=10000,verbose=0):
         from sage.all import trivial_character,DirichletGroup
         from sage.all import dimension_new_cusp_forms
         from character_conversions import sage_character_to_conrey_galois_orbit_number,sage_character_to_conrey_character
@@ -1805,9 +1846,12 @@ class CompMF(MongoMF):
         missing = []
         for N,k,i,d,ap in self._db.known("N<{1} AND N>{0}".format(nmin,nmax)):
             ## find the character in file...
+            if verbose>1:
+                print "Checking ",N,k,i
             sname = self._db.space(N,k,i)
             if not self._db.isdir(sname):
-                #clogger.debug("Space {0} is missing!".format((N,k,i)))
+                if verbose>0:
+                    clogger.debug("Space {0} is missing!".format((N,k,i)))
                 continue
             mname = self._db.ambient(N,k,i)            
             try:
@@ -1835,6 +1879,8 @@ class CompMF(MongoMF):
                 eps = DirichletGroup(N,F)(modsym['eps'])
             # Instead of constructing the DirichletgGroup with base_ring since this
             # messes up the conversion to Conrey characters we make sure afterwards...
+            if verbose>0:
+                print "eps[sage]=",eps
             conrey_eps = sage_character_to_conrey_character(eps)
             if conrey_eps.sage_character()<>eps:
                 clogger.critical("We do not get the correct character for {0}".format(mname))
@@ -1869,7 +1915,7 @@ class CompMF(MongoMF):
 
     def _remove_c_from_filename(self):
         
-        for N,k,on,d,ap in self._db.known():
+        for N,k,on,d,ap in self._db.known(""):
             mname = self._db.space(N,k,on)
             tmp = mname + "-c"
             if self._db.isdir(mname):
