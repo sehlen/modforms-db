@@ -1158,7 +1158,7 @@ class CompMF(MongoMF):
  #                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
  #                                    ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
-                    clogger.debug("We could insert {0}".format(apid))
+                    clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
                 except ValueError as e: #gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e.message))
                     q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
@@ -1170,7 +1170,7 @@ class CompMF(MongoMF):
                 vid = fs_v.put(dumps(v),filename=fnamev,
                                newform=int(d),
                                character_galois_orbit=orbit,
-                               N=int(N),k=int(k),chi=int(sage_i),cchi=int(ci),
+                               N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                prec = int(pprec),
                                sage_version = meta.get("version",""),
                                ambient_id=ambient_id)
