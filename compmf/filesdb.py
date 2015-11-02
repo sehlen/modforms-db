@@ -196,8 +196,6 @@ class FilenamesMFDB(Filenames):
         r"""
         Return the full directory name of M(N,k,i) and create it if it doesn't exist.
         """
-        clogger.debug("CSpace {0},{1},{2},{3},{4},{5}".format(N,type(N),k,type(k),i,type(i)))
-      
         f = self.make_path_name(self.space_name(N,k,i))
         if makedir and not self.path_exists(f):
             self.makedirs(f)
@@ -705,7 +703,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         """
         N = int(M.level())
         k = int(M.weight())
-        clogger.debug("Creating  {0},{1},{2},{3},{4},{5}".format(N,type(N),k,type(k),i,type(i)))
+        #clogger.debug("Creating  {0},{1},{2},{3},{4},{5}".format(N,type(N),k,type(k),i,type(i)))
         fname = self.ambient(N, k, i, makedir=True)
         if self.path_exists(fname):
             #clogger.debug("%s already exists; not recreating"%fname)

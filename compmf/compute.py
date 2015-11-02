@@ -128,8 +128,9 @@ class ComputeMFData(object):
             clogger.debug("Got space: {0}".format(M))
         else:
             tm = kwds.get('tm')
-        self.files().save_ambient_space(M,int(i))
-        fname = self.files().ambient(N, k, i, makedir=False)
+        ## Recall that we make the directory corresponding to the Galois orbit...
+        self.files().save_ambient_space(M,ii)
+        fname = self.files().ambient(N, k, ii, makedir=False)
         meta = {'cputime':tm, 'dim':M.dimension(), 'M':str(M), 'version':sage.version.version}
         save(meta, self.files().meta(filename))        
         clogger.debug("saved {0} to {1}".format(meta,filename))
