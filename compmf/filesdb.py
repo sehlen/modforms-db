@@ -700,7 +700,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         """
         N = M.level()
         k = M.weight()
-        clogger.debug("Creating  {0},{1},{2},{3}".format(N,type(N),k,type(k))
+        clogger.debug("Creating  {0},{1},{2},{3}".format(N,type(N),k,type(k)))
         fname = self.ambient(N, k, i, makedir=True)
         if self.path_exists(fname):
             #clogger.debug("%s already exists; not recreating"%fname)
