@@ -1147,8 +1147,8 @@ class CompMF(MongoMF):
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
                                      conrey_galois_orbit_number=int(on[1]),
-                                     newform=int(d),
-                                     prec = int(pprec))
+                                     newform=int(d))
+#                                     prec = int(pprec),
 #                                     cputime = meta.get("cputime",""),
 #                                     sage_version = meta.get("version",""),
  #                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
