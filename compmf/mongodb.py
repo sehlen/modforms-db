@@ -654,7 +654,7 @@ class CompMF(MongoMF):
 
 
         """
-        super(CompMF,self).__init__(host,port,db,verbose,**kwds)
+        super(CompMF,self).__init__(host,port,db,verbose=verbose,**kwds)
         self._datadir = datadir
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
@@ -1901,7 +1901,7 @@ class CheckingDB(CompMF):
 
 
         """
-        super(CheckingDB,self).__init__(datadir,host,port,db,verbose,**kwds)
+        super(CheckingDB,self).__init__(datadir,host,port,db,verbose=verbose,**kwds)
 
 
 
