@@ -1142,7 +1142,7 @@ class CompMF(MongoMF):
                     fs_ap.delete(r['_id'])
                 try:
                     apid = fs_ap.put(dumps( (E,v)),filename=fname1,
-                                     N=int(N),k=int(k),chi=int(sage_i),cchi=int(ci),
+                                     N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
                                      newform=int(d),
                                      prec = int(pprec),
