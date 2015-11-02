@@ -87,7 +87,7 @@ class MongoMF(object):
             from pymongo.mongo_client import MongoClient
             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
-        self._mongo_conn.authenticate(user,password)
+        self._mongodb.authenticate(user,password)
         
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
