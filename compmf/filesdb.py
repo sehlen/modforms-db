@@ -40,6 +40,7 @@ by William Stein.
 import os
 from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols,prime_pi,nth_prime,ZZ
 
+
 import sqlite3
 from stat import S_ISDIR
 
@@ -51,7 +52,7 @@ except ImportError:
     pass # print "Note that remote files are not supported without paramiko installed!"
 
 from compmf import clogger
-
+from character_conversions import conrey_character_number_to_conrey_galois_orbit_number
 class Filenames(object):
     def __init__(self, datadir,host='',db_file='',username=''):
         r"""
@@ -176,9 +177,10 @@ class FilenamesMFDB(Filenames):
         r"""
         Directory name files related to M(N,k,i)
         """
+        N,ii = conrey_character_number_to_conrey_galois_orbit_number(N,i)
         N = int(N)
         k = int(k)
-        i = int(i)
+        ii = int(ii)
         #return '%05d-%03d-%03d'%(N,k,i)
         ### Base directory:
         if N % 500 == 0:
@@ -188,7 +190,7 @@ class FilenamesMFDB(Filenames):
             lb = int(float(N)/float(500))*500+1
             ub = int(float(N)/float(500))*500+500
         dir0 = '{0:0>5}-{1:0>5}'.format(lb,ub)
-        dir1 = '{0:0>5d}-{1:0>3d}-{2:0>3d}'.format(N,k,i)
+        dir1 = '{0:0>5d}-{1:0>3d}-{2:0>3d}'.format(N,k,ii)
         return "{0}/{1}".format(dir0,dir1)
         #return '%05d-%03d-%03d'%(N,k,i)
 
@@ -196,6 +198,9 @@ class FilenamesMFDB(Filenames):
         r"""
         Return the full directory name of M(N,k,i) and create it if it doesn't exist.
         """
+        ## The files are stored in a directory corresponding to the Galois orbit... 
+        ## i is the character number
+        
         f = self.make_path_name(self.space_name(N,k,i))
         if makedir and not self.path_exists(f):
             self.makedirs(f)

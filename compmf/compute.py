@@ -113,7 +113,7 @@ class ComputeMFData(object):
         #N,ii = sage_character_to_sage_galois_orbit_number(eps)
         N,ii = conrey_character_number_to_conrey_galois_orbit_number(N,i)
         ## for the moment we still use the  Sage numbering for the files...
-        filename = self.files().ambient(N, k, ii)
+        filename = self.files().ambient(N, k, i)
         clogger.debug("filename={0}".format(filename))
         if self.files().path_exists(filename):
             return
@@ -129,8 +129,9 @@ class ComputeMFData(object):
         else:
             tm = kwds.get('tm')
         ## Recall that we make the directory corresponding to the Galois orbit...
-        self.files().save_ambient_space(M,ii)
-        fname = self.files().ambient(N, k, ii, makedir=False)
+        ## and this happens in files.db so here we call as usual...
+        self.files().save_ambient_space(M,i)
+        fname = self.files().ambient(N, k, i, makedir=False)
         meta = {'cputime':tm, 'dim':M.dimension(), 'M':str(M), 'version':sage.version.version}
         save(meta, self.files().meta(filename))        
         clogger.debug("saved {0} to {1}".format(meta,filename))
