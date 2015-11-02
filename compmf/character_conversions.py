@@ -108,7 +108,9 @@ def dirichlet_group_conrey_galois_orbits(n):
 
 @cached_function
 def dirichlet_group_conrey_galois_orbits_numbers(n):
-    if n > 0:
+    if n == 1:
+        return [ [1] ]
+    elif n>1:
         return dirichlet_group_conrey(n)._galois_orbits()
     raise ValueError,"No Dirichlet Group of modulus 0!"
 
