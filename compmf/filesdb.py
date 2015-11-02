@@ -698,8 +698,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         r"""
         Save the ambient space.
         """
-        N = M.level()
-        k = M.weight()
+        N = int(M.level())
+        k = int(M.weight())
         clogger.debug("Creating  {0},{1},{2},{3},{4},{5}".format(N,type(N),k,type(k),i,type(i)))
         fname = self.ambient(N, k, i, makedir=True)
         if self.path_exists(fname):
