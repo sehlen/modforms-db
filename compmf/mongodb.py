@@ -1147,8 +1147,8 @@ class CompMF(MongoMF):
                         fs_ap.delete(old_aps['_id'])
                         clogger.debug("Removing old record: {0}".format(old_aps))
                     clogger.debug("ambient id: {0}".format(ambient_id))             
-                    apid = fs_ap.put(dumps( (E,v)),filename=fname1)#,
-#                                     N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
+                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                                     N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci))
 #                                     character_galois_orbit=orbit,
 #                                     conrey_galois_orbit_number=int(on[1]),
 #                                     newform=int(d),
