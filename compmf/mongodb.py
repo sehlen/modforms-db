@@ -56,7 +56,7 @@ from utils import are_compatible
 from compmf import clogger
 
 class MongoMF(object):
-    def __init__(self,host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
+    def __init__(self,host='localhost',port=37010,db='modularforms2',user='editor',password='',verbose=0,**kwds):
         r"""
         Mongo database for modular forms.
 
@@ -76,6 +76,8 @@ class MongoMF(object):
         self._port = int(port)
         self._verbose = int(verbose)
         self._db_name = db
+        self._user = user
+        self._password = password
         if pymongo.version_tuple[0] < 3:
             from pymongo import Connection
             _C = Connection(port=port)
@@ -85,7 +87,7 @@ class MongoMF(object):
             from pymongo.mongo_client import MongoClient
             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
-
+        self._mongo_conn.authenticate(user,password)
         
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
