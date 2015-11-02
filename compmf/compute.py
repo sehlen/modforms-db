@@ -128,7 +128,7 @@ class ComputeMFData(object):
             clogger.debug("Got space: {0}".format(M))
         else:
             tm = kwds.get('tm')
-        self.files().save_ambient_space(M,i)
+        self.files().save_ambient_space(M,int(i))
         fname = self.files().ambient(N, k, i, makedir=False)
         meta = {'cputime':tm, 'dim':M.dimension(), 'M':str(M), 'version':sage.version.version}
         save(meta, self.files().meta(filename))        
