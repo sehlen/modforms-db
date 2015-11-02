@@ -176,6 +176,9 @@ class FilenamesMFDB(Filenames):
         r"""
         Directory name files related to M(N,k,i)
         """
+        N = int(N)
+        k = int(k)
+        i = int(i)
         #return '%05d-%03d-%03d'%(N,k,i)
         ### Base directory:
         if N % 500 == 0:
