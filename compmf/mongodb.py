@@ -1150,10 +1150,10 @@ class CompMF(MongoMF):
                                      character_galois_orbit=orbit,
                                      conrey_galois_orbit_number=int(on[1]),
                                      newform=int(d),
-                                     prec = int(pprec),
+                                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                                     prec = int(pprec))
 #                                     cputime = meta.get("cputime",""),
 #                                     sage_version = meta.get("version",""),
- #                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
  #                                    ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
                     clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
