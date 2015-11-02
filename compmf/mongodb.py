@@ -1403,7 +1403,7 @@ class CompMF(MongoMF):
         aps = self.get_aps(N,k,ci,d,prec_needed=bd,coeffs=True)
         K0 = aps[0].base_ring()
         for M,xi,q,yi in possible_twists:
-            print "Checking:",M,xi,q,yi
+            print "Checking :",M,xi,q,yi
             y = dirichlet_character_sage_from_conrey_character_number(q,yi)
             for d1 in range(self.number_of_factors(M,k,xi)):
                 apsf = self.get_aps(M,k,xi,d1,prec_needed=bd,coeffs=True)
@@ -2058,6 +2058,7 @@ class CheckingDB(CompMF):
             else:
                 res['modular_symbols']=True
             rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'chi':int(ci)})
+            clogger.debug("rec={0}".format(rec))
             numf = rec['orbits']
             ambient_id = rec['_id']
         ## Check factors
