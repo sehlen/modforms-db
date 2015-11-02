@@ -1231,92 +1231,7 @@ class CompMF(MongoMF):
 
 
 
-    def find_records_needing_completion(self,nrange=[],krange=[],cchi=None,check_content=False,recheck=False,ncpus=1):
-        r"""
-        Check all records within a specified bound.
-        """
-        clogger.debug("Find records needing completion!")
-        s = {}
-        res = {}
-        if not isinstance(krange,(list,tuple)):
-            krange = [krange]
-        if not isinstance(nrange,(list,tuple)):
-            nrange = [nrange]
-        if nrange <> []:
-            s['N'] = {"$lt":int(nrange[-1]+1), "$gt":int(nrange[0]-1)}
-        if krange <> []:
-            s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
-        if cchi=='trivial' or cchi==1:
-            s['cchi'] = int(1)
-        elif isinstance(cchi,list):
-            s['cchi'] = {"$in":map(int,cchi)}
-        args = []
-        clogger.debug("search  pattern :{0}".format(s))
-        for r in self._modular_symbols.find(s):
-            N = r['N']; k=r['k']; ci = r['cchi']
-            clogger.debug("r = {0}".format((N,k,ci)))
-            args.append((N,k,ci,check_content,recheck))
-#        clogger.debug("args={0}".format(args))
-        if ncpus >= 32:
-            check = list(self.check_record32(args))
-        elif ncpus >= 16:
-            check = list(self.check_record16(args))
-        elif ncpus >= 8:
-            check = list(self.check_record8(args))
-        else:
-            check = list(self.check_record(args))
-#        clogger.debug("check={0}".format(check))
-        #check = self.check_record(args)
-        for arg,val in check:
-            try:
-                if val.values().count(False)>0:
-                    res[arg[0][0:3]] = val
-            except AttributeError:
-                clogger.critical("arg = {0} val={1}".format(arg,val))
-        ## Then add the spaces not yet in the database
-        for n in nrange:
-            norbits=len(dirichlet_character_conrey_galois_orbits_reps(n))
-            for k in krange:
-                for i in range(norbits):
-                    if self._modular_symbols.find({'N':int(n),'k':int(k),'cchi':int(ci)}).count()==0:
-                        res[(n,k,i)]=[False]
-
-        return res
-
-    def complete_records(self,nrange=[],krange=[],cchi=None,ncpus=1,check_content=False,recheck=False,from_files=True):
-        r"""
-        Check all records within a specified bound and update / compute the incomplete ones.
-
-        INPUT:
-
-        - nrange -- list/tuple : give upper and lower bound for the levels we complete
-        - krange -- list/tuple : give upper and lower bound for the weights we complete
-        - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
-
-        - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
-        - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
-        """
-        recs = self.find_records_needing_completion(nrange,krange,cchi=cchi,check_content=check_content,recheck=recheck,ncpus=ncpus)
-        args = []
-        for N,k,ci in recs.keys():
-            if k==1:
-                clogger.debug("Weight 1 is not implemented!")
-                continue
-            if isinstance(chi,(list,tuple)):
-                if ci not in cchi:
-                    continue
-            if isinstance(cchi,(int,Integer)):
-                if ci <> cchi:
-                    continue
-            if not are_compatible(N,k,ci):
-                #clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
-                continue
-            args.append((N,k,ci))
-#        if from_files:
-#            N,k,ci
-        clogger.debug("Completing {0} spaces!".format(len(args)))
-        self.get_or_compute_spaces(args,ncpus=ncpus,compute=True)
-        return True
+   
 
 
     # def check_character(self,N,k,chi,remove=1,files_separately=0):
@@ -1963,7 +1878,97 @@ class CheckingDB(CompMF):
         """
         super(CheckingDB,self).__init__(datadir,host,port,db,verbose,**kwds)
 
-    
+
+
+
+
+    def find_records_needing_completion(self,nrange=[],krange=[],cchi=None,check_content=False,recheck=False,ncpus=1):
+        r"""
+        Check all records within a specified bound.
+        """
+        clogger.debug("Find records needing completion!")
+        s = {}
+        res = {}
+        if not isinstance(krange,(list,tuple)):
+            krange = [krange]
+        if not isinstance(nrange,(list,tuple)):
+            nrange = [nrange]
+        if nrange <> []:
+            s['N'] = {"$lt":int(nrange[-1]+1), "$gt":int(nrange[0]-1)}
+        if krange <> []:
+            s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
+        if cchi=='trivial' or cchi==1:
+            s['cchi'] = int(1)
+        elif isinstance(cchi,list):
+            s['cchi'] = {"$in":map(int,cchi)}
+        args = []
+        clogger.debug("search  pattern :{0}".format(s))
+        for r in self._modular_symbols.find(s):
+            N = r['N']; k=r['k']; ci = r['cchi']
+            clogger.debug("r = {0}".format((N,k,ci)))
+            args.append((N,k,ci,check_content,recheck))
+#        clogger.debug("args={0}".format(args))
+        if ncpus >= 32:
+            check = list(self.check_record32(args))
+        elif ncpus >= 16:
+            check = list(self.check_record16(args))
+        elif ncpus >= 8:
+            check = list(self.check_record8(args))
+        else:
+            check = list(self.check_record(args))
+#        clogger.debug("check={0}".format(check))
+        #check = self.check_record(args)
+        for arg,val in check:
+            try:
+                if val.values().count(False)>0:
+                    res[arg[0][0:3]] = val
+            except AttributeError:
+                clogger.critical("arg = {0} val={1}".format(arg,val))
+        ## Then add the spaces not yet in the database
+        for n in nrange:
+            norbits=len(dirichlet_character_conrey_galois_orbits_reps(n))
+            for k in krange:
+                for i in range(norbits):
+                    if self._modular_symbols.find({'N':int(n),'k':int(k),'cchi':int(ci)}).count()==0:
+                        res[(n,k,i)]=[False]
+
+        return res
+
+     def complete_records(self,nrange=[],krange=[],cchi=None,ncpus=1,check_content=False,recheck=False,from_files=True):
+        r"""
+        Check all records within a specified bound and update / compute the incomplete ones.
+
+        INPUT:
+
+        - nrange -- list/tuple : give upper and lower bound for the levels we complete
+        - krange -- list/tuple : give upper and lower bound for the weights we complete
+        - chi    -- integer    : if not None we only look at this character (e.g. for trivial character chi=0)
+
+        - 'check_content' -- bool : set to True to make a more detailed check of completeness of records
+        - 'recheck' -- bool: set to True if you want to recheck records already marked as complete.
+        """
+        recs = self.find_records_needing_completion(nrange,krange,cchi=cchi,check_content=check_content,recheck=recheck,ncpus=ncpus)
+        args = []
+        for N,k,ci in recs.keys():
+            if k==1:
+                clogger.debug("Weight 1 is not implemented!")
+                continue
+            if isinstance(chi,(list,tuple)):
+                if ci not in cchi:
+                    continue
+            if isinstance(cchi,(int,Integer)):
+                if ci <> cchi:
+                    continue
+            if not are_compatible(N,k,ci):
+                #clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
+                continue
+            args.append((N,k,ci))
+#        if from_files:
+#            N,k,ci
+        clogger.debug("Completing {0} spaces!".format(len(args)))
+        self.get_or_compute_spaces(args,ncpus=ncpus,compute=True)
+        return True
+        
     
     def check_records(self,nrange,krange,irange='all',check_content=False,recheck=False,ncpus=8):
         r"""
@@ -2044,7 +2049,7 @@ class CheckingDB(CompMF):
             res['modular_symbols']=False
             numf = 0
         else:
-            self.check_character(N,k,ci)
+            self.check_characters_ambient(N,k,ci)
             if check_content and not 'modsym.ambient' in str(M.__class__):
                 clogger.warning("Space is reconstructed with wrong class!")
                 clogger.warning("type(M)={0}".format(type(M)))

@@ -25,4 +25,4 @@ import utils
 import mongodb
 from compute import ComputeMFData
 from filesdb import FilenamesMFDB, FilenamesMFDBLoading
-from mongodb import CompMF,MongoMF
+from mongodb import CompMF,MongoMF,CheckingDB
