@@ -1043,9 +1043,20 @@ class CompMF(MongoMF):
                 fname1 = "{0}-{1:0>3}".format(fname,d)
                 label = orbit_label(d)
                 sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)      
-                
+                clogger.debug("{filename},{N},{k},{chi},{cchi},{character_galois_orbit},{conrey_alois_orbit},{newform},{cputime},{sage_version},{ambient_id},{hecke_orbit_label},{v}".format(
+                    filename=fname1,N=int(N),k=int(k),chi=int(sage_i),
+                    cchi=int(ci),
+                    character_galois_orbit=orbit,
+                    conrey_galois_orbit_number=int(on[1]),
+                    newform=int(d),
+                    cputime = meta.get("cputime",""),
+                    sage_version = meta.get("version",""),
+                    ambient_id=ambient_id,
+                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                    v=inat(1)))
+
                 facid = fs_fact.put(dumps(factor),filename=fname1,
-                                    N=int(N),k=int(k),chi=sage_i,
+                                    N=int(N),k=int(k),chi=int(sage_i),
                                     cchi=int(ci),
                                     character_galois_orbit=orbit,
                                     conrey_galois_orbit_number=int(on[1]),
