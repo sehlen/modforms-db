@@ -946,7 +946,7 @@ class CompMF(MongoMF):
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
             sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci) 
-            fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,on).split("/")[1])
+            fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,ci).split("/")[1])
             fid = None
             try:
                 dump_ambient = dumps(ambient)
@@ -1013,7 +1013,7 @@ class CompMF(MongoMF):
             clogger.debug("Computing factors! m={0}".format(factors_in_file))
 
         if len(factors_in_mongo)==0:
-            fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,on))
+            fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,ci))
             clogger.debug("Inserting factors into mongo! fname={0}".format(fname))
             num_factors_in_file = self._db.number_of_known_factors(N,k,ci)
             ambient = self.get_ambient(N,k,ci,ambient_id=ambient_id)
@@ -1119,7 +1119,7 @@ class CompMF(MongoMF):
                 clogger.debug("E={0}".format(E))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
-                fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,on).split("/")[-1])
+                fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,ci).split("/")[-1])
                 fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
@@ -1144,7 +1144,7 @@ class CompMF(MongoMF):
                     clogger.critical("We have {0} records in the database!".format(q.count()))
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
                 # Also insert the corresponding v separately (to protect against changes in sage)
-                fnamev = "gamma0-ambient-v-{0}-{1:0>3}".format(self._db.space_name(N,k,on),d)
+                fnamev = "gamma0-ambient-v-{0}-{1:0>3}".format(self._db.space_name(N,k,ci),d)
                 clogger.debug("fnamev={0}".format(fnamev))
                 vid = fs_v.put(dumps(v),filename=fnamev,
                                newform=int(d),
