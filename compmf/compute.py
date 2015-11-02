@@ -94,7 +94,7 @@ class ComputeMFData(object):
         clogger.debug("compute ambient space {0}".format((N,k,i)))
         if i == 'all':
             for j in dirichlet_character_conrey_galois_orbits_reps(N):
-                x = character_conversions.conrey_character_from_number(N,j)
+                x = conrey_character_from_number(N,j)
                 #for g in dirichlet_character_sage_galois_orbits_reps(N):
                 if (k % 2 == 0 and x.is_even()) or (k % 2 == 1 and x.is_odd()):
                     self.compute_ambient_space(N,k,j ,**kwds)
