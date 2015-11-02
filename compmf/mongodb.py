@@ -1053,7 +1053,7 @@ class CompMF(MongoMF):
                     sage_version = meta.get("version",""),
                     ambient_id=ambient_id,
                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
-                    v=inat(1)))
+                    v=int(1)))
 
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=int(sage_i[1]),
