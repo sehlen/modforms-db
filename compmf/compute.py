@@ -51,7 +51,14 @@ from sage.all import (ModularSymbols, DirichletGroup, trivial_character,
                       Integer)
 
 from filesdb import rangify, FilenamesMFDBLoading
-from compmf.character_conversions import dirichlet_character_sage_galois_orbits_reps,dirichlet_character_sage_from_conrey_character_number
+from compmf.character_conversions import (
+    #dirichlet_character_sage_galois_orbits_reps,
+    dirichlet_character_sage_from_conrey_character_number,
+    conrey_character_from_number,
+    dirichlet_character_conrey_galois_orbits_reps,
+    sage_character_to_sage_galois_orbit_number,
+    conrey_character_number_to_conrey_galois_orbit_number)
+
 from compmf import clogger
 
     
@@ -84,14 +91,13 @@ class ComputeMFData(object):
         N is a modulus, k is the weight and i is the character number
         in the Conrey ordering.
         """
-        from character_conversions import dirichlet_character_conrey_galois_orbits_reps,sage_character_to_sage_galois_orbit_number,conrey_character_number_to_conrey_galois_orbit_number
         clogger.debug("compute ambient space {0}".format((N,k,i)))
         if i == 'all':
-            sgn = (-1)**k
             for j in dirichlet_character_conrey_galois_orbits_reps(N):
-                for g in dirichlet_character_sage_galois_orbits_reps(N):
-                    if g(-1) == sgn:
-                        self.compute_ambient_space(N,k,j ,**kwds)
+                x = character_conversions.conrey_character_from_number(N,j)
+                #for g in dirichlet_character_sage_galois_orbits_reps(N):
+                if (k % 2 == 0 and x.is_even()) or (k % 2 == 1 and x.is_odd()):
+                    self.compute_ambient_space(N,k,j ,**kwds)
             return
 
         # if i == 'quadratic':
