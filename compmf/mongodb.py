@@ -39,6 +39,7 @@ from compmf import character_conversions
 from compmf.character_conversions import (
     dirichlet_character_conrey_from_sage_character_number,
     dirichlet_character_conrey_galois_orbit_numbers_from_character_number,
+    dirichlet_character_conrey_galois_orbits_reps,
 #    dirichlet_character_sage_galois_orbit_rep_from_number,
     dirichlet_character_sage_from_conrey_character_number,
     dirichlet_character_sage_galois_orbits_reps,
