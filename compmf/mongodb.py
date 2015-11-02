@@ -1105,7 +1105,7 @@ class CompMF(MongoMF):
         orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
-        key = {'N':int(N),'k':int(k),'chi':int(i),'prec' : {"$gt": int(pprec -1) }}
+        key = {'N':int(N),'k':int(k),'chi':int(ci),'prec' : {"$gt": int(pprec -1) }}
         clogger.debug("key={0}".format(key))
         aps_in_mongo = self._aps.find(key).distinct('_id')
         aps_in_file = 0
