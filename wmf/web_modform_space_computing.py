@@ -79,7 +79,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         self._host = host; self._port=int(port); self._dbname = db
         
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
-        wmf_logger.debug("Super class is inited!")
+        wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
         self.setup_modular_symbols_db()
         self.compute_additional_properties()
@@ -158,7 +158,10 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         """        
         from compmf.character_conversions import conrey_character_from_number
-        n = min(self._character_galois_orbit)
+        if self._character_galois_orbit <> []:
+            n = min(self._character_galois_orbit)
+        else:
+            n = 1
         self.character_orbit_rep = conrey_character_from_number(self.level,n)
         self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,n)
 
