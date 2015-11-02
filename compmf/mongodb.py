@@ -1934,7 +1934,7 @@ class CheckingDB(CompMF):
 
         return res
 
-     def complete_records(self,nrange=[],krange=[],cchi=None,ncpus=1,check_content=False,recheck=False,from_files=True):
+    def complete_records(self,nrange=[],krange=[],cchi=None,ncpus=1,check_content=False,recheck=False,from_files=True):
         r"""
         Check all records within a specified bound and update / compute the incomplete ones.
 
