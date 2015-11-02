@@ -1151,10 +1151,10 @@ class CompMF(MongoMF):
                                      conrey_galois_orbit_number=int(on[1]),
                                      newform=int(d),
                                      hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
-                                     prec = int(pprec))
-#                                     cputime = meta.get("cputime",""),
-#                                     sage_version = meta.get("version",""),
- #                                    ambient_id=ambient_id)
+#                                     prec = int(pprec))
+                                     cputime = meta.get("cputime",""),
+                                     sage_version = meta.get("version",""),
+                                     ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
                     clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
                 except ValueError as e: #gridfs.errors.FileExists as e:
