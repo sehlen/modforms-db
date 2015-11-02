@@ -1141,9 +1141,14 @@ class CompMF(MongoMF):
                 if not r is None:
                     fs_ap.delete(r['_id'])
                 try:
-                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                    # check again if we have this record in the gridfs db
+                    old_aps = fs_ap.find_one({'filename':fname1})
+                    if not old_aps is None:
+                        fs_ap.delete(old_aps['_id'])
+                    apid = fs_ap.update_one(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
+                                     conrey_galois_orbit_number=int(on[1]),
                                      newform=int(d),
                                      prec = int(pprec),
                                      cputime = meta.get("cputime",""),
