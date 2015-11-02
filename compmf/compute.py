@@ -84,7 +84,7 @@ class ComputeMFData(object):
         N is a modulus, k is the weight and i is the character number
         in the Conrey ordering.
         """
-        from character_conversions import dirichlet_character_conrey_galois_orbits_reps
+        from character_conversions import dirichlet_character_conrey_galois_orbits_reps,sage_character_to_sage_galois_orbit_number,conrey_character_number_to_conrey_galois_orbit_number
         clogger.debug("compute ambient space {0}".format((N,k,i)))
         if i == 'all':
             sgn = (-1)**k
@@ -93,6 +93,7 @@ class ComputeMFData(object):
                     if g(-1) == sgn:
                         self.compute_ambient_space(N,k,j ,**kwds)
             return
+
         # if i == 'quadratic':
         #     G = DirichletGroup(N).galois_orbits()
         #     sgn = (-1)**k
@@ -103,7 +104,8 @@ class ComputeMFData(object):
         #         j+=1
         #     return
         eps = dirichlet_character_sage_from_conrey_character_number(N,i)
-        N,ii = sage_character_to_sage_galois_orbit_number(eps)
+        #N,ii = sage_character_to_sage_galois_orbit_number(eps)
+        N,ii = conrey_character_number_to_conrey_galois_orbit_number(N,i)
         ## for the moment we still use the  Sage numbering for the files...
         filename = self.files().ambient(N, k, ii)
         clogger.debug("filename={0}".format(filename))
