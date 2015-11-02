@@ -1149,8 +1149,8 @@ class CompMF(MongoMF):
                                      conrey_galois_orbit_number=int(on[1]),
                                      newform=int(d),
                                      prec = int(pprec),
-                                     cputime = meta.get("cputime",""),
-                                     sage_version = meta.get("version",""))
+                                     cputime = meta.get("cputime",""))
+#                                     sage_version = meta.get("version",""),
  #                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
  #                                    ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
