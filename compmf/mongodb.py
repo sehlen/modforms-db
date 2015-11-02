@@ -1152,7 +1152,7 @@ class CompMF(MongoMF):
                                      ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
                 except gridfs.errors.FileExists as e:
-                    clogger.critical("Could not insert coefficients: Error:{0}".format(e.message))
+                    clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e.message))
                     q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
                     clogger.critical("We have {0} records in the database!".format(q.count()))
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
