@@ -92,7 +92,7 @@ class ComputeMFData(object):
                 for g in dirichlet_character_sage_galois_orbits_reps(N):
                     if g(-1) == sgn:
                         self.compute_ambient_space(N,k,j ,**kwds)
-        return
+            return
         # if i == 'quadratic':
         #     G = DirichletGroup(N).galois_orbits()
         #     sgn = (-1)**k

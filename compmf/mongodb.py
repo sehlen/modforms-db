@@ -297,10 +297,12 @@ class MongoMF(object):
             gal_orbits = character_conversions.dirichlet_group_conrey_galois_orbits_numbers(N)
             ##
             
-            print "Galois orbits for {0}: {1}".format(N,gal_orbits)
+            #print "Galois orbits for {0}: {1}".format(N,gal_orbits)
             even_orbits = flatten(filter(lambda x:conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+            even_orbits.sort()
             odd_orbits = flatten(filter(lambda x: not conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
-            print "even orbits for {0} = {1}".format(N,even_orbits)
+            odd_orbits.sort()
+            #print "even orbits for {0} = {1}".format(N,even_orbits)
             for k in range(krange[0],krange[1]):
                 orbits = files.find({'N':N,'k':k,'complete':{"$gt":int(0)}}).distinct('character_galois_orbit')
                 if orbits == []:
@@ -308,13 +310,16 @@ class MongoMF(object):
                         print "missing space: N={0}, k={1}".format(N,k)
                     else:
                         continue
+                orbits.sort()
                 # This returnes all character numbers from all orbits.
                 if k % 2 == 0:
                     if orbits <> even_orbits:
+                        print "For N={0} and k={1}:".format(N,k)
                         print "orbits in db=",orbits
                         print "even orbits=",even_orbits
                 else:
                     if orbits <> odd_orbits:
+                        print "For N={0} and k={1}:".format(N,k)                        
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits                        
                     #print N,orbits==even_orbits
