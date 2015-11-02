@@ -236,10 +236,10 @@ def sage_to_sage_(x,number_format='galois_orbit_number',output='character'):
      - x -- tuple (N,i) or DirichletCharacter
      - 'output' -- string (in ['character_number','galois_orbit','galois_orbit_number']
     """
-    
+    from sage.modular.dirichlet import DirichletCharacter
     if output not in ['character','galois_orbit','galois_orbit_number']:
         raise ValueError,"Conversion from Sage character to {0} is not implemented!".format(output)
-    if not isinstance(x,(tuple,list)) and not isinstance(x,type(trivial_character(1))):
+    if not isinstance(x,(tuple,list)) and not isinstance(x,type(trivial_character(1))) and not isinstance(x,DirichletCharacter):
         raise ValueError,"Conversion from Sage character in format {0} to {1} is not implemented!".format(x,output)           
     if isinstance(x,tuple):
         if len(x) <> 2 or not isinstance(x[0],(int,Integer)) or not isinstance(x[1],(int,Integer)):
