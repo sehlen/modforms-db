@@ -945,7 +945,7 @@ class CompMF(MongoMF):
             clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,ci),ambient))
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
-            N1,sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci) 
+            sage_orbit_no = sage_galois_orbit_number_from_conrey_character_number(N,ci) 
             fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,ci).split("/")[1])
             fid = None
             try:
@@ -955,11 +955,11 @@ class CompMF(MongoMF):
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
                                 N=int(N),k=int(k),nfactors=int(0),
-                                sage_orbit_no=int(sage_i),
+                                sage_orbit_no=int(sage_orbit_no[1]),
                                 orbits=int(0),
                                 space_label="{0}.{1}.{2}".format(N,k,ci),
                                 space_orbit_label="{0}.{1}.{2}".format(N,k,on),
-                                conrey_galois_orbit_number=int(on),
+                                conrey_galois_orbit_number=int(on[1]),
                                 dima=dima,dimc=dimc,dimn=dimn,
                                 character_galois_orbit=orbit,
                                 cchi=int(ci),
@@ -1043,10 +1043,12 @@ class CompMF(MongoMF):
                 fname1 = "{0}-{1:0>3}".format(fname,d)
                 label = orbit_label(d)
                 sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)      
+                
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=sage_i,
                                     cchi=int(ci),
                                     character_galois_orbit=orbit,
+                                    conrey_galois_orbit_number=int(on[1]),
                                     newform=int(d),
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),
