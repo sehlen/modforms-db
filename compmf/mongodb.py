@@ -1969,7 +1969,7 @@ class CheckingDB(CompMF):
                 for i in range(norbits):
                     s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[reps[i]]}}
                     if self._modular_symbols.find(s).count()==0:
-                        res[(n,k,reps[i]]=[False]
+                        res[(n,k,reps[i])]=[False]
 
         return res
 
