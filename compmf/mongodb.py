@@ -1902,7 +1902,7 @@ class CheckingDB(CompMF):
 
 
         """
-        super(CheckingDB,self).__init__(datadir,host,port,db,user=user,passvword=password,verbose=verbose,**kwds)
+        super(CheckingDB,self).__init__(datadir,host,port,db,user=user,password=password,verbose=verbose,**kwds)
 
 
 
