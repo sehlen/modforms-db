@@ -1963,11 +1963,13 @@ class CheckingDB(CompMF):
                 clogger.critical("arg = {0} val={1}".format(arg,val))
         ## Then add the spaces not yet in the database
         for n in nrange:
-            norbits=len(dirichlet_character_conrey_galois_orbits_reps(n))
+            reps = dirichlet_character_conrey_galois_orbits_reps(n)
+            norbits=len(reps)
             for k in krange:
                 for i in range(norbits):
-                    if self._modular_symbols.find({'N':int(n),'k':int(k),'cchi':int(ci)}).count()==0:
-                        res[(n,k,i)]=[False]
+                    s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[reps[i].number()]}}
+                    if self._modular_symbols.find(s).count()==0:
+                        res[(n,k,reps[i].number())]=[False]
 
         return res
 
