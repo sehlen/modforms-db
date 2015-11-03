@@ -1984,6 +1984,7 @@ class CheckingDB(CompMF):
         """
         recs = self.find_records_needing_completion(nrange,krange,cchi=cchi,check_content=check_content,recheck=recheck,ncpus=ncpus)
         args = []
+        clogger.debug("recs={0}".format(recs))
         for N,k,ci in recs.keys():
             clogger.debug("Checking N,k,i={0} ".format((N,k,ci)))            
             if k==1:
