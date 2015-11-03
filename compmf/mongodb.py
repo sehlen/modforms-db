@@ -1930,8 +1930,10 @@ class CheckingDB(CompMF):
             nrange = [nrange]
         if nrange <> []:
             s['N'] = {"$lt":int(nrange[-1]+1), "$gt":int(nrange[0]-1)}
+            nrange = range(nrange[0],nrange[-1]+1)
         if krange <> []:
             s['k'] = {"$lt":int(krange[-1]+1), "$gt":int(krange[0]-1)}
+            krange = range(krange[0],krange[-1]+1)
         if cchi=='trivial' or cchi==1:
             s['cchi'] = int(1)
         elif isinstance(cchi,list):
@@ -1969,8 +1971,8 @@ class CheckingDB(CompMF):
             for k in krange:
                 for i in range(norbits):
                     ci = int(reps[i])
-                    clogger.debug("N,k,ci={0}, orbit_no={1}".format((N,k,ci),i))
-                    if not are_compatible(N,k,ci,si_format='char_no'):
+                    clogger.debug("N,k,ci={0}, orbit_no={1}".format((n,k,ci),i))
+                    if not are_compatible(n,k,ci,si_format='char_no'):
                         continue
                     s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[ci]}}
                     if self._modular_symbols.find(s).count()==0:
