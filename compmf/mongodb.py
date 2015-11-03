@@ -1967,9 +1967,12 @@ class CheckingDB(CompMF):
             norbits=len(reps)
             for k in krange:
                 for i in range(norbits):
-                    s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[reps[i]]}}
+                    ci = int(reps[i])
+                    if not are_compatible(N,k,ci):
+                        continue
+                    s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[ci]}}
                     if self._modular_symbols.find(s).count()==0:
-                        res[(n,k,reps[i])]=[False]
+                        res[(n,k,ci)]=[False]
 
         return res
 
