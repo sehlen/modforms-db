@@ -1953,7 +1953,7 @@ class CheckingDB(CompMF):
             check = list(self.check_record8(args))
         else:
             check = list(self.check_record(args))
-#        clogger.debug("check={0}".format(check))
+        clogger.debug("check={0}".format(check))
         #check = self.check_record(args)
         for arg,val in check:
             try:
