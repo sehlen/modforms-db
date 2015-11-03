@@ -558,10 +558,11 @@ class MongoMF(object):
                 if not d is None:
                     res = res[newform]
         elif sources == ['files']:
-            # The files are named according to Galois orbits.
-            on = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
+            # The files are named according to Galois orbits but here we simply request
+            # the character (even though we might get another character in the same orbit)
+            #on = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             try:
-                res = self._db.load_aps(N,k,on,d,numc=prec_needed)
+                res = self._db.load_aps(N,k,ci,d,numc=prec_needed)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
