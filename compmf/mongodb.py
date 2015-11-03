@@ -897,7 +897,7 @@ class CompMF(MongoMF):
         r"""
         Compute the ambient space with the given parameters and insert it in mongo if it is not there.
         """
-        if not are_compatible(N,k,ci):
+        if not are_compatible(N,k,ci,si_format='char_no'):
             return None
         files_ms = self._modular_symbols
         fs_ms = gridfs.GridFS(self._mongodb, 'Modular_symbols')
@@ -1968,7 +1968,7 @@ class CheckingDB(CompMF):
             for k in krange:
                 for i in range(norbits):
                     ci = int(reps[i])
-                    if not are_compatible(N,k,ci):
+                    if not are_compatible(N,k,ci,si_format='char_no'):
                         continue
                     s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[ci]}}
                     if self._modular_symbols.find(s).count()==0:
@@ -2003,7 +2003,7 @@ class CheckingDB(CompMF):
             if isinstance(cchi,(int,Integer)):
                 if ci <> cchi:
                     continue
-            if not are_compatible(N,k,ci):
+            if not are_compatible(N,k,ci,si_format='char_no'):
                 #clogger.debug("N,k,i={0} is incompatible!".format((N,k,i)))
                 continue
             args.append((N,k,ci))
