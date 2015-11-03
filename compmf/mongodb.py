@@ -1968,6 +1968,7 @@ class CheckingDB(CompMF):
             for k in krange:
                 for i in range(norbits):
                     ci = int(reps[i])
+                    clogger.debug("N,k,ci={0}, orbit_no={1}".format((N,k,ci),i)
                     if not are_compatible(N,k,ci,si_format='char_no'):
                         continue
                     s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[ci]}}
