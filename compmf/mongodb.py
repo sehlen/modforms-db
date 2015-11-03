@@ -841,6 +841,7 @@ class CompMF(MongoMF):
     def compute_atkin_lehner(self,N,k,ci,**kwds):
         r"""
         Compute the Atkin-Lehner eigenvalues of space (N,k,i).
+        Only for trivial character!
         """
         verbose = kwds.get('verbose',0)
         from character_conversions import (
@@ -850,7 +851,8 @@ class CompMF(MongoMF):
         #c = dirichlet_character_conrey_from_sage_galois_orbit_number(N,i)
         #ci = c.number()
         #ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
-        if not c.is_trivial(): #or c.multiplicative_order()==2):
+        
+        if not ci == 1: #c.is_trivial(): #or c.multiplicative_order()==2):
             return []
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
