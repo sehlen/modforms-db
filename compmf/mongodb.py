@@ -1936,13 +1936,15 @@ class CheckingDB(CompMF):
             s['cchi'] = int(1)
         elif isinstance(cchi,list):
             s['cchi'] = {"$in":map(int,cchi)}
+        elif isinstance(cchi,(int,Integer)):
+            s['character_galois_orbit'] = {"$in":[int(cchi)]}
         args = []
         clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
             N = r['N']; k=r['k']; ci = r['cchi']
             clogger.debug("r = {0}".format((N,k,ci)))
             args.append((N,k,ci,check_content,recheck))
-#        clogger.debug("args={0}".format(args))
+        clogger.debug("args={0}".format(args))
         if ncpus >= 32:
             check = list(self.check_record32(args))
         elif ncpus >= 16:
