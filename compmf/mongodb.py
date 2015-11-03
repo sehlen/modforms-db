@@ -636,7 +636,7 @@ class CompMF(MongoMF):
     Class for computing modular forms and inserting records in a mongodb as well as a file system database.
     """
 
-    def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
+    def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',user='',password='',verbose=0,**kwds):
         r"""
 
         INPUT:
@@ -654,7 +654,7 @@ class CompMF(MongoMF):
 
 
         """
-        super(CompMF,self).__init__(host,port,db,verbose=verbose,**kwds)
+        super(CompMF,self).__init__(host,port,db,user=user,password=password,verbose=verbose,**kwds)
         self._datadir = datadir
         self._db = FilenamesMFDBLoading(datadir)
         self._computedb = ComputeMFData(datadir)
@@ -670,7 +670,7 @@ class CompMF(MongoMF):
         return s
 
     def __reduce__(self):
-        return (type(self),(self._datadir,self._host,self._port,self._db_name,self._verbose))
+        return (type(self),(self._datadir,self._host,self._port,self._db_name,self._user,self._password,self._verbose))
     
 
     def show_existing_files(self):
@@ -1884,7 +1884,7 @@ class CheckingDB(CompMF):
     Class which is used for checking and fixing data in the Mongo Database
     
     """
-    def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',verbose=0,**kwds):
+    def __init__(self,datadir='',host='localhost',port=37010,db='modularforms2',user='',password='',verbose=0,**kwds):
         r"""
 '',
         INPUT:
@@ -1902,7 +1902,7 @@ class CheckingDB(CompMF):
 
 
         """
-        super(CheckingDB,self).__init__(datadir,host,port,db,verbose=verbose,**kwds)
+        super(CheckingDB,self).__init__(datadir,host,port,db,user=user,passvword=password,verbose=verbose,**kwds)
 
 
 
