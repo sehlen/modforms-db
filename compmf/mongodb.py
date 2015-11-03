@@ -1979,7 +1979,7 @@ class CheckingDB(CompMF):
             if k==1:
                 clogger.debug("Weight 1 is not implemented!")
                 continue
-            if isinstance(chi,(list,tuple)):
+            if isinstance(cchi,(list,tuple)):
                 if ci not in cchi:
                     continue
             if isinstance(cchi,(int,Integer)):
