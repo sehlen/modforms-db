@@ -1965,7 +1965,7 @@ class CheckingDB(CompMF):
         for n in nrange:
             reps = dirichlet_character_conrey_galois_orbits_reps(n)
             norbits=len(reps)
-            clogger.debug("reps={0}".format(reps))
+            clogger.debug("reps({0})={1}".format(n,reps))
             for k in krange:
                 for i in range(norbits):
                     ci = int(reps[i])
