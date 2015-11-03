@@ -1959,6 +1959,10 @@ class CheckingDB(CompMF):
             try:
                 if val.values().count(False)>0:
                     res[arg[0][0:3]] = val
+                    clogger.debug("Adding N,k,ci={0}".format(arg[0]))
+                else:
+                    clogger.debug("Not    N,k,ci={0}".format(arg[0]))
+                                  
             except AttributeError:
                 clogger.critical("arg = {0} val={1}".format(arg,val))
         ## Then add the spaces not yet in the database
