@@ -1107,7 +1107,7 @@ class CompMF(MongoMF):
         orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
-        key = {'N':int(N),'k':int(k),'chi':int(ci),'prec' : {"$gt": int(pprec -1) }}
+        key = {'N':int(N),'k':int(k),'cchi':int(ci),'prec' : {"$gt": int(pprec -1) }}
         clogger.debug("key={0}".format(key))
         aps_in_mongo = self._aps.find(key).distinct('_id')
         aps_in_file = 0
@@ -1155,7 +1155,7 @@ class CompMF(MongoMF):
                                      cputime = meta.get("cputime",""),
                                      sage_version = meta.get("version",""),
                                      ambient_id=ambient_id,
-                                     prec = int(pprec))
+                                     nmax = int(pprec))
                     aps_in_mongo.append(apid)
                     clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
                 except ValueError as e: #gridfs.errors.FileExists as e:
