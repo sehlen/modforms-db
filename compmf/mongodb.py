@@ -1830,7 +1830,7 @@ class CompMF(MongoMF):
                 continue
             conrey_i = conrey_eps.number()
             #clogger.debug("eps={0}".format(eps))
-            NN,j = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,conrey_i)
+            NN,j = conrey_character_number_to_conrey_galois_orbit_number(N,conrey_i)
             #NN,j = sage_character_to_conrey_galois_orbit_number(eps)
             #if j == i:
             #    clogger.debug("File {0} is ok!".format(mname))
