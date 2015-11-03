@@ -545,7 +545,13 @@ class MongoMF(object):
                     res = {}
                 fid=r['_id']; newform = r['newform']; prec = r['prec']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
-                E,v = self.load_from_mongo('ap',fid)
+                try:
+                    E,v = self.load_from_mongo('ap',fid)
+                except ValueError as e:
+                    clogger.debug("Can not load ap's: {0}".format(e.message))
+                    clogger.debug("Removing these ap's from database!: match={0}".format(s))
+                    self._aps.delete_one({'_id':fid})
+                    return None
                 #clogger.debug("id={0} and E={1}".format(fid,E))
                 t = (int(N),int(k),int(ci),int(newform))
                 if not res.has_key(newform):
