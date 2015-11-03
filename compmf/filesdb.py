@@ -824,7 +824,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         Load aps for a given factor. If numc > 0 we return all sets.
         """
         import sage.modular.modsym.subspace
-        clogger.debug("Load_aps of {0}".format((N,k,i,d)))
+        clogger.debug("Load_aps of {0} at {1}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False)))
         F = self.load_factor(N, k, i, d, ambient)
         factor_dir = self.factor(N, k, i, d, makedir=False)
         try:
