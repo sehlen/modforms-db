@@ -559,7 +559,7 @@ class MongoMF(object):
                     res = res[newform]
         elif sources == ['files']:
             # The files are named according to Galois orbits.
-            on = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+            on = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             try:
                 res = self._db.load_aps(N,k,on,d,numc=prec_needed)
             except Exception as e:
