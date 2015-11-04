@@ -2173,9 +2173,14 @@ class CheckingDB(CompMF):
             clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
             for r in q:
                 id =r['_id']; prec=r['prec']
-                clogger.debug("loading coeffs for r={0}".format(r))                
-                E,v = loads(fs_ap.get(id).read())
-                #clogger.debug("type(E)={0}".format(type(E)))
+                #clogger.debug("loading coeffs for r={0}".format(r))
+                try: 
+                    E,v = loads(fs_ap.get(id).read())
+                except Exception as e:
+                    clogger.debug("Could not load E,v. Error:{0}".format(e.message))
+                    res['aps'] = False
+                    fs_ap.delete(id)
+                    continue
                 clogger.debug("got the coefficients")
                 if isinstance(E,tuple):
                     print "r=",r
