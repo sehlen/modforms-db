@@ -55,6 +55,8 @@ from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,
 from utils import are_compatible
 from compmf import clogger
 
+data_record_checked_and_complete = int(4)
+
 class MongoMF(object):
     def __init__(self,host='localhost',port=37010,db='modularforms2',user='editor',password='',verbose=0,**kwds):
         r"""
@@ -2031,7 +2033,7 @@ class CheckingDB(CompMF):
         if isinstance(irange,(int,Integer)):
             irange = [irange]
         if check_content:
-            check_level = 2
+            check_level = data_record_checked_and_complete
         else:
             check_level = 1
         clogger.debug("check_record with level: {0}".format(check_level))
@@ -2086,7 +2088,7 @@ class CheckingDB(CompMF):
         s = {'N':int(N),'k':int(k),'cchi':int(ci)}
         res = {}
         ### Check the ambient space
-        check_level = int(3) if check_content else int(1)
+        check_level = data_record_checked_and_complete if check_content else int(1)
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'cchi':int(ci),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
@@ -2115,7 +2117,7 @@ class CheckingDB(CompMF):
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
         if numf1 == 0 and numf == 0:
-            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(3)}})
+            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
             return res
         res['factors'] = False
         d = -1; d1= -1
