@@ -548,7 +548,7 @@ class MongoMF(object):
                 try:
                     E,v = self.load_from_mongo('ap',fid)
                 except ValueError as e:
-                    clogger.debug("Can not load ap's: {0}".format(e.message))
+                    clogger.debug("Can not load ap's: {0}".format(e))
                     clogger.debug("Removing these ap's from database!: match={0}".format(s))
                     self._aps.delete_one({'_id':fid})
                     return None
@@ -977,7 +977,7 @@ class CompMF(MongoMF):
                                 cputime = meta.get("cputime",""),
                                 sage_version = meta.get("version",""))
             except gridfs.errors.FileExists as e:
-                clogger.debug("We can not insert the same record twice! Error:{0}".format(e.message))
+                clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
                 rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
                 if rec is None:
                     clogger.critical("We could nt find the double record!")
@@ -1168,7 +1168,7 @@ class CompMF(MongoMF):
                     aps_in_mongo.append(apid)
                     clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
                 except ValueError as e: #gridfs.errors.FileExists as e:
-                    clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e.message))
+                    clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e))
                     q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
                     clogger.critical("We have {0} records in the database!".format(q.count()))
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
@@ -1812,7 +1812,7 @@ class CompMF(MongoMF):
                     clogger.debug("Space {0} is missing at {1}!".format((N,k,i),sname))
                 continue
             except ValueError as e:
-                clogger.critical("Could not load {0} at {1} due to:{2}".format((N,k,i),sname,e.message))
+                clogger.critical("Could not load {0} at {1} due to:{2}".format((N,k,i),sname,e))
                 f = open('needs_recomputation', 'a')
                 f.write("{0},{1},{2}".format(N,k,i))
                 f.close()
@@ -2177,7 +2177,7 @@ class CheckingDB(CompMF):
                 try: 
                     E,v = loads(fs_ap.get(id).read())
                 except Exception as e:
-                    clogger.debug("Could not load E,v. Error:{0}".format(e.message))
+                    clogger.debug("Could not load E,v. Error:{0}".format(e))
                     res['aps'] = False
                     fs_ap.delete(id)
                     continue
