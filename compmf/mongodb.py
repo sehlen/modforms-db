@@ -2211,6 +2211,7 @@ class CheckingDB(CompMF):
                 clogger.debug("E.ncols={0}".format(E.ncols()))
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
+                clogger.debug("Checked!")
             maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
@@ -2218,8 +2219,11 @@ class CheckingDB(CompMF):
             clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
+            clogger.debug("updating 1")
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
+            
         elif ambient_id is not None:
+            clogger.debug("updating 2")
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         else:
             res['aps']=False
