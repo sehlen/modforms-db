@@ -2090,7 +2090,7 @@ class CheckingDB(CompMF):
         if not recheck:
             if self._modular_symbols.find({'N':int(N),'k':int(k),'cchi':int(ci),'complete':{"$gt":check_level-int(1)}}).count()>0:
                 return  {'modular_symbols':True,'aps':True,'factors':True}
-        clogger.debug("Checking N,k,ci={0}".format((N,k,ci)))
+        clogger.debug("Checking N,k,ci={0} at check_level:{1}".format((N,k,ci),check_level))
         ambient_id = None
         M = self.get_ambient(N,k,ci,compute=False)
         if M is None:
