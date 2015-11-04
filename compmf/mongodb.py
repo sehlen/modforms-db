@@ -2211,10 +2211,10 @@ class CheckingDB(CompMF):
                     ## Also check the file system:
 
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
-                clogger.debug("Check if E[0,0]==0")
-                clogger.debug("Check if E[0,0]={0}".format(E[0,0]))
-                clogger.debug("Check if lenv=={0}".format(len(v)))
-                clogger.debug("E.ncols={0}".format(E.ncols()))
+                #clogger.debug("Check if E[0,0]==0")
+                #clogger.debug("Check if E[0,0]={0}".format(E[0,0]))
+                #clogger.debug("Check if lenv=={0}".format(len(v)))
+                #clogger.debug("E.ncols={0}".format(E.ncols()))
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                 clogger.debug("Checked!")
