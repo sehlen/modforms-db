@@ -81,8 +81,6 @@ class MongoMF(object):
         self._user = user
         self._password = password
         if pymongo.version_tuple[0] < 3:
-            from pymongo import Connection
-            _C = Connection(port=port)
             self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
         else:
