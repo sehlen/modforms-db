@@ -2173,9 +2173,10 @@ class CheckingDB(CompMF):
             clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
             for r in q:
                 id =r['_id']; prec=r['prec']
+                clogger.debug("loading coeffs for r={0}".format(r))                
                 E,v = loads(fs_ap.get(id).read())
                 #clogger.debug("type(E)={0}".format(type(E)))
-                clogger.debug("rec={0}".format(r))
+                clogger.debug("got the coefficients")
                 if isinstance(E,tuple):
                     print "r=",r
                     raise ValueError,"Wrong format of E!"
@@ -2216,6 +2217,7 @@ class CheckingDB(CompMF):
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
+            clogger.debug("done checking coeffs! 0")                
             clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
