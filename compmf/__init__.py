@@ -1,3 +1,8 @@
+
+# This is like a version number which tells us which records have been checked for completeness.
+# It should only need updating when we find bugs in previous data and new checks have been implemented.
+data_record_checked_and_complete = int(4)
+
 import logging
 LOG_LEVEL = logging.DEBUG
 logging.root.setLevel(LOG_LEVEL)
@@ -26,3 +31,4 @@ import mongodb
 from compute import ComputeMFData
 from filesdb import FilenamesMFDB, FilenamesMFDBLoading
 from mongodb import CompMF,MongoMF,CheckingDB
+

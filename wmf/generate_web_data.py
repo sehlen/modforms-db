@@ -26,7 +26,7 @@ import pymongo
 import bson
 from sage.all import parallel,dumps,Gamma1
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
-from compmf import MongoMF,MongoMF
+from compmf import MongoMF,MongoMF,data_record_checked_and_complete
 from sage.misc.cachefunc import cached_function
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010)):
@@ -56,7 +56,8 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['cchi']=int(chi_range[0])
         else:
             s['cchi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
-    s['complete']={"$gt":0}
+    s['complete']={"$ge":data_record_checked_and_complete}
+    clogger.debug("checking to level:{0}".format(data_record_checked_and_complete))
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     try:
         webmodformspace = WebModFormSpace_computing._collection_name
