@@ -78,9 +78,10 @@ class MongoMF(object):
         self._db_name = db
         from os.path import dirname, join
         pw_filename = join(dirname(dirname(__file__)), "password")
-        if password == '':
-            user = 'editor'
-            password = open(pw_filename, "r").readlines()[0].strip()
+#        if password == '':
+        user = 'editor'
+        password = open(pw_filename, "r").readlines()[0].strip()
+        clogger.debug("Trying password:{0}".format(password))
         self._user = user
         self._password = password
         if pymongo.version_tuple[0] < 3:
