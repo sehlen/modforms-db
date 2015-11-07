@@ -137,7 +137,7 @@ def web_newform_collection(host='localhost',port=int(37010)):
     
 ## Create the indices we want on the collections
 
-from pymongo import IndexModel, ASCENDING, DESCENDING
+from pymongo import ASCENDING, DESCENDING
 
 def create_index(host='localhost',port=int(37010),only=None):
     #c = web_newform_collection(host,port)

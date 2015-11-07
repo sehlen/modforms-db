@@ -613,12 +613,15 @@ class MongoMF(object):
                 print "Modular forms computations"
             else:
                 print "WebModularForms/NewForms computations"
-            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}):
+            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}).sort(['startTime']):
                 duration = str(now - r['startTime']).split(".")[0]
-                print "{0},{1},{2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['chi'],r['startTime'],duration,r['pid'])
+                print "{0:0>3},{1:0>2},{2:0>2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['cchi'],r['startTime'],duration,r['pid'])
             
-    def clear_running_computations(self,typec='mf'):
-        res = self._computations.delete_many({"type":typec})
+    def clear_running_computations(self,typec='mf',from_time=None):
+        s = {"type":typec}
+        if from_time:
+            s['startTime']={"$lt":from_time}
+        res = self._computations.delete_many(s)
         print "Removed {0} computations from db!".format(res.deleted_count)
 
         
