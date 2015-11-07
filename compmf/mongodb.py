@@ -81,7 +81,7 @@ class MongoMF(object):
 #        if password == '':
         user = 'editor'
         password = open(pw_filename, "r").readlines()[0].strip()
-        clogger.debug("Trying password:{0}".format(password))
+        clogger.debug("Trying name:{0} and password:{1}".format(user,password))
         self._user = user
         self._password = password
         if pymongo.version_tuple[0] < 3:
