@@ -56,7 +56,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
             s['cchi']=int(chi_range[0])
         else:
             s['cchi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
-    s['complete']={"$ge":int(data_record_checked_and_complete)}
+    s['complete']={"$gt":int(data_record_checked_and_complete-1)}
     wmf_logger.debug("checking to level:{0}".format(data_record_checked_and_complete))
     q = D._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     try:
