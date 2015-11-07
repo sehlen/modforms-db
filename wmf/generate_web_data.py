@@ -66,7 +66,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     for r in q:
         N = r['N']; k=r['k']; cchi=r['cchi']
         if recompute is False:
-            if D._mongodb['webmodformspace'].find({'level':int(N),'weight':int(k),'character':int(chi)}).count()>0:
+            if D._mongodb['webmodformspace'].find({'level':int(N),'weight':int(k),'character':int(cchi)}).count()>0:
                 continue
         args.append((N,k,cchi))
     print "s=",s
