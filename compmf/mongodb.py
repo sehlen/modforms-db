@@ -53,9 +53,7 @@ from compmf.character_conversions import (
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible
-from compmf import clogger
-
-data_record_checked_and_complete = int(4)
+from compmf import clogger,data_record_checked_and_complete
 
 class MongoMF(object):
     def __init__(self,host='localhost',port=37010,db='modularforms2',user='editor',password='',verbose=0,**kwds):
