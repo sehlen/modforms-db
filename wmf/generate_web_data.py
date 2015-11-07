@@ -29,7 +29,7 @@ from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete
 from sage.misc.cachefunc import cached_function
 
-def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),uname=None,password=None):
+def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
     r"""
     Compute and insert objects of type WebModFormSpace with levels in the given range.
 
@@ -37,7 +37,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
 
     """
     try: 
-        D  = MongoMF(host=host,port=port,uname=uname,password=password)
+        D  = MongoMF(host=host,port=port,user=user,password=password)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
     args = []; s={}
