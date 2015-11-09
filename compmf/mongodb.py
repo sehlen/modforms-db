@@ -1055,6 +1055,8 @@ class CompMF(MongoMF):
                                 cchi=int(ci),
                                 cputime = meta.get("cputime",""),
                                 sage_version = meta.get("version",""))
+            except Exception as e:
+                raise e
             except gridfs.errors.FileExists as e:
                 clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
                 rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
@@ -1062,8 +1064,6 @@ class CompMF(MongoMF):
                     clogger.critical("We could nt find the double record!")
                 else:
                     fid = rec['_id']
-            except Exception as e:
-                raise e
             clogger.debug("Insertion successful!")
         else:
             fid = ambient_in_mongo
