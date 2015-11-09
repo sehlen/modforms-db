@@ -826,7 +826,7 @@ class CompMF(MongoMF):
 #        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
 #        results = pool.map_async(self.unwrap,args)        
         pool.close()
-        pool.join()
+        #pool.join()
         return results
         #for res in results:
         #    res.get()
