@@ -830,7 +830,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         try:
             tmp = self.listdir(factor_dir)
         except OSError:
-            return
+            return None,None,None
         aplist_files = []; aplist_meta_files = []
         for fname in tmp:
             if "aplist" in fname:
@@ -841,7 +841,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     numap = int(fname.split("-")[-1].split(".")[0])
                     aplist_files.append((numap,fname))
         if aplist_files == []:
-            return
+            return None,None,None
         if numc == 'max' or numc == -1: # Find max no. of coeffs.
             numap,fname = max(aplist_files)
         elif numc == 'min' or numc == 0: # Find min. no. of coeffs.
