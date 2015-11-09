@@ -371,6 +371,8 @@ class MongoMF(object):
             for k in range(krange[0],krange[1]):
                 # First we check if trivial character exists:
                 r = {'N':N,'k':k}
+                if not self._complete_spaces.find_one({'N':N,'k':k,'all_char_orbits':True,'trivial_char':True}) is None:
+                    continue
                 if files.find({'N':N,'k':k,'cchi':int(1),'complete':{"$gt":int(data_record_checked_and_complete-1)}}) and (k % 2)==0:
                     self._complete_spaces.update(r,{"$set":{"trivial_char":True}})
                     if verbose>0:
