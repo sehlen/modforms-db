@@ -1041,6 +1041,7 @@ class CompMF(MongoMF):
                 dump_ambient = dumps(ambient)
             except Exception as e:
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
+            clogger.debug("Inserting is {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
                                 N=int(N),k=int(k),nfactors=int(0),
@@ -1063,7 +1064,7 @@ class CompMF(MongoMF):
                     fid = rec['_id']
             except Exception as e:
                 raise e
-                
+            clogger.debug("Insertion successful!")
         else:
             fid = ambient_in_mongo
         clogger.debug("fid={0}".format(fid))
