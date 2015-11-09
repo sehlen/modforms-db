@@ -544,27 +544,55 @@ def fix_galois_orbit_labels(D):
     import compmf
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import space_label
     import pymongo
-    col = D._mongodb['webmodformspace']
-    for q in col.find({"version":float(1.2)}):
-        gal_n = q.get('galois_orbit_name')
+    col = D._mongodb['webmodformspace.files']
+    for q in col.find(): #{"version":float(1.2)}):
+        gal_old = q.get('galois_orbit_name')
         space_label_old = q.get('space_label')
-        k = q['weight']
-        space_label_new = space_label(level=q['level'], weight=q['weight'], character=q['character'])
-        N,o=compmf.character_conversions.conrey_character_number_to_conrey_galois_orbit_number(q['level'],q['character'])
+        if q.has_key('weight'):
+            k = q['weight']; N=q['level']; i = q['character']
+        else:
+            N,k,i = space_label_old.split(".")
+            N=int(N); k=int(k); i=int(i)
+        space_label_new = space_label(level=N, weight=k, character=i)
+        N,o=compmf.character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,i)
         gal_new = '{0}.{1}.{2}'.format(N,k,o)
-        if gal_n <> gal_new:
+        if gal_old <> gal_new:
             fid = q['_id']
-            if float(pymongo.version)>3.0:
+            if pymongo.version_tuple[0]>=3:
                 col.update_one({'_id':fid},{"$set":{'galois_orbit_name':gal_new}})
             else:
                 col.update({'_id':fid},{"$set":{'galois_orbit_name':gal_new}})
-            print "Want to fix label {0} -> {1}".format(gal_n,gal_new)
+            print "Want to fix label {0} -> {1}".format(gal_old,gal_new)
         if space_label_old <> space_label_new: 
             print "Want to fix space label {0} -> {1}".format(space_label_old,space_label_new)
-            if float(pymongo.version)>3.0:
+            if pymongo.version_tuple[0]>=3:
                 col.update_one({'_id':fid},{"$set":{'space_label':space_label_new}})
             else:
                 col.update({'_id':fid},{"$set":{'space_label':space_label_new}})
+
+def fix_galois_orbit_labels_files(D,verbose=0):
+    import compmf
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import space_label
+    import pymongo
+    import gridfs
+    from sage.all import loads
+    col = D._mongodb['webmodformspace.files']
+    fs =  gridfs.GridFS(D._mongodb,'webmodformspace')
+    for q in col.find():
+        if verbose>0:
+            print "Checking: ",q['space_label'],q['galois_orbit_name']
+        label = q['space_label']
+        N,k,i = label.split(".")
+        N=int(N); k=int(k); i=int(i)
+        
+        name_new = q.get('galois_orbit_name')
+        fid = q['_id']
+        fd = loads(fs.get(fid).read())
+        name_old = fd['galois_orbit_name']
+        if name_new <> name_old:
+            print "Want to fix label {0} -> {1}".format(name_old,name_new)
+            fd['galois_orbit_name']=name_new
+            
                 
 def remove_gridfs_duplicates(D,label_in=None):
     import gridfs

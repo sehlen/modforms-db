@@ -1061,6 +1061,9 @@ class CompMF(MongoMF):
                     clogger.critical("We could nt find the double record!")
                 else:
                     fid = rec['_id']
+            except Exception as e:
+                raise e
+                
         else:
             fid = ambient_in_mongo
         clogger.debug("fid={0}".format(fid))
