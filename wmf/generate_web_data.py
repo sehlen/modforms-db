@@ -161,10 +161,10 @@ def create_index(host='localhost',port=int(37010),only=None):
             ('chi',pymongo.ASCENDING)],
                             'unique':False},
         {'name': 'webmodformspace', 'index':[
-            ('galois_orbit_name',pymongo.ASCENDING)],
+            ('space_label',pymongo.ASCENDING)],
                              'unique':True},
         {'name':  'webmodformspace.files', 'index':[
-            ('galois_orbit_name',pymongo.ASCENDING)],
+            ('space_label',pymongo.ASCENDING)],
                                    'unique':True},
        {'name':  'webchar', 'index': [
             ('modulus',pymongo.ASCENDING),
@@ -501,7 +501,7 @@ def add_hecke_orbits(host='localhost',port=int(37010)):
     import compmf
     from utils import orbit_label
     D  = MongoMF(host=host,port=port)
-    spaces = D._mongodb.webmodformspace.distinct('galois_orbit_name') 
+    spaces = D._mongodb.webmodformspace.distinct('space_label') 
     for label in spaces:
         N,k,i = map(int,label.split("."))
         M = WebModFormSpace_computing(N,k,i)
@@ -540,16 +540,35 @@ def remove_duplicates(D,label=None):
                     print "removed {0}:{1}".format(lab,r['_id'])
 
 
+def fix_galois_orbit_labels(D):
+    import compmf
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import space_label
+    col = D._mongodb['webmodformspace']
+    for q in col.find({"version":float(1.2)}):
+        gal_n = q.get('galois_orbit_name')
+        space_label_old = q.get('space_label')
+        k = q['weight']
+        space_label_new = space_label(level=q['level'], weight=q['weight'], character=q['character'])
+        N,o=compmf.character_conversions.conrey_character_number_to_conrey_galois_orbit_number(q['level'],q['character'])
+        gal_new = '{0}.{1}.{2}'.format(N,k,o)
+        if gal_n <> gal_new:
+            fid = q['_id']
+            col.update_one({'_id':fid},{"$set":{'galois_orbit_name':gal_new}})
+            print "Want to fix label {0} -> {1}".format(gal_n,gal_new)
+        if space_label_old <> space_label_new: 
+            print "Want to fix space label {0} -> {1}".format(space_label_old,space_label_new)
+            col.update_one({'_id':fid},{"$set":{'space_label':space_label_new}})
+            
 def remove_gridfs_duplicates(D,label_in=None):
     import gridfs
     fs = gridfs.GridFS(D._mongodb,collection='webmodformspace')
     col = D._mongodb['webmodformspace.files']
     if label_in is None:
-        labs = col.distinct('galois_orbit_name')
+        labs = col.distinct('space_label')
     else:
         labs = [label_in]
     for label in labs:
-        q = col.find({'galois_orbit_name':label}).sort("uploadDate", 1)
+        q = col.find({'space_label':label}).sort("uploadDate", 1)
         n = q.count()
         if n>1:
             print "duplicate:",label
