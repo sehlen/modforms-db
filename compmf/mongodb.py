@@ -1041,7 +1041,7 @@ class CompMF(MongoMF):
                 dump_ambient = dumps(ambient)
             except Exception as e:
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
-            clogger.debug("Inserting is {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
+            clogger.debug("Inserting in {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
             try:
                 fid = fs_ms.put(dumps(ambient),filename=fname,
                                 N=int(N),k=int(k),nfactors=int(0),
@@ -1055,6 +1055,7 @@ class CompMF(MongoMF):
                                 cchi=int(ci),
                                 cputime = meta.get("cputime",""),
                                 sage_version = meta.get("version",""))
+                clogger.debug("Inserted fid={0}".format(fid))
             except Exception as e:
                 raise e
             except gridfs.errors.FileExists as e:
