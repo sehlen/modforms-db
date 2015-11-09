@@ -825,11 +825,12 @@ class CompMF(MongoMF):
         results = pool.imap_unordered(self.unwrap,args,chunksize)
 #        results = pool.imap_unordered(unwrap_compute_space,args,chunksize)
 #        results = pool.map_async(self.unwrap,args)        
-        return results
-        for res in results:
-            res.get()
         pool.close()
         pool.join()
+        return results
+        #for res in results:
+        #    res.get()
+
 #        if ncpus==8:
 #            return list(self._compute_and_insert_one_space8(args,**kwds))
 #        elif ncpus==16:
@@ -1042,32 +1043,29 @@ class CompMF(MongoMF):
             except Exception as e:
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             clogger.debug("Inserting in {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
-            #try:
             if fs_ms.find({'filename':fname}).count()>0:
                 clogger.debug("Record already exists!")
-            
-            fid = fs_ms.put(dump_ambient,filename=fname,
-                            N=int(N),k=int(k),nfactors=int(0),
-                            sage_orbit_no=int(sage_orbit_no),
-                            orbits=int(0),
-                            space_label="{0}.{1}.{2}".format(N,k,ci),
-                            space_orbit_label="{0}.{1}.{2}".format(N,k,on),
-                            conrey_galois_orbit_number=int(on),
-                            dima=dima,dimc=dimc,dimn=dimn,
-                            character_galois_orbit=orbit,
-                            cchi=int(ci),
-                            cputime = meta.get("cputime",""),
-                            sage_version = meta.get("version",""))
-            clogger.debug("Inserted fid={0}".format(fid))
-            #except Exception as e:
-            #    raise e
-            #except gridfs.errors.FileExists as e:
-            #    clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
-            #    rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
-            #    if rec is None:
-            #        clogger.critical("We could nt find the double record!")
-            #    else:
-            #        fid = rec['_id']
+            try:
+                fid = fs_ms.put(dump_ambient,filename=fname,
+                                N=int(N),k=int(k),nfactors=int(0),
+                                sage_orbit_no=int(sage_orbit_no),
+                                orbits=int(0),
+                                space_label="{0}.{1}.{2}".format(N,k,ci),
+                                space_orbit_label="{0}.{1}.{2}".format(N,k,on),
+                                conrey_galois_orbit_number=int(on),
+                                dima=dima,dimc=dimc,dimn=dimn,
+                                character_galois_orbit=orbit,
+                                cchi=int(ci),
+                                cputime = meta.get("cputime",""),
+                                sage_version = meta.get("version",""))
+                clogger.debug("Inserted fid={0}".format(fid))
+            except gridfs.errors.FileExists as e:
+                clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
+                rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+                if rec is None:
+                    clogger.critical("We could nt find the double record!")
+                else:
+                    fid = rec['_id']
             clogger.debug("Insertion successful!")
         else:
             fid = ambient_in_mongo
