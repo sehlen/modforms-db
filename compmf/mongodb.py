@@ -106,7 +106,7 @@ class MongoMF(object):
         self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
         self._computations = self._mongodb['computations']
         self._galois_orbits = self._mongodb['galois_orbits']
-        
+        self._complete_spaces =  self._mongodb["complete_spaces"]
         ## The indices we use for the collections given above
         self._collections_indexes = [
         { 'name': 'Modular_symbols.files', 'index':[
@@ -287,7 +287,7 @@ class MongoMF(object):
             print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))
 
 
-    def show_how_many_complete(self,nrange=[0,50],krange=[2,12]):
+    def show_how_many_complete(self,nrange=[1,50],krange=[2,12]):
         r"""
         Check up to which levels and weights we have a complete set of records...
         """
@@ -332,6 +332,73 @@ class MongoMF(object):
                     
                 #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
                 
+    def register_complete_spaces(self,nrange=[1,50],krange=[2,12],verbose=0):
+        r"""
+        Check up to which levels and weights we have a complete set of records...
+        """
+        from sage.all import flatten,dimension_cusp_forms,Gamma1
+        orbit_files = gridfs.GridFS(self._mongodb,'character_orbits')
+        files = self._modular_symbols
+        factors = self._newform_factors
+        levels = files.distinct('N')
+        levels.sort()
+        weights = files.distinct('k')
+        completed={}
+        missing=[]
+        for N in range(nrange[0],nrange[1]):
+            q = self._mongodb["character_orbits.files"].find_one({'N':N})
+            if not q is None:
+                oid = q['_id']
+                gal_orbits = self.load_from_mongo('character_orbits',oid)
+                if verbose>0:
+                    print "gal_orbits=",gal_orbits
+                even_orbits = gal_orbits['even']
+                odd_orbits = gal_orbits['odd']
+            else:
+                gal_orbits = character_conversions.dirichlet_group_conrey_galois_orbits_numbers(N)
+                ##
+                #print "Galois orbits for {0}: {1}".format(N,gal_orbits)
+                even_orbits = flatten(filter(lambda x:conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+                even_orbits.sort()
+                odd_orbits = flatten(filter(lambda x: not conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+                odd_orbits.sort()
+                gal_orbits.sort()
+                all_orbits = {'even':even_orbits,'odd':odd_orbits,'all':gal_orbits}
+                orbit_files.put(dumps(all_orbits),N=N)
+                print "even orbits for {0} = {1}".format(N,even_orbits)
+            for k in range(krange[0],krange[1]):
+                # First we check if trivial character exists:
+                r = {'N':N,'k':k}
+                if files.find({'N':N,'k':k,'cchi':int(1),'complete':{"$gt":int(data_record_checked_and_complete-1)}}) and (k % 2)==0:
+                    self._complete_spaces.update(r,{"$set":{"trivial_char":True}})
+                    if verbose>0:
+                        print "{0}, {1}, Trivial char".format(N,k)
+                s = {'N':N,'k':k,'complete':{"$gt":int(data_record_checked_and_complete-1)}}
+                orbits = files.find(s).distinct('character_galois_orbit')
+                if orbits == []:
+                    if dimension_cusp_forms(Gamma1(N),k)>0:
+                        print "missing space: N={0}, k={1}".format(N,k)
+                    else:
+                        continue
+                orbits.sort()
+                # This returnes all character numbers from all orbits.
+                if k % 2 == 0:
+                    if orbits <> even_orbits:
+                        print "For N={0} and k={1}:".format(N,k)
+                        print "orbits in db=",orbits
+                        print "even orbits=",even_orbits
+                    else:
+                        self._complete_spaces.update(r,{"$set":{"all_char_orbits":True}})
+                else:
+                    if orbits <> odd_orbits:
+                        print "For N={0} and k={1}:".format(N,k)                        
+                        print "orbits in db=",orbits
+                        print "odd orbits=",odd_orbits
+                    else:
+                        self._completed_spaces.update(r,{"$set":{"all_char_orbits":True}})                        
+                    #print N,orbits==even_orbits
+                    
+                #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
         
     def view_latest(self):
         r"""
@@ -619,7 +686,7 @@ class MongoMF(object):
                 print "Modular forms computations"
             else:
                 print "WebModularForms/NewForms computations"
-            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}).sort(['startTime']):
+            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}).sort([('startTime',int(1))]):
                 duration = str(now - r['startTime']).split(".")[0]
                 print "{0:0>3},{1:0>2},{2:0>2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['cchi'],r['startTime'],duration,r['pid'])
             
