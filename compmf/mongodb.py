@@ -399,7 +399,7 @@ class MongoMF(object):
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits
                     else:
-                        self._completed_spaces.update(r,{"$set":{"all_char_orbits":True}})                        
+                        self._complete_spaces.update(r,{"$set":{"all_char_orbits":True}})                        
                     #print N,orbits==even_orbits
                     
                 #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
