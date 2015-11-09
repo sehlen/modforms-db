@@ -1327,8 +1327,6 @@ class CompMF(MongoMF):
                     for d in range(num_factors):
                         E,v,meta  = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
                         aps[(N,k,ci,d)] = E,v,meta
-            else:
-
 
             if not isinstance(aps,dict):
                 clogger.critical("APS = {0}".format(aps))
