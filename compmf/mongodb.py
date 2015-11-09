@@ -1307,8 +1307,16 @@ class CompMF(MongoMF):
         if len(aps_in_mongo) == num_factors and aps_in_file==1:
             return aps_in_mongo
         elif len(aps_in_mongo) < num_factors:
-
-            if aps_in_file==0:
+            aps = {}
+            if aps_in_file == 1:
+                for d in range(num_factors):
+                    E,v,meta = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
+                    if E is None:
+                        aps_in_file = 0
+                        break
+                    else:
+                        aps[(N,k,ci,d)] = E,v,meta
+            if aps_in_file == 0:
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
@@ -1320,10 +1328,7 @@ class CompMF(MongoMF):
                         E,v,meta  = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
                         aps[(N,k,ci,d)] = E,v,meta
             else:
-                aps = {}
-                for d in range(num_factors):
-                    E,v,meta = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
-                    aps[(N,k,ci,d)] = E,v,meta
+
 
             if not isinstance(aps,dict):
                 clogger.critical("APS = {0}".format(aps))
