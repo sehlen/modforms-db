@@ -1034,7 +1034,7 @@ class CompMF(MongoMF):
             clogger.debug("Save ambient to mongodb! ambient={0}:{1}".format((N,k,ci),ambient))
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
-            sage_orbit_no = sage_galois_orbit_number_from_conrey_character_number(N,ci) 
+            sage_orbit_no = sage_galois_orbit_number_from_conrey_character_number(N,ci)[1]
             fname = "gamma0-ambient-modsym-{0}".format(self._db.space_name(N,k,ci).split("/")[1])
             fid = None
             try:
@@ -1048,11 +1048,11 @@ class CompMF(MongoMF):
             
             fid = fs_ms.put(dump_ambient,filename=fname,
                             N=int(N),k=int(k),nfactors=int(0),
-                            sage_orbit_no=int(sage_orbit_no[1]),
+                            sage_orbit_no=int(sage_orbit_no),
                             orbits=int(0),
                             space_label="{0}.{1}.{2}".format(N,k,ci),
                             space_orbit_label="{0}.{1}.{2}".format(N,k,on),
-                            conrey_galois_orbit_number=int(on[1]),
+                            conrey_galois_orbit_number=int(on),
                             dima=dima,dimc=dimc,dimn=dimn,
                             character_galois_orbit=orbit,
                             cchi=int(ci),
