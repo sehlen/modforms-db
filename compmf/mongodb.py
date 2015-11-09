@@ -346,6 +346,8 @@ class MongoMF(object):
         completed={}
         missing=[]
         for N in range(nrange[0],nrange[1]):
+            if files.find_one({'N':N}).count() is None:
+                continue
             q = self._mongodb["character_orbits.files"].find_one({'N':N})
             if not q is None:
                 oid = q['_id']
