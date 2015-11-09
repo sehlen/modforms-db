@@ -387,14 +387,14 @@ class MongoMF(object):
                 orbits.sort()
                 # This returnes all character numbers from all orbits.
                 if k % 2 == 0:
-                    if orbits <> even_orbits:
+                    if orbits <> even_orbits and verbose>0:
                         print "For N={0} and k={1}:".format(N,k)
                         print "orbits in db=",orbits
                         print "even orbits=",even_orbits
                     else:
                         self._complete_spaces.update(r,{"$set":{"all_char_orbits":True}})
                 else:
-                    if orbits <> odd_orbits:
+                    if orbits <> odd_orbits and verbose>0:
                         print "For N={0} and k={1}:".format(N,k)                        
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits
