@@ -287,8 +287,9 @@ class WebNewForm_computing(WebNewForm):
         The base ring of self, that is, the field of values of the character of self. 
         """
         wmf_logger.critical("base ring={0}".format(self.base_ring))
-        if self.base_ring is None or self.base_ring=={}:
-            self.base_ring = self.as_factor().base_ring()
+        #if self.base_ring is None or self.base_ring=={}:
+        self.base_ring = self.as_factor().base_ring()
+        ## We also want to know what the generator actually is.
         
     def set_coefficient_field(self):
         r"""

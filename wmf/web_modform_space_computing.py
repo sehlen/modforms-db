@@ -134,9 +134,21 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.set_oldspace_decomposition()
         wmf_logger.debug("Got oldspace decomposition!")
         self.get_hecke_orbits()
+        self.get_zetas()
+        self.version = float(emf_version)
         self.save_to_db()
 
-
+    def get_zetas(self):
+        r"""
+        Make a dictionary of all the zetas which appear in the q-expansions of the modular forms on self.
+        """
+        self.zeta_orders = []
+        for a in self.hecke_orbits:
+            f = self.hecke_orbits[a]
+            n = f.q_expansion.base_ring().gen().multiplicative_order()
+            if not n in self.zeta_orders:
+                self.zeta_orders.append(n)
+                
     def set_character_galois_orbit(self):
         r"""
         Get a list of numbers of the characters in the Galois orbit of the character of self.
