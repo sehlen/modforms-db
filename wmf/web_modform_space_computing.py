@@ -82,7 +82,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
         self.setup_modular_symbols_db()
-        self.compute_additional_properties()
+        if kwds.get('compute',True):
+            self.compute_additional_properties()
 
     def setup_modular_symbols_db(self):
         r"""
@@ -142,12 +143,21 @@ class WebModFormSpace_computing(WebModFormSpace):
         r"""
         Make a dictionary of all the zetas which appear in the q-expansions of the modular forms on self.
         """
+        from sage.all import Infinity
         self.zeta_orders = []
         for a in self.hecke_orbits:
             f = self.hecke_orbits[a]
-            n = f.q_expansion.base_ring().gen().multiplicative_order()
+            K = f.q_expansion.base_ring()
+            if K == QQ:
+                continue
+            if K.is_relative():
+                n = K.base_field().gen().multiplicative_order()
+            else:
+                n = K.gen().multiplicative_order()
+            if n==+Infinity:
+                wmf_logger.debug.critical("Got z of infinite order! K={0}".format(K))
             if not n in self.zeta_orders:
-                self.zeta_orders.append(n)
+                self.zeta_orders.append(int(n))
                 
     def set_character_galois_orbit(self):
         r"""
