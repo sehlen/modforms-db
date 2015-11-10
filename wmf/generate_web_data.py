@@ -101,7 +101,7 @@ def generate_one_webmodform_space1_par(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
 
     
-def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(37010)):    
+def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(37010),recompute=True):    
     r"""
     Generates one modform space.
 
@@ -109,7 +109,7 @@ def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(3
     #    print "generate:",level,weight,chi
     D = MongoMF(host=host,port=port)
     cid = D.register_computation(level=level,weight=weight,cchi=cchi,typec='wmf')
-    M = WebModFormSpace_computing(level,weight,cchi)
+    M = WebModFormSpace_computing(level,weight,cchi,recompute=recompute)
     M.save_to_db()
     D.register_computation_closed(cid)
 
@@ -706,3 +706,17 @@ def recheck_and_compute_1(D):
         args.append((N,k,i))
     l =  generate_one_webmodform_space32(args,recompute=True)
     return len(list(l))
+
+def add_zetas(D):
+    from sage.all import loads,RR
+    import gridfs
+    coll = D._mongodb['webnewforms']
+    file_collection = D._mongodb['webnewforms.files']
+    args = []
+    for r in coll.find({"zeta_orders":{"$exists":False}}):
+        args.append((r['level'],r['weight'],r['character']))
+        l =  generate_one_webmodform_space32(args,recompute=True)
+        return len(list(l))
+    #M=webmodformspace_computing(r['level'],r['weight'],r['character'],compute=False)
+    #    M.get_zetas()
+    #    M.save_to_db()

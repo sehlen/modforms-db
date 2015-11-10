@@ -82,7 +82,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
         self.setup_modular_symbols_db()
-        if kwds.get('compute',True):
+        if kwds.get('recompute',True):
             self.compute_additional_properties()
 
     def setup_modular_symbols_db(self):
