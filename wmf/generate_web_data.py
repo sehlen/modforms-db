@@ -747,6 +747,7 @@ def fix_orbit_labels(D):
             N = r.get('N'); k=r.get('k'); ci=r.get('cchi')
             if N is None or k is none or ci is None:
                 wmf_logger.critical("r={0}".format(r))
+                D._modular_symbols.delete({'_id':r['_id']})
                 continue
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             new_label="{0}.{1}.{2}".format(N,k,on)
