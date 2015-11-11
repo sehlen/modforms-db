@@ -774,7 +774,7 @@ def fix_orbit_labels_2(D):
     from compmf.character_conversions import conrey_character_number_to_conrey_galois_orbit_number
     for r in D._mongodb['webmodformspace'].find({'space_orbit_label':{"$exists":False}}):
         N = r.get('level'); k=r.get('weight'); ci=r.get('character')
-        if N is None or k is none or ci is None:
+        if N is None or k is None or ci is None:
             wmf_logger.critical("r={0}".format(r))
             continue
         on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
