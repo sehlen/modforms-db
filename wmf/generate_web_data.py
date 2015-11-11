@@ -372,9 +372,11 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         if r1.get('data'):
             tbl1 = my_loads(r1.get('data'))
             id1 = r1.get('_id')            
-    q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
+    #q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
+    q = D._modular_symbols.find().sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     for r in q:
-        n = r['level']; k = r['weight']; i = r['character_orbit_rep']
+        #n = r['level']; k = r['weight']; i = r['character_orbit_rep']
+        n = r['N']; k = r['k']; i = min(r['character_galois_orbit'])
         n = str(n); k=str(k); i=str(i)
         if i == 1:
             if not tbl0.has_key(n):
@@ -382,8 +384,12 @@ def update_dimension_tables(host='localhost',port=int(37010)):
             if tbl0[n].has_key(k):
                 d,t = tbl0[n][k]
             else:
-                d = r['dimension_new_cusp_forms']
-            tbl0[n][k] = (int(d),int(1))
+                #d = r['dimension_new_cusp_forms']
+                d = r['dimn']
+            if D._mongodb[webmodformspace].find({'galois_orbit_name':r['space_orbit_label']}).count()>0: #if  D._mongodb[webmodformspace].find({'level':int(n),'weight':int(k)}):
+                tbl0[n][k] = (int(d),int(1))
+            else:
+                tbl0[n][k] = (int(d),int(0))
         if not tbl1.has_key(n):
             tbl1[n] = {}
         if not tbl1[n].has_key(k):
@@ -391,8 +397,12 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         if tbl1[n][k].has_key(i):
             d,t = tbl1[n][k][i]
         else:
-            d = r['dimension_new_cusp_forms']
-        tbl1[n][k][i] = (int(d),int(1))        
+            d = r['dimn']
+            #d = r['dimension_new_cusp_forms']
+        if D._mongodb[webmodformspace].find({'galois_orbit_name':r['space_orbit_label']}).count()>0:
+            tbl1[n][k][i] = (int(d),int(1))
+        else:
+            tbl1[n][k][i] = (int(d),int(0))
         if not tbl1[n][k].has_key("-1"):
             tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():

@@ -628,8 +628,8 @@ class WebNewForm_computing(WebNewForm):
             col = col + 1
         if (col != d):
             raise ArithmeticError("bug dimension")
-        wmf_logger.debug("m={0}".format(m, type(m)))
-        wmf_logger.debug("v={0}".format(v, type(v)))
+        #wmf_logger.debug("m={0}".format(m, type(m)))
+        #wmf_logger.debug("v={0}".format(v, type(v)))
         try:
             X = m.solve_right(v)
         except:
