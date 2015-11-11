@@ -772,7 +772,7 @@ def fix_orbit_labels(D):
 
 def fix_orbit_labels_2(D):
     from compmf.character_conversions import conrey_character_number_to_conrey_galois_orbit_number
-    for r in D._mongodb['webmodformspace'].find({'space_orbit_label':{"$exists":False}}):
+    for r in D._mongodb['webmodformspace'].find(): #{'space_orbit_label':{"$exists":False}}):
         N = r.get('level'); k=r.get('weight'); ci=r.get('character')
         if N is None or k is None or ci is None:
             wmf_logger.critical("r={0}".format(r))
@@ -784,8 +784,8 @@ def fix_orbit_labels_2(D):
 def fix_spaces(D):
     for r in D._mongodb['webmodformspace'].find():
         label = r['space_orbit_label']
-        q = D._modular_symbols.find({'space_orbit_label':label})
-        if q.count()==0:
+        q = D._modular_symbols.find_one({'space_orbit_label':label})
+        if q is None:
             wmf_logger.critical("No space {0} in D._modular_symbols!".format(label))
         else:
             if q['dimn']<>r['dimension']:
