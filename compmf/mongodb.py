@@ -2027,6 +2027,8 @@ class CheckingDB(CompMF):
             s['cchi'] = {"$in":map(int,cchi)}
         elif isinstance(cchi,(int,Integer)):
             s['character_galois_orbit'] = {"$in":[int(cchi)]}
+        if not recheck:
+            s['complete']={"$lt":int(data_record_checked_and_complete)}
         args = []
         clogger.debug("search  pattern :{0}".format(s))
         for r in self._modular_symbols.find(s):
@@ -2042,7 +2044,7 @@ class CheckingDB(CompMF):
             check = list(self.check_record8(args))
         else:
             check = list(self.check_record(args))
-        clogger.debug("check={0}".format(check))
+        #clogger.debug("check={0}".format(check))
         #check = self.check_record(args)
         for arg,val in check:
             try:
