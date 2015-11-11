@@ -1806,7 +1806,7 @@ class CompMF(MongoMF):
         for x2 in dirichlet_group_conrey(N):
             if x1 == x2.sage_character():
                 ci = x2.number()
-                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
                 clogger.debug("on: {0} and r={1}".format(on,r))
                 if ci == cchi and si == r['chi'] and r.get('conrey_galois_orbit_number',-1)==on:
                     return True
@@ -2060,7 +2060,7 @@ class CheckingDB(CompMF):
             for k in krange:
                 for i in range(norbits):
                     ci = int(reps[i])
-                    clogger.debug("N,k,ci={0}, orbit_no={1}".format((n,k,ci),i))
+                    #clogger.debug("N,k,ci={0}, orbit_no={1}".format((n,k,ci),i))
                     if not are_compatible(n,k,ci,si_format='char_no'):
                         continue
                     s = {'N':int(n),'k':int(k),'character_galois_orbit':{"$in":[ci]}}

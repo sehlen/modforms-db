@@ -731,3 +731,12 @@ def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):
     M = WebModFormSpace_computing(level,weight,cchi,recompute=False)
     M.get_zetas()
     M.save_to_db()
+
+
+def fix_orbit_labels(D):
+    for r in D._modular_symbols.find():
+        space_orbit_label = r['space_orbit_label']
+        l =space_orbit_label.split(".")
+        if not l[2].isdigit():
+            new_label = "{0}.{1}.{2}".format(l[0],l[1],l[2][1])
+            D._modular_symbols.update({'_id':r['_id']},{"$set":{'space_orbit_label':new_label}})
