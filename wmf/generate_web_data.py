@@ -390,6 +390,8 @@ def update_dimension_tables(host='localhost',port=int(37010)):
                 tbl0[n][k] = (int(d),int(1))
             else:
                 tbl0[n][k] = (int(d),int(0))
+            if n=='1' and k=='76':
+                print tbl0[n][k]
         if not tbl1.has_key(n):
             tbl1[n] = {}
         if not tbl1[n].has_key(k):
