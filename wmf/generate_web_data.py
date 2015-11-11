@@ -786,7 +786,7 @@ def fix_spaces(D):
         label = r['space_orbit_label']
         q = D._modular_symbols.find({'space_orbit_label':label})
         if q.count()==0:
-            wmf_logger.ciritical("No space {0} in D._modular_symbols!".format(label))
+            wmf_logger.critical("No space {0} in D._modular_symbols!".format(label))
         else:
             if q['dimn']<>r['dimension']:
                 D._mongodb['webmodformspace'].update({'_id':r['_id']},{"$set":{'dimension':q['dimn']}})
