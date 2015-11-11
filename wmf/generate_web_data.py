@@ -715,8 +715,8 @@ def add_zetas(D):
     args = []
     for r in coll.find({"zeta_orders":{"$exists":False}}):
         args.append((r['level'],r['weight'],r['character']))
-        l =  generate_one_webmodform_space32(args,recompute=True)
-        return len(list(l))
+    l =  generate_one_webmodform_space32(args,recompute=True)
+    return len(list(l))
     #M=webmodformspace_computing(r['level'],r['weight'],r['character'],compute=False)
     #    M.get_zetas()
     #    M.save_to_db()
