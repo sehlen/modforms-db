@@ -736,6 +736,7 @@ def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):
 def fix_orbit_labels(D):
     from compmf.character_conversions import conrey_character_number_to_conrey_galois_orbit_number
     for r in D._modular_symbols.find():
+        
         space_orbit_label = r.get('space_orbit_label')
         if not space_orbit_label is None:
             l =space_orbit_label.split(".")
@@ -743,7 +744,10 @@ def fix_orbit_labels(D):
                 continue
             new_label = "{0}.{1}.{2}".format(l[0],l[1],l[2][1])
         else:
-            N = r['N']; k=r['k']; ci=r['cchi']
+            N = r.get('N'); k=r.get('k'); ci=r.get('cchi')
+            if N is None or k is none or ci is None:
+                wmf_logger.critical("r={0}".format(r))
+                continue
             on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             new_label="{0}.{1}.{2}".format(N,k,on)
         D._modular_symbols.update({'_id':r['_id']},{"$set":{'space_orbit_label':new_label}})
