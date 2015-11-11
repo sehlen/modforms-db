@@ -715,8 +715,19 @@ def add_zetas(D):
     args = []
     for r in coll.find({"zeta_orders":{"$exists":False},'character':{"$ne":int(1)}}):
         args.append((r['level'],r['weight'],r['character']))
-    l =  generate_one_webmodform_space32(args,recompute=True)
+    l =  add_zeta_parallel(args)
     return len(list(l))
     #M=webmodformspace_computing(r['level'],r['weight'],r['character'],compute=False)
     #    M.get_zetas()
     #    M.save_to_db()
+@parallel(ncpus=32)
+def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):    
+    r"""
+    Generates one modform space.
+
+    """
+    #    print "generate:",level,weight,chi
+    D = MongoMF(host=host,port=port)
+    M = WebModFormSpace_computing(level,weight,cchi,recompute=False)
+    M.get_zetas()
+    M.save_to_db()
