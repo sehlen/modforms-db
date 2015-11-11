@@ -150,13 +150,14 @@ class WebModFormSpace_computing(WebModFormSpace):
             K = f.q_expansion.base_ring()
             if K == QQ:
                 continue
+            # We have to distinguish between the cases: K = Cyclotomic, K= extension of cyclotomic and K is Q and K is non-cyclotomic extension of Q
             if K.is_relative():
                 n = K.base_field().gen().multiplicative_order()
             else:
                 n = K.gen().multiplicative_order()
             if n==+Infinity:
-                wmf_logger.critical("Got z of infinite order! K={0}".format(K))
-            if not n in self.zeta_orders:
+                wmf_logger.debug("Got z of infinite order! K={0}".format(K))
+            elif not n in self.zeta_orders:
                 self.zeta_orders.append(int(n))
                 
     def set_character_galois_orbit(self):
