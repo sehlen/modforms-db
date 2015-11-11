@@ -379,7 +379,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         #n = r['level']; k = r['weight']; i = r['character_orbit_rep']
         n = r['N']; k = r['k']; i = min(r['character_galois_orbit'])
         if n==1 and k==76:
-            wmf_logger.debug("r[1][76]={0}".format(r))
+            wmf_logger.debug("r[1][76]={0}\n i={1}".format(r,i))
         n = str(n); k=str(k); i=str(i)
         if i == 1:
             if not tbl0.has_key(n):
