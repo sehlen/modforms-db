@@ -781,3 +781,13 @@ def fix_orbit_labels_2(D):
         new_label="{0}.{1}.{2}".format(N,k,on)
         D._mongodb['webmodformspace'].update({'_id':r['_id']},{"$set":{'space_orbit_label':new_label}})
             
+def fix_spaces(D):
+    for r in D._mongodb['webmodformspace'].find():
+        label = r['space_orbit_label']
+        q = D._modular_symbols.find({'space_orbit_label':label})
+        if q.count()==0:
+            wmf_logger.ciritical("No space {0} in D._modular_symbols!".format(label))
+        else:
+            if q['dimn']<>r['dimension']:
+                D._mongodb['webmodformspace'].update({'_id':r['_id']},{"$set":{'dimension':q['dimn']}})
+                
