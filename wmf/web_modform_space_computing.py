@@ -155,7 +155,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             else:
                 n = K.gen().multiplicative_order()
             if n==+Infinity:
-                wmf_logger.debug.critical("Got z of infinite order! K={0}".format(K))
+                wmf_logger.critical("Got z of infinite order! K={0}".format(K))
             if not n in self.zeta_orders:
                 self.zeta_orders.append(int(n))
                 
