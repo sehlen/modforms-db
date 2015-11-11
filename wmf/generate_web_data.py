@@ -710,10 +710,10 @@ def recheck_and_compute_1(D):
 def add_zetas(D):
     from sage.all import loads,RR
     import gridfs
-    coll = D._mongodb['webnewforms']
-    file_collection = D._mongodb['webnewforms.files']
+    coll = D._mongodb['webmodformspace']
+    #file_collection = D._mongodb['webmodformspace']
     args = []
-    for r in coll.find({"zeta_orders":{"$exists":False},'character':{"$ne":int(1)}}):
+    for r in coll.find({"zeta_orders":{"$exists":False}}): #,'character':{"$ne":int(1)}}):
         args.append((r['level'],r['weight'],r['character']))
     l =  add_zeta_parallel(args)
     return len(list(l))
