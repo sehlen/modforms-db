@@ -762,7 +762,7 @@ def fix_orbit_labels(D):
         #    new_label = "{0}.{1}.{2}".format(l[0],l[1],l[2][1])
         #else:
         N = r.get('N'); k=r.get('k'); ci=r.get('cchi')
-        if N is None or k is none or ci is None:
+        if N is None or k is None or ci is None:
             wmf_logger.critical("r={0}".format(r))
             D._modular_symbols.remove({'_id':r['_id']})
             continue
