@@ -736,8 +736,8 @@ def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):
 def fix_orbit_labels(D):
     from compmf.character_conversions import conrey_character_number_to_conrey_galois_orbit_number
     for r in D._modular_symbols.find():
-        
         space_orbit_label = r.get('space_orbit_label')
+        print space_orbit_label
         if not space_orbit_label is None:
             l =space_orbit_label.split(".")
             if  l[2].isdigit():
