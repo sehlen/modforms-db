@@ -180,14 +180,17 @@ class WebModFormSpace_computing(WebModFormSpace):
         Returns canonical representative of the Galois orbit of the character of self.
 
         """        
-        from compmf.character_conversions import conrey_character_from_number
+        from compmf.character_conversions import conrey_character_from_number,conrey_character_number_to_conrey_galois_orbit_number
         if self._character_galois_orbit <> []:
-            n = min(self._character_galois_orbit)
+            ci = min(self._character_galois_orbit)
         else:
-            n = 1
-        self.character_orbit_rep = conrey_character_from_number(self.level,n)
-        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,n)
+            ci = 1
+        on = conrey_character_number_to_conrey_galois_orbit_number(self.level,ci)[1]
 
+        self.character_orbit_rep = conrey_character_from_number(self.level,ci)
+        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,ci)
+        self.space_orbit_label = "{0}.{1}.{2}".format(self.level,self.weight,on)
+        
     def set_character_used_in_computation(self):
        r"""
        Get the character which was used in the computation of the data.
