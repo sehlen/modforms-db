@@ -290,7 +290,7 @@ def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=
                 continue
             tbl1[ns][ks]={}
             ds = 0
-            for x in character_conversions.dirichlet_group_conrey_galois_orbits_reps(n,format='character'):
+            for x in character_conversions.dirichlet_character_conrey_galois_orbits_reps(n,format='character'):
                 xi = x.number()
                 if (k % 2)==0 and not x.is_even():
                     d = 0
