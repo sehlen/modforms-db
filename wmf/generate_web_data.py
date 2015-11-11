@@ -713,7 +713,7 @@ def add_zetas(D):
     coll = D._mongodb['webnewforms']
     file_collection = D._mongodb['webnewforms.files']
     args = []
-    for r in coll.find({"zeta_orders":{"$exists":False}}):
+    for r in coll.find({"zeta_orders":{"$exists":False},'character':{"$ne":int(1)}}):
         args.append((r['level'],r['weight'],r['character']))
     l =  generate_one_webmodform_space32(args,recompute=True)
     return len(list(l))
