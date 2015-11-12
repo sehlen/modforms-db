@@ -424,7 +424,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
                 if int(i) > 0:
                     # Remember that these are for Galois conjugacy classes
                     for o in orbits:
-                        if i in o:
+                        if int(i) in o:
                             mul = len(o)
                             break
                     dtot+=int(tbl1[n][k][i][0])*mul
