@@ -826,11 +826,16 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             for k in range(krange[0],krange[1]+1):
                 label = '{0}.{1}.{2}'.format(n,k,x)
                 if C.find({'space_label':label}).count()==0:
-                    wmf_logger.debug("n={0} k={1} ch={2}".format(n,k,xc))
-                    d_new = G.dimension_new_cusp_forms(k,eps=xc)
-                    d_mod = G.dimension_modular_forms(k,eps=xc)
-                    d_eisen = G.dimension_eis(k,eps=xc)                    
-                    d_cusp = G.dimension_cusp_forms(k,eps=xc)
+                    if n <= 2:
+                        d_new = G.dimension_new_cusp_forms(k)
+                        d_mod = G.dimension_modular_forms(k)
+                        d_eisen = G.dimension_eis(k)                    
+                        d_cusp = G.dimension_cusp_forms(k)
+                    else:
+                        d_new = G.dimension_new_cusp_forms(k,eps=xc)
+                        d_mod = G.dimension_modular_forms(k,eps=xc)
+                        d_eisen = G.dimension_eis(k,eps=xc)                    
+                        d_cusp = G.dimension_cusp_forms(k,eps=xc)                    
                     space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
                     cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
                     cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
