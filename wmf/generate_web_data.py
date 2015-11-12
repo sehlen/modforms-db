@@ -841,12 +841,12 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                     cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
                     r = {'space_label':label,
                          'character_orbit':orbit,
-                         'd_mod':d_mod,
-                         'd_cusp':d_cusp,
-                         'd_newf':d_new,
-                         'd_eis':d_eisen,
-                         'in_wdb':cw,
-                         'in_msdb':cm}
+                         'd_mod':int(d_mod),
+                         'd_cusp':int(d_cusp),
+                         'd_newf':int(d_new),
+                         'd_eis':int(d_eisen),
+                         'in_wdb':int(cw),
+                         'in_msdb':int(cm)}
                     C.insert(r)
         # For Gamma1 -- total of the above
         num_orbits = len(orbits)
@@ -860,11 +860,11 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                 num_in_db = D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character')
                     
                 r = {'gamma1_label':label,
-                     'd_mod':d_mod,
-                     'd_cusp':d_cusp,
-                     'd_newf':d_new,
-                     'd_eis':d_eisen,
-                     'all_in_db': num_in_db >= num_orbits
+                     'd_mod':int(d_mod),
+                     'd_cusp':int(d_cusp),
+                     'd_newf':int(d_new),
+                     'd_eis':int(d_eisen),
+                     'all_in_db': int(num_in_db >= num_orbits)
                  }
                 C.insert(r)
                 
