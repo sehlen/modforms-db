@@ -419,6 +419,8 @@ def update_dimension_tables(host='localhost',port=int(37010)):
                 if int(i) > 0:
                     dtot+=int(tbl1[n][k][i][0])
             d = tbl1[n][k].get("-1",(0,0))[0]
+            if int(n)==11 and int(k)==3:
+                wmf_logger.debug("dtot={0} d={1}".format(dtot,d))
             if str(d)==str(dtot):
                 tbl1[n][k]["-1"]=(int(dtot),int(1))
             else:
