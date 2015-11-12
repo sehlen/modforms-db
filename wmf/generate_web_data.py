@@ -414,12 +414,17 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         #if not tbl1[n][k].has_key("-1"):
         tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
+        orbits = dirichlet_group_conrey_galois_orbits(int(n))
         for k in tbl1[n].keys():
             dtot = 0
             for i in tbl1[n][k].keys():
+                mul = 0
                 if int(i) > 0:
                     # Remember that these are for Galois conjugacy classes
-                    mul = len(dirichlet_group_conrey_galois_orbits(int(n))[int(i)])
+                    for o in orbits:
+                        if i in o:
+                            mul = len(o)
+                            break
                     dtot+=int(tbl1[n][k][i][0])*mul
             d = tbl1[n][k].get("-1",(0,0))[0]
             if int(n)==11 and int(k)==3:
