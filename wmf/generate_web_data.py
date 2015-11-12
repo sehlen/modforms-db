@@ -844,7 +844,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                          'd_mod':d_mod,
                          'd_cusp':d_cusp,
                          'd_newf':d_new,
-                         'd_eis':d_eis,
+                         'd_eis':d_eisen,
                          'in_wdb':cw,
                          'in_msdb':cm}
                     C.insert(r)
@@ -863,7 +863,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                      'd_mod':d_mod,
                      'd_cusp':d_cusp,
                      'd_newf':d_new,
-                     'd_eis':d_eis,
+                     'd_eis':d_eisen,
                      'all_in_db': num_in_db >= num_orbits
                  }
                 C.insert(r)
