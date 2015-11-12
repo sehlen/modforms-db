@@ -820,7 +820,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             orbit = orbits[xi]
             orbit.sort()
             x = orbit[0]
-            xc = x.sage_character()
+            xc = conrey_character_from_number(n,x).sage_character()
             for k in range(krange[0],krange[1]+1):
                 label = '{0}.{1}.{2}'.format(n,k,x.number())
                 if C.find({'space_label':label}).count()==0:
