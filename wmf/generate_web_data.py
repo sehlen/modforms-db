@@ -390,7 +390,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
             else:
                 #d = r['dimension_new_cusp_forms']
                 d = r['dimn']
-            if D._mongodb[webmodformspace].find({'space_orbit_label':r['space_orbit_label']}).count()>0: #if  D._mongodb[webmodformspace].find({'level':int(n),'weight':int(k)}):
+            if D._mongodb['webmodformspace'].find({'space_orbit_label':r['space_orbit_label']}).count()>0: #if  D._mongodb[webmodformspace].find({'level':int(n),'weight':int(k)}):
                 tbl0[n][k] = (int(d),int(1))
             else:
                 if n=='3':
