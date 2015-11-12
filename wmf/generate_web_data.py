@@ -416,7 +416,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         #if not tbl1[n][k].has_key("-1"):
         tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
-        orbits = dirichlet_group_conrey_galois_orbits(int(n))
+        orbits = dirichlet_group_conrey_galois_orbits_numbers(int(n))
         if int(n)==17:
             wmf_logger.debug("orbits={0} ".format(orbits))
         for k in tbl1[n].keys():
