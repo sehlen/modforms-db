@@ -813,7 +813,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
     Update the dimension table in the collection 'dimension_table'
     """
     from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps
-    from sage.all import  dimension_new_cusp_forms,dimension_modular_forms,dimension_eis,dimension_cusp_forms,Gamma1
+    from sage.all import  Gamma1
     C = D._mongodb['dimension_table']
     for n in range(nrange[0],nrange[1]+1):
         orbits = dirichlet_group_conrey_galois_orbits_numbers(n)
