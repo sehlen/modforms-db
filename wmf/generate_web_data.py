@@ -191,7 +191,7 @@ def create_index(host='localhost',port=int(37010),only=None):
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
-from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits
+from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number
 import json 
 #import bson
 
@@ -410,6 +410,8 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         if D._mongodb[webmodformspace].find({'galois_orbit_name':r['space_orbit_label']}).count()>0:
             tbl1[n][k][i] = (int(d),int(1))
         else:
+            x = conrey_character_from_number(int(n),int(i))
+            d = dimension_new_cusp_forms(x,k)
             tbl1[n][k][i] = (int(d),int(0))
         #if not tbl1[n][k].has_key("-1"):
         tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
