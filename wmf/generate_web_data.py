@@ -191,7 +191,7 @@ def create_index(host='localhost',port=int(37010),only=None):
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
-from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number
+from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers
 import json 
 #import bson
 
