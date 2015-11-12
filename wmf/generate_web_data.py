@@ -826,6 +826,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             for k in range(krange[0],krange[1]+1):
                 label = '{0}.{1}.{2}'.format(n,k,x)
                 if C.find({'space_label':label}).count()==0:
+                    wmf_logger.debug("n={0} k={1} ch={2}".format(n,k,xc))
                     d_new = G.dimension_new_cusp_forms(k,eps=xc)
                     d_mod = G.dimension_modular_forms(k,eps=xc)
                     d_eisen = G.dimension_eis(k,eps=xc)                    
