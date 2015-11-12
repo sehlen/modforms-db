@@ -422,6 +422,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
             if str(d)==str(dtot):
                 tbl1[n][k]["-1"]=(int(dtot),int(1))
             else:
+                tbl1[n][k]["-1"]=(int(dtot),int(0))
                 if n == "10" and k=="4":
                     print "sum of dims = {0} and true dim = {1}".format(dtot,d)
     t0 = my_dumps(tbl0)
@@ -790,4 +791,4 @@ def fix_spaces(D):
         else:
             if q['dimn']<>r['dimension']:
                 D._mongodb['webmodformspace'].update({'_id':r['_id']},{"$set":{'dimension':q['dimn']}})
-                
+
