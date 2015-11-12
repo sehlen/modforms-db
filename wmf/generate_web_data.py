@@ -417,13 +417,20 @@ def update_dimension_tables(host='localhost',port=int(37010)):
         tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
         orbits = dirichlet_group_conrey_galois_orbits(int(n))
+        if int(n)==17:
+            wmf_logger.debug("orbits={0} ".format(orbits))
         for k in tbl1[n].keys():
             dtot = 0
             for i in tbl1[n][k].keys():
                 mul = 0
+                if int(n)==17 and int(k)==10:
+                    wmf_logger.debug(" i={0}".format(int(i)))
                 if int(i) > 0:
+
                     # Remember that these are for Galois conjugacy classes
                     for o in orbits:
+                        if int(n)==17 and int(k)==10:
+                            wmf_logger.debug("o={0} i={1}".format(o,int(i)))                        
                         if int(i) in o:
                             mul = len(o)
                             break
