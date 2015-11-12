@@ -410,8 +410,8 @@ def update_dimension_tables(host='localhost',port=int(37010)):
             tbl1[n][k][i] = (int(d),int(1))
         else:
             tbl1[n][k][i] = (int(d),int(0))
-        if not tbl1[n][k].has_key("-1"):
-            tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
+        #if not tbl1[n][k].has_key("-1"):
+        tbl1[n][k]["-1"] = (int(dimension_new_cusp_forms(Gamma1(int(n)),int(k))),int(1))
     for n in tbl1.keys():
         for k in tbl1[n].keys():
             dtot = 0
