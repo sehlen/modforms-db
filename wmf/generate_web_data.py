@@ -822,7 +822,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             x = orbit[0]
             xc = conrey_character_from_number(n,x).sage_character()
             for k in range(krange[0],krange[1]+1):
-                label = '{0}.{1}.{2}'.format(n,k,x.number())
+                label = '{0}.{1}.{2}'.format(n,k,x)
                 if C.find({'space_label':label}).count()==0:
                     d_new = dimension_new_cusp_forms(xc,k)
                     d_mod = dimension_modular_forms(xc,k)
@@ -844,7 +844,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
         G = Gamma1(n)
         num_orbits = len(orbits)
         for k in range(krange[0],krange[1]+1):
-            label = '{0}.{1}'.format(n,k,x.number())
+            label = '{0}.{1}'.format(n,k)
             if C.find({'gamma1_label':label}).count()==0:
                 d_new = dimension_new_cusp_forms(G,k)
                 d_mod = dimension_modular_forms(G,k)
