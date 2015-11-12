@@ -830,7 +830,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                     d_cusp = dimension_cusp_forms(xc,k)
                     space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
                     cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
-                    cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1))}).count()
+                    cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
                     r = {'space_label':label,
                          'character_orbit':orbit,
                          'd_mod':d_mod,
