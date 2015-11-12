@@ -191,6 +191,7 @@ def create_index(host='localhost',port=int(37010),only=None):
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
+from character_conversions import  dirichlet_group_conrey_galois_orbits
 import json 
 #import bson
 
@@ -417,7 +418,9 @@ def update_dimension_tables(host='localhost',port=int(37010)):
             dtot = 0
             for i in tbl1[n][k].keys():
                 if int(i) > 0:
-                    dtot+=int(tbl1[n][k][i][0])
+                    # Remember that these are for Galois conjugacy classes
+                    mul = len(dirichlet_group_conrey_galois_orbits(int(n))[int(i)])
+                    dtot+=int(tbl1[n][k][i][0])*mul
             d = tbl1[n][k].get("-1",(0,0))[0]
             if int(n)==11 and int(k)==3:
                 wmf_logger.debug("dtot={0} d={1}".format(dtot,d))
