@@ -807,3 +807,59 @@ def fix_spaces(D):
             if q['dimn']<>r['dimension']:
                 D._mongodb['webmodformspace'].update({'_id':r['_id']},{"$set":{'dimension':q['dimn']}})
 
+#### LAtest dimension table routines
+def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
+    r"""
+    Update the dimension table in the collection 'dimension_table'
+    """
+    from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps
+    C = D._mongodb['dimension_table']
+    for n in range(nrange[0],nrange[1]+1):
+        orbits = dirichlet_group_conrey_galois_orbits_numbers(n)
+        for xi in range(len(orbits)):
+            orbit = orbits[xi]
+            orbit.sort()
+            x = orbit[0]
+            xc = x.sage_character()
+            for k in range(krange[0],krange[1]+1):
+                label = '{0}.{1}.{2}'.format(n,k,x.number())
+                if C.find({'space_label':label}).count()==0:
+                    d_new = dimension_new_cusp_forms(xc,k)
+                    d_mod = dimension_modular_forms(xc,k)
+                    d_eisen = dimension_eis(xc,k)                    
+                    d_cusp = dimension_cusp_forms(xc,k)
+                    space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)}
+                    cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
+                    cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete))}).count()
+                    r = {'space_label':label,
+                         'character_orbit':orbit,
+                         'd_mod':d_mod,
+                         'd_cusp':d_cusp,
+                         'd_newf':d_new,
+                         'd_eis':d_eis,
+                         'in_wdb':cw,
+                         'in_msdb':cm}
+                    C.insert(r)
+        # For Gamma1 -- total of the above
+        G = Gamma1(n)
+        num_orbits = len(orbits)
+        for k in range(krange[0],krange[1]+1):
+            label = '{0}.{1}'.format(n,k,x.number())
+            if C.find({'gamma1_label':label}).count()==0:
+                d_new = dimension_new_cusp_forms(G,k)
+                d_mod = dimension_modular_forms(G,k)
+                d_eisen = dimension_eis(G,k)                    
+                d_cusp = dimension_cusp_forms(G,k)
+                num_in_db = D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character')
+                    
+                r = {'gamma1_label':label,
+                     'd_mod':d_mod,
+                     'd_cusp':d_cusp,
+                     'd_newf':d_new,
+                     'd_eis':d_eis,
+                     'all_in_db': num_in_db >= num_orbits
+                 }
+                C.insert(r)
+                
+                
+    print "Updated table!"
