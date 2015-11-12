@@ -95,7 +95,7 @@ class WebNewForm_computing(WebNewForm):
         ## If it is in the database we don't need to compute everything unless we specify recompute=True
         s = {'hecke_orbit_label':self.hecke_orbit_label}
         if self._db._mongodb[self._collection_name].find(s).count()>0 and recompute is False:
-            wmf_logger.debug("getting data from db : {0}".format(self._db._mongodb[self._collection_name].find_one(s)))
+            #wmf_logger.debug("getting data from db : {0}".format(self._db._mongodb[self._collection_name].find_one(s)))
             self.update_from_db()
             wmf_logger.debug("Updated self from db!")
             #self.compute_satake_parameters_numeric()
