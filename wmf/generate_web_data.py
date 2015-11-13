@@ -828,7 +828,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                 label = '{0}.{1}.{2}'.format(n,k,x)
                 space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
                 if C.find({'space_orbit_label':space_orbit_label}).count()==0:
-                    r = C.find({'space_label':label}); fid = None
+                    r = C.find_one({'space_label':label}); fid = None
                     if not r is None:
                         d_new = r['d_newf']
                         d_mod = r['d_mod']
