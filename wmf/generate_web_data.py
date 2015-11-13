@@ -852,6 +852,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                          'character_orbit':orbit,
                          'level':int(n),
                          'weight':int(k),
+                         'cchi':int(x),
                          'd_mod':int(d_mod),
                          'd_cusp':int(d_cusp),
                          'd_newf':int(d_new),
@@ -917,3 +918,10 @@ def check_all_in_db(D):
             if indb == 1:
                 C.update({'_id':fid},{"$set":{'one_in_wdb':int(1)}}) ## This simply means that at least one is in the db
                 
+def add_character(D):
+    C = D._mongodb['dimension_table']
+    for r in C.find({'space_label':{"$exists":True}}):
+        fid = r['_id']
+        label = r.get('space_label')
+        N,k,i = label.split(".")
+        C.update({'_id':fid},{"$set":{'cchi':int(i)}})
