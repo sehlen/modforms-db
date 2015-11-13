@@ -859,13 +859,13 @@ class WebNewForm_computing(WebNewForm):
             else:
                 for jj in range(degree):
                     app = ap.complex_embeddings(bits)[jj]*p**(-0.5*(k-1))
-                    wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
-                    wmf_logger.debug("app={0}".format(app))
-                    wmf_logger.debug("jj={0}".format(jj))            
+                    #wmf_logger.debug("chip={0},{1},{2}".format(chip,type(chip),chip.parent()))
+                    #wmf_logger.debug("app={0}".format(app))
+                    #wmf_logger.debug("jj={0}".format(jj))            
                     if not hasattr(chip,'complex_embeddings'):
                         f1 = (4 * CF(chip)  - app ** 2)
                     else:
-                        wmf_logger.debug("chip.emb={0}".format(chip.complex_embeddings(bits)))                        
+                        #wmf_logger.debug("chip.emb={0}".format(chip.complex_embeddings(bits)))                        
                         f1 = (4 * chip.complex_embeddings(bits)[0]  - app ** 2)
                     alpha_p = (app + I * abs(f1).sqrt())/RF(2)
                     #wmf_logger.debug("f1={0}".format(f1))
