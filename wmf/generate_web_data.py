@@ -850,6 +850,8 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                     r = {'space_orbit_label':space_orbit_label,
                          'space_label':label,
                          'character_orbit':orbit,
+                         'level':int(n),
+                         'weight':int(k),
                          'd_mod':int(d_mod),
                          'd_cusp':int(d_cusp),
                          'd_newf':int(d_new),
@@ -879,6 +881,8 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             num_in_db = len(D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character'))
                 
             r = {'gamma1_label':label,
+                 'level':int(n),
+                 'weight':int(k),
                  'd_mod':int(d_mod),
                  'd_cusp':int(d_cusp),
                  'd_newf':int(d_new),
