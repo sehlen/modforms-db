@@ -906,7 +906,7 @@ def check_all_in_db(D):
         d_newf = r['d_newf']
         indb = 0
         for q in C.find({'space_label':{"$exists":True},'level':r['level'],'weight':r['weight']}):
-            indb += q['dim_newf']*len(q['character_orbit'])
+            indb += q['d_newf']*len(q['character_orbit'])
         if indb == d_newf:
             C.update({'_id':fid},{"$set":{'all_in_db':int(1)}})
         else:
