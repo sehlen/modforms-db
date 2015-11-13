@@ -887,7 +887,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                  'd_cusp':int(d_cusp),
                  'd_newf':int(d_new),
                  'd_eis':int(d_eisen),
-                 'all_in_db': int(num_in_db >= num_orbits)
+                 'all_in_db': int(num_in_db) >= (num_orbits)
             }
             if fid is None:
                 C.insert(r)
@@ -898,16 +898,17 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
 
 
     
-def add_level_weight(D):
+def check_all_in_db(D):
     C = D._mongodb['dimension_table']
-    for r in C.find({'level':{"$exists":False},'d_cusp':{"$exists":True}}):
+    for r in C.find({'gamma1_label':{"$exists":True}})
         fid = r['_id']
         label = r.get('gamma1_label')
-        if label is None:
-            label = r.get('space_label')
-        if label is None:
-            wmf_logger.critical("Record without label: {0} ".format(r))
-        l = label.split(".")
-        N = int(l[0]); k = int(l[1])
-        C.update({'_id':fid},{"$set":{'level':N,'weight':k}})
+        d_newf = r['d_newf']
+        indb = 0
+        for q in C.find({'space_label':{"$exists":True},'level':r['level'],'weight':r['weight']}):
+            indb += q['dim_newf']*len(q['character_orbit'])
+        if indb == d_newf:
+            C.update({'_id':fid},{"$set":{'all_in_db':int(1)}})
+        else:
+            C.update({'_id':fid},{"$set":{'all_in_db':int(0)}})
         
