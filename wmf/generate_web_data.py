@@ -900,7 +900,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
     
 def check_all_in_db(D):
     C = D._mongodb['dimension_table']
-    for r in C.find({'gamma1_label':{"$exists":True}})
+    for r in C.find({'gamma1_label':{"$exists":True}}):
         fid = r['_id']
         label = r.get('gamma1_label')
         d_newf = r['d_newf']
