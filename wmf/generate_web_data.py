@@ -821,6 +821,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
         for xi in range(len(orbits)):
             orbit = orbits[xi]
             orbit.sort()
+            orbit = map(int,orbit)
             x = orbit[0]
             xc = conrey_character_from_number(n,x).sage_character()
             for k in range(krange[0],krange[1]+1):
