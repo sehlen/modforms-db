@@ -898,3 +898,16 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
 
 
     
+def add_level_weight(D):
+    C = D._mongodb['dimension_table']
+    for r in C.find({'level':{"$exists":False},'d_cusp':{"$exists":True}}):
+        fid = r['_id']
+        label = r.get('gamma1_label')
+        if label is None:
+            label = r.get('space_label')
+        if label is None:
+            wmf_logger.critical("Record without label: {0} ".format(r))
+        l = label.split(".")
+        N = int(l[0]); k = int(l[1])
+        C.update({'_id':fid},{"$set":{'level':N,'weight':k}})
+        
