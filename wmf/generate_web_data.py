@@ -847,7 +847,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                         d_cusp = G.dimension_cusp_forms(k,eps=xc)                    
                     cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
                     cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-                    r = {'space_orbit_label':orbit_label
+                    r = {'space_orbit_label':orbit_label,
                          'space_label':label,
                          'character_orbit':orbit,
                          'd_mod':int(d_mod),
