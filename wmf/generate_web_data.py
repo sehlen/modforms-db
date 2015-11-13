@@ -911,4 +911,9 @@ def check_all_in_db(D):
             C.update({'_id':fid},{"$set":{'all_in_db':int(1)}})
         else:
             C.update({'_id':fid},{"$set":{'all_in_db':int(0)}})
-        
+        r1 = C.find_one({'level':r['level'],'weight':r['weight'],'space_label':{"$exists":True}})
+        if not r1 is None:
+            indb = r1['in_wdb']
+            if indb == 1:
+                C.update({'_id':fid},{"$set":{'one_in_wdb':int(1)}}) ## This simply means that at least one is in the db
+                
