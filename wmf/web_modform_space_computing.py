@@ -122,6 +122,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         if self.group is None:
             self.group = Gamma0(self.level)
         self.set_dimensions()
+        self.update_dimension_table()
         self.set_character_used_in_computation()
         self.set_character_galois_orbit()
         self.set_character_orbit_rep()
@@ -138,6 +139,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.get_zetas()
         self.version = float(emf_version)
         self.save_to_db()
+
 
     def get_zetas(self):
         r"""
@@ -221,6 +223,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             self.dimension_cusp_forms = int(dimension_cusp_forms(x,k))
             # New cuspidal subspace 
             self.dimension_new_cusp_forms = int(dimension_new_cusp_forms(x,k))
+            self.dimension_eisenstien = self.dimension_modular_forms - self.dimension_cusp_forms
         if self.cuspidal == 0:
             self.dimension = self.dimension_modular_forms
         else:
@@ -231,7 +234,31 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("dim_cusp={0}".format(self.dimension_cusp_forms))
         wmf_logger.debug("dim_new_cusp={0}".format(self.dimension_new_cusp_forms))        
         
-                
+
+    def update_dimension_table(self):
+        if self._db is None:
+            self.setup_modular_symbols_db()
+        C = self._db['dimension_table']
+        r = C.find_one({'space_label':self.space_label})
+        if not r is None:
+            C.update({'_id':r['_id'],{"$set":{'in_wdb':int(1),'in_msdb':int(1)}}})
+        else:
+            r = {'space_orbit_label':self.space_orbit_label,
+                 'space_label':self.space_label,
+                 'character_orbit':map(int,self.character.character.galois_orbit()),
+                 'level':int(self.level),
+                 'weight':int(self.weight),
+                 'cchi':int(self.character.number),
+                 'd_mod':int(self.dimension_modular_forms),
+                 'd_cusp':int(self.dimension_cusp_forms),
+                 'd_newf':int(self.dimension_new_cusp_forms),
+                 'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
+                 'in_wdb':int(1),
+                 'in_msdb':int(1)}
+            C.insert(r)
+        # Check Gamma1 as well...??
+        #norbits = M.character.character.parent()._galois_orbits()
+        
     def set_sturm_bound(self):
         r""" Return the Sturm bound of S_k(N,xi), i.e. the number of coefficients necessary to determine a form uniquely in the space.
         """
