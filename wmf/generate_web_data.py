@@ -826,8 +826,16 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             xc = conrey_character_from_number(n,x).sage_character()
             for k in range(krange[0],krange[1]+1):
                 label = '{0}.{1}.{2}'.format(n,k,x)
-                if C.find({'space_label':label}).count()==0:
-                    if n <= 2:
+                space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
+                if C.find({'space_orbit_label':space_orbit_label}).count()==0:
+                    r = C.find({'space_label':label}); fid = None
+                    if not r is None:
+                        d_new = r['d_newf']
+                        d_mod = r['d_mod']
+                        d_cusp= r['d_cusp']
+                        d_eisen = r['d_eis']
+                        fid = r['_id']
+                    elif n <= 2:
                         d_new = G.dimension_new_cusp_forms(k)
                         d_mod = G.dimension_modular_forms(k)
                         d_eisen = G.dimension_eis(k)                    
@@ -837,10 +845,10 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                         d_mod = G.dimension_modular_forms(k,eps=xc)
                         d_eisen = G.dimension_eis(k,eps=xc)                    
                         d_cusp = G.dimension_cusp_forms(k,eps=xc)                    
-                    space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
                     cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
                     cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-                    r = {'space_label':label,
+                    r = {'space_orbit_label':orbit_label
+                         'space_label':label,
                          'character_orbit':orbit,
                          'd_mod':int(d_mod),
                          'd_cusp':int(d_cusp),
@@ -848,26 +856,42 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                          'd_eis':int(d_eisen),
                          'in_wdb':int(cw),
                          'in_msdb':int(cm)}
-                    C.insert(r)
+                    if not fid is None:
+                        C.update({'_id':fid},{"$set":r})
+                    else:
+                        C.insert(r)
         # For Gamma1 -- total of the above
         num_orbits = len(orbits)
         for k in range(krange[0],krange[1]+1):
             label = '{0}.{1}'.format(n,k)
-            if C.find({'gamma1_label':label}).count()==0:
+            r = C.find_one({'gamma1_label':label}); fid = None
+            if r is None:
                 d_new = G.dimension_new_cusp_forms(k)
                 d_mod = G.dimension_modular_forms(k)
                 d_eisen = G.dimension_eis(k)                    
                 d_cusp = G.dimension_cusp_forms(k)
-                num_in_db = D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character')
-                    
-                r = {'gamma1_label':label,
-                     'd_mod':int(d_mod),
-                     'd_cusp':int(d_cusp),
-                     'd_newf':int(d_new),
-                     'd_eis':int(d_eisen),
-                     'all_in_db': int(num_in_db >= num_orbits)
-                 }
-                C.insert(r)
+            else:
+                d_mod = r['d_mod']
+                d_new = r['d_newf']
+                d_cusp = r['d_cusp']
+                d_eisen = r['d_eis']
+                fid = r['_id']
+            num_in_db = len(D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character'))
                 
+            r = {'gamma1_label':label,
+                 'd_mod':int(d_mod),
+                 'd_cusp':int(d_cusp),
+                 'd_newf':int(d_new),
+                 'd_eis':int(d_eisen),
+                 'all_in_db': int(num_in_db >= num_orbits)
+            }
+            if fid is None:
+                C.insert(r)
+            else:
+                C.update({'_id':fid},{"$set":r})
                 
     print "Updated table!"
+
+
+def fix_dimension_table(D):
+    
