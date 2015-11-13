@@ -241,7 +241,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         C = self._db['dimension_table']
         r = C.find_one({'space_label':self.space_label})
         if not r is None:
-            C.update({'_id':r['_id'],{"$set":{'in_wdb':int(1),'in_msdb':int(1)}}})
+            C.update({'_id':r['_id']},{"$set":{'in_wdb':int(1),'in_msdb':int(1)}})
         else:
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
