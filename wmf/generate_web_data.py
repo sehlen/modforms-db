@@ -893,5 +893,4 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
     print "Updated table!"
 
 
-def fix_dimension_table(D):
     
