@@ -926,3 +926,9 @@ def add_character(D):
         label = r.get('space_label')
         N,k,i = label.split(".")
         C.update({'_id':fid},{"$set":{'cchi':int(i)}})
+
+def fixing_spaces(D,label):
+    r"""
+    Check the space with this label and make sure that the coefficients are associated with the same space...
+    """
+    

@@ -567,7 +567,7 @@ class MongoMF(object):
             return res
         elif sources == ['files']:
             # The files are named according to Galois orbits.
-            on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+            on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             if not d is None:
                 res = self._db.load_factor(N,k,on,d)
             else:
@@ -943,7 +943,7 @@ class CompMF(MongoMF):
         al_in_mongo = self._atkin_lehner.find({'N':int(N),'k':int(k),'cchi':int(ci)}).distinct('_id')
         fs = gridfs.GridFS(self._mongodb, 'Atkin_Lehner')
         orbit =  dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
-        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
         if len(al_in_mongo)==0:
             ambient = self.get_ambient(N,k,ci,**kwds)
             number_of_factors = self.number_of_factors(N,k,ci)
@@ -1084,7 +1084,7 @@ class CompMF(MongoMF):
         compute = kwds.get('compute',self._do_computations)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
-        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
 
         #ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
         if ambient_id is None:
@@ -1219,7 +1219,7 @@ class CompMF(MongoMF):
             res = []
             for key,value in aps.iteritems():
                 N,k,ci,d = key
-                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)
+                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
                 sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)      
                 E,v,meta = value
                 if isinstance(E,tuple):
@@ -1241,7 +1241,7 @@ class CompMF(MongoMF):
                     apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
-                                     conrey_galois_orbit_number=int(on[1]),
+                                     conrey_galois_orbit_number=int(on),
                                      newform=int(d),
                                      hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
 #                                     prec = int(pprec))
@@ -1727,7 +1727,7 @@ class CompMF(MongoMF):
                     newlabel = label_from_param(r['N'],r['k'],r['cchi'],f['newform'])
                     if f['cchi']<>r['cchi'] or f['character_galois_orbit']<>r['character_galois_orbit'] or newlabel <> f['hecke_orbit_label'] or f.get('conrey_galois_orbit_number') is None:
                         newfname = "gamma0-factors-{0}".format(f["filename"].split("/")[-1])
-                        on = conrey_character_number_to_conrey_galois_orbit_number(N,f['cchi'])
+                        on = conrey_character_number_to_conrey_galois_orbit_number(N,f['cchi'])[1]
                         updates = {
                             "cchi":r['cchi'],
                             "character_galois_orbit":r['character_galois_orbit'],
