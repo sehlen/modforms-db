@@ -143,8 +143,9 @@ class WebNewForm_computing(WebNewForm):
         r"""
         Compute everything we need.
         """
+        import datetime
         wmf_logger.debug("Update ap's")
-
+        
         self.set_dimension()
         if self.dimension == 0:
             return 
@@ -164,7 +165,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
-
+        self.creation_date=datetime.datetime.utcnow()
 ##  Internal functions
 ##
 
