@@ -102,6 +102,7 @@ class WebNewForm_computing(WebNewForm):
             #wmf_logger.debug("computed satake parameters!")            
             self.set_twist_info()
         else:
+            self._coefficients={}
             self.compute_additional_properties()
         # update the version to current one 
         self.version = emf_version    
@@ -239,12 +240,11 @@ class WebNewForm_computing(WebNewForm):
 
     def set_q_expansion(self):
         r"""
-        Set the q-expansion for self.
+        Set the q-expansion for self. This also computes the coefficients if they do not exist.
         """
         wmf_logger.debug("Set q-expansion")
         if not self.eigenvalues.has_eigenvalue(2):
             self.set_aps()
-        self._coefficients = [] ## reset this...
         QR = PowerSeriesRing(QQ,name='q',order='neglex')
         q = QR.gen()
         res = 0*q**0

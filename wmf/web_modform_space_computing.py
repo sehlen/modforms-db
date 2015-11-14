@@ -238,7 +238,7 @@ class WebModFormSpace_computing(WebModFormSpace):
     def update_dimension_table(self):
         if self._db is None:
             self.setup_modular_symbols_db()
-        C = self._db['dimension_table']
+        C = self._db._mongodb['dimension_table']
         r = C.find_one({'space_label':self.space_label})
         if not r is None:
             C.update({'_id':r['_id']},{"$set":{'in_wdb':int(1),'in_msdb':int(1)}})
