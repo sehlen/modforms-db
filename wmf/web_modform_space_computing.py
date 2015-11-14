@@ -26,7 +26,7 @@ import re
 import yaml
 import pymongo
 from flask import url_for
-
+import datetime
 
 from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,AlphabeticStrings,Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
 from sage.rings.power_series_poly import PowerSeries_poly
@@ -191,7 +191,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         on = conrey_character_number_to_conrey_galois_orbit_number(self.level,ci)[1]
 
         self.character_orbit_rep = conrey_character_from_number(self.level,ci)
-        self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,ci)
+        #self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,ci)
         self.space_orbit_label = "{0}.{1}.{2}".format(self.level,self.weight,on)
         
     def set_character_used_in_computation(self):

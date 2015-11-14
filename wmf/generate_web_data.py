@@ -656,7 +656,8 @@ def remove_gridfs_duplicates(D,label_in=None):
 def recompute_existing(D,ncpus=1,llim=10):
     llim = int(llim)
     args = []
-    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
+#    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
+    for r in D._mongodb['webmodforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
         level = r['level']; weight=r['weight']; character = r['character']; label=r['label']
         args.append((level,weight,character))
     print "Recomputing {0} spaces!".format(len(args))
@@ -820,7 +821,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
         G = Gamma1(n)
         for xi in range(len(orbits)):
             orbit = orbits[xi]
-            orbit.sort()
+            orbiR = .sort()
             orbit = map(int,orbit)
             x = orbit[0]
             xc = conrey_character_from_number(n,x).sage_character()
