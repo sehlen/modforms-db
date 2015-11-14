@@ -219,6 +219,7 @@ class WebNewForm_computing(WebNewForm):
             evs.E = E
             wmf_logger.critical("E = {0}".format(E))
             evs.v = v
+            #wmf_logger.debug("ap={0}".format(E*v))
             evs.meta = meta
             evs.init_dynamic_properties()
             t = evs.save_to_db(update=True)
@@ -243,6 +244,7 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Set q-expansion")
         if not self.eigenvalues.has_eigenvalue(2):
             self.set_aps()
+        self._coefficients = [] ## reset this...
         QR = PowerSeriesRing(QQ,name='q',order='neglex')
         q = QR.gen()
         res = 0*q**0
