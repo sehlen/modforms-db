@@ -567,15 +567,15 @@ class MongoMF(object):
             return res
         elif sources == ['files']:
             # The files are named according to Galois orbits.
-            on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
+            #on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             if not d is None:
-                res = self._db.load_factor(N,k,on,d)
+                res = self._db.load_factor(N,k,ci,d)
             else:
                 if res is None:
                     res = {}
-                nfacts = self._db.number_of_known_factors(N,k,on)
+                nfacts = self._db.number_of_known_factors(N,k,ci)
                 for d in range(nfacts):
-                    F = self._db.load_factor(N,k,on,d)
+                    F = self._db.load_factor(N,k,ci,d)
                     if not F is None:
                         res[d]=F
             return res
