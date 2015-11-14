@@ -797,7 +797,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             M = self.load_ambient_space(N, k, i)
         f = self.factor(N, k, i, d, makedir=False)
         if not self.path_exists(f):
-            raise RuntimeError, "no such factor ({0},{1},{2},{3}) at {4}"format(N,k,i,d,f)
+            raise RuntimeError, "no such factor ({0},{1},{2},{3}) at {4}".format(N,k,i,d,f)
         try:
             B = load(self.factor_basis_matrix(N, k, i, d))
             Bd = load(self.factor_dual_basis_matrix(N, k, i, d))
