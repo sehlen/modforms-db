@@ -2407,27 +2407,27 @@ class CheckingDB(CompMF):
         an = abs(c[n])/RR(p)**(RR(k-1)/RR(2))
         return an < 2.0
     
-    def check_ramanujan(self):
-        r"""
-        Check Ramanujan bound for ap's in the database (simple chekc to catch trivially wrong stuff)
-        """
-        # first get
-        from sage.all import primes_first_n
-        for r in self._aps.find():
-            N=r['N']; k=r['k']; cchi=r['cchi']
-            fid = r['_id']
-            kk = RR(k-1)/RR(2)
-            aps = self.get_aps(N,k,cchi)
-            for d in aps.keys():
-                for prec in aps[d].keys():
-                    E,v=aps[d][prec][0:2]
-                    c = E*v
-                    i = 0
-                    for p in primes_first_n(len(c)):
-                        t = c[i].abs()/p**kk
-                        if abs(t)>2:
-                            raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
-                        i+=1
+    # def check_ramanujan(self):
+    #     r"""
+    #     Check Ramanujan bound for ap's in the database (simple chekc to catch trivially wrong stuff)
+    #     """
+    #     # first get
+    #     from sage.all import primes_first_n
+    #     for r in self._aps.find():
+    #         N=r['N']; k=r['k']; cchi=r['cchi']
+    #         fid = r['_id']
+    #         kk = RR(k-1)/RR(2)
+    #         aps = self.get_aps(N,k,cchi)
+    #         for d in aps.keys():
+    #             for prec in aps[d].keys():
+    #                 E,v=aps[d][prec][0:2]
+    #                 c = E*v
+    #                 i = 0
+    #                 for p in primes_first_n(len(c)):
+    #                     t = c[i].abs()/p**kk
+    #                     if abs(t)>2:
+    #                         raise ArithmeticError,"ERROR: a({0})={t} for (N,k,chi)={1},{2},{3}, prec={4}".format(p,N,k,chi,prec,t=t)
+    #                     i+=1
 #    def _mul_nf_elts_appr(self,a,b):
 #        ap = a._pari_()
 #        bp = b._pari_()

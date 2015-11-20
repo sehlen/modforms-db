@@ -910,8 +910,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             n_min_wanted,n_max_wanted = nrange
             n_start,n_stop,fname = aplist_files[0]
             for n1,n2,c in aplist_files[1:]:
-                clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))                    
-                if n_min_wanted == n1 and n_max_wanted == n2:
+                clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))                 
+                if n_min_wanted >= n1 and n_max_wanted <= n2:
                     n_start,n_stop,fname = n1,n2,c
                     ok = True
                     break
