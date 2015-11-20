@@ -919,7 +919,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             clogger.debug("Here we want nrange as integer we got: {0}".format(nrange))
             return None
         #clogger.debug("aplist_files={0}".format(aplist_files))
-        clogger.debug("want numc={0} and have: {1}".format(nmin_wanted,n_max_wanted,n_min,n_max))
+        clogger.debug("want numc={0} and have: {1}".format(n_min_wanted,n_max_wanted,n_min,n_max))
         if not isinstance(nrange,basestring) and (n_stop<n_max_wanted or n_start > n_max_wanted):
             n1,n2 = max(aplist_files)[0:2]
             clogger.debug("aplist_files={0}".format(aplist_files))
