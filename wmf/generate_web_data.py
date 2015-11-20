@@ -989,6 +989,7 @@ def add_name_to_AL(D):
 
 
 def check_files_of_coefficients(D):
+    args=[]
     for N,k,on,d,maxn in D._db.known(""):
         if maxn == 0:
             continue
