@@ -1040,7 +1040,7 @@ def fix_pprec_to_nmax(D):
     for r in D._aps.find({'nmin':{"$exists":False}}):
         E,v = D.load_from_mongo('ap',r['_id'])
         pprec = r['prec']
-        c = multiply_mat_vec(E,v)
+        c = compmf.utils.multiply_mat_vec(E,v)
         # first check that it satisfies Ramanujan...
         a2 = abs(c[0])/2.0**(RF(r['k']-1)/RF(2))
         if abs(a2) > 2:
