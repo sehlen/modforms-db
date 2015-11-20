@@ -52,7 +52,9 @@ except ImportError:
     pass # print "Note that remote files are not supported without paramiko installed!"
 
 from compmf import clogger
+from utils import are_compatible,multiply_mat_vec
 from character_conversions import conrey_character_number_to_conrey_galois_orbit_number,dirichlet_character_conrey_galois_orbits_reps,conrey_character_from_number
+
 class Filenames(object):
     def __init__(self, datadir,host='',db_file='',username=''):
         r"""
@@ -960,7 +962,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 clogger.critical("Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message))
                 meta = {}
         if coeffs:
-            return compmf.util.multiply_mat_vec(E,v)
+            return multiply_mat_vec(E,v)
         return E,v,meta
 
 

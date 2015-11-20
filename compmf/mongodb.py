@@ -691,7 +691,7 @@ class MongoMF(object):
                     res[newform][prec]=(E,v,meta)
                 else:
                     if prec >= prec_needed and coeffs:
-                        res[newform][prec] = compmf.util.multiply_mat_vec(E,v)
+                        res[newform][prec] = multiply_mat_vec(E,v)
                 if not d is None:
                     res = res[newform]
         elif sources == ['files']:
