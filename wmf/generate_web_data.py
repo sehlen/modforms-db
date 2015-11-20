@@ -998,13 +998,13 @@ def check_files_of_coefficients(D):
     return list(l)
 
 @parallel(ncpus=32)
-def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010),dryrun=False):
+def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/modforms-db/',host='localhost',port=int(37010),dryrun=False):
     r"""
     Check coefficients in the file for one record
     
     """
     from sage.all import deepcopy
-    D = MongoMF(host=host,port=port)
+    D = CompMF(datadir=datadir,host=host,port=port)
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     pprecs = deepcopy(a.keys())
     for pprec in pprecs:
