@@ -878,6 +878,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             numap,fname = max(aplist_files)
         elif numc == 'min' or numc == 0: # Find min. no. of coeffs.
             numap,fname = min(aplist_files)
+        elif numc == 'all':
+            res = []
+            for n,c in aplist_files[1:]:
+                clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
+                res.append(self.load_aps(N,k,i,d,ambient=ambient,numc=n))
         else:
             numap,fname = aplist_files[0]
             if numap < numc:

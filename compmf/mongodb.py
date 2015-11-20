@@ -2323,12 +2323,12 @@ class CheckingDB(CompMF):
                 #clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
-                    c = multiply_mat_vec(E,v)
-                    a2 = c[0].abs()/RR(2.0)**(RR(k-1)/RR(2))
-                    if abs(a2)>2.0:
+                    #c = multiply_mat_vec(E,v)
+                    #a2 = c[0].abs()/RR(2.0)**(RR(k-1)/RR(2))
+                    if self.check_ramanujan_bound_cp(E,v,2,k):
                         clogger.debug("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
                         res['aps'] = False
-                        fs_ap.delete(id)
+                        #fs_ap.delete(id)
                     continue
                 except Exception as e:
                     clogger.debug("Could not load E,v. Error:{0}".format(e))
@@ -2394,7 +2394,14 @@ class CheckingDB(CompMF):
         sys.stdout.flush()
         return res
     
+    def check_ramanujan_bound_cp(self,E,v,p,k):
+        r"""
 
+        """
+        c = multiply_mat_vec(E,v)
+        n = prime_pi(p)-1
+        an = abs(c[n])/RR(p)**(RR(k-1)/RR(2))
+        return an < 2.0
     
     def check_ramanujan(self):
         r"""
