@@ -674,7 +674,8 @@ class MongoMF(object):
             for r in self._aps.find(s):
                 if res is None:
                     res = {}
-                fid=r['_id']; newform = r['newform']; prec = r['prec']
+                fid=r['_id']; newform = r['newform'];
+                nmin = r['nmin']; nmax = r['nmax']
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 try:
                     E,v = self.load_from_mongo('ap',fid)
@@ -688,10 +689,10 @@ class MongoMF(object):
                 if not res.has_key(newform):
                     res[newform]={}
                 if prec_needed == 0 or coeffs == False:
-                    res[newform][prec]=(E,v,meta)
+                    res[newform][(nmin,nmax)]=(E,v,meta)
                 else:
                     if prec >= prec_needed and coeffs:
-                        res[newform][prec] = multiply_mat_vec(E,v)
+                        res[newform][(nmin,nmax)] = multiply_mat_vec(E,v)
                 if not d is None:
                     res = res[newform]
         elif sources == ['files']:
@@ -1261,6 +1262,8 @@ class CompMF(MongoMF):
         #        ci = c.number()
         #ci = conrey_character_number_from_sage_galois_orbit_number(N,i)
         orbit = dirichlet_character_conrey_galois_orbit_numbers_from_character_number(N,ci)
+        on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
+
         fs_ap = gridfs.GridFS(self._mongodb, 'ap')
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
         key = {'N':int(N),'k':int(k),'cchi':int(ci),'prec' : {"$gt": int(pprec -1) }}
@@ -1281,8 +1284,8 @@ class CompMF(MongoMF):
                 return
             res = []
             for key,value in aps.iteritems():
-                N,k,ci,d = key
-                on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
+                #N,k,ci,d = key
+                nmin,nmax = key
                 sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)      
                 E,v,meta = value
                 if isinstance(E,tuple):
@@ -1300,18 +1303,16 @@ class CompMF(MongoMF):
                     fs_ap.delete(r['_id'])
                 try:
                     # check again if we have this record in the gridfs db
-                    clogger.debug("ambient id: {0} prec={1}".format(ambient_id,pprec))             
-                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                    clogger.debug("ambient id: {0} prec={1}".format(ambient_id,pprec))                                apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
                                      conrey_galois_orbit_number=int(on),
                                      newform=int(d),
                                      hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
-#                                     prec = int(pprec))
+                                     nmin=int(nmin),nmax=int(nmax),
                                      cputime = meta.get("cputime",""),
                                      sage_version = meta.get("version",""),
-                                     ambient_id=ambient_id,
-                                     prec = int(pprec))
+                                     ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
                     clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
                 except ValueError as e: #gridfs.errors.FileExists as e:
@@ -1370,33 +1371,24 @@ class CompMF(MongoMF):
         if len(aps_in_mongo) == num_factors and aps_in_file==1:
             return aps_in_mongo
         elif len(aps_in_mongo) < num_factors:
-            aps = {}
-            if aps_in_file == 1:
-                for d in range(num_factors):
-                    E,v,meta = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
-                    if E is None:
-                        aps_in_file = 0
-                        break
-                    else:
-                        aps[(N,k,ci,d)] = E,v,meta
+            aps = {}          
             if aps_in_file == 0:
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
                 aps = self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
-                if aps == 0:
-                    aps = {}
-                    for d in range(num_factors):
-                        E,v,meta  = self._db.load_aps(N,k,ci,d,ambient=ambient,numc=pprec)
-                        aps[(N,k,ci,d)] = E,v,meta
-
-            if not isinstance(aps,dict):
-                clogger.critical("APS = {0}".format(aps))
-            if aps == None or (isinstance(aps,dict) and len(aps.values()[0])<>3) or aps==-1:
+            if aps is None or aps is {}:
+                for d in range(num_factors):
+                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
+                    if aps is {} or aps is None:
+                        aps_in_file = 0
+                        break
+                    else:
+                        insert_aps_into_mongodb(aps)
+            if aps_inf_file == 0:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
                 return aps
-            return insert_aps_into_mongodb(aps)
         elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
             ### We have coefficients in mongo, need to save them to file
             aps = self.get_aps(N,k,ci,sources=['mongo'])

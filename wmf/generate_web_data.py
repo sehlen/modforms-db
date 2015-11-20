@@ -1032,3 +1032,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
                 db.commit()
             #D._db.delete_file(apfile)
             
+
+
+def fix_non_contigous_files(D):
+    pass
