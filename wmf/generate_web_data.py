@@ -1036,7 +1036,6 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
 
 
 def fix_pprec_to_nmax(D):
-    from sage.all import prime_pi,nth_prime
     args = []
     for r in D._aps.find({'pmax':{"$exists":False}}):
         args.append(r['_id'])
@@ -1045,6 +1044,7 @@ def fix_pprec_to_nmax(D):
 
 @parallel(ncpus=32)
 def fix_pprec_parallel(fid):
+    from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
     r = D._aps.find_one({'_id':fid})
     E,v = D.load_from_mongo('ap',fid)
