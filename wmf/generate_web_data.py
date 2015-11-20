@@ -1037,23 +1037,31 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
 
 def fix_pprec_to_nmax(D):
     from sage.all import prime_pi,nth_prime
-
+    args = []
     for r in D._aps.find({'pmax':{"$exists":False}}):
-        E,v = D.load_from_mongo('ap',r['_id'])
-        pprec = r['prec']
-        c = multiply_mat_vec(E,v)
-        # first check that it satisfies Ramanujan...
-        if c[0].parent() is QQ:
-            a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
-        else:
-            a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
-        if abs(a2) > 2:
-            wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
-            D.delete_from_mongo('ap',r['_id'])
-        n = len(c)
-        nmax = int(nth_prime(n+1)-1)
-        nmin = int(0)
-        nn =nth_prime(n)
-        wmf_logger.debug("Updating r={0} from pprec:{1} to nmanx:{2}".format(r['hecke_orbit_label'],pprec,nmax))
-        D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'pprec':''}})
+        args.append(r['_id'])
+    l = fix_pprec_parallel(args)
+    return list(l)
+
+@parallel(ncpus=32)
+def fix_pprec_parallel(fid):
+    D = MongoMF(host='localhost',port=int(37010))
+    r = D._aps.find_one({'_id':fid})
+    E,v = D.load_from_mongo('ap',fid)
+    pprec = r['prec']
+    c = multiply_mat_vec(E,v)
+    # first check that it satisfies Ramanujan...
+    if c[0].parent() is QQ:
+        a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
+    else:
+        a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
+    if abs(a2) > 2:
+        wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
+        D.delete_from_mongo('ap',r['_id'])
+    n = len(c)
+    nmax = int(nth_prime(n+1)-1)
+    nmin = int(0)
+    nn =nth_prime(n)
+    wmf_logger.debug("Updating r={0} from pprec:{1} to nmanx:{2}".format(r['hecke_orbit_label'],pprec,nmax))
+    D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'pprec':''}})
         
