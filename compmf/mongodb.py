@@ -644,7 +644,7 @@ class MongoMF(object):
             clogger.critical("Can not load factors, unknown source:{0}".format(sources))
         return res
 
-    def get_aps(self,N,k,ci,d=None,prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','file']):
+    def get_aps(self,N,k,ci,d=None,prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','files']):
         r"""
         Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
         i is in the Conrey naming scheme.

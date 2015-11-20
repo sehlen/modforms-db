@@ -879,10 +879,10 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         elif numc == 'min' or numc == 0: # Find min. no. of coeffs.
             numap,fname = min(aplist_files)
         elif numc == 'all':
-            res = []
+            res = {}
             for n,c in aplist_files[1:]:
                 clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
-                res.append(self.load_aps(N,k,i,d,ambient=ambient,numc=n))
+                res[n]=self.load_aps(N,k,i,d,ambient=ambient,numc=n)
             return res
         else:
             numap,fname = aplist_files[0]
