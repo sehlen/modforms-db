@@ -874,10 +874,15 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             if "aplist" in fname:
                 if "meta" in fname:
                     numap = int(fname.split("-")[-2])
-                    aplist_meta_files.append((numap,fname))
+                    numap_start = int(fname.split("-")[-3])
+                    if numap_start == 0:
+                        aplist_meta_files.append((numap,fname))
                 else:
                     numap = int(fname.split("-")[-1].split(".")[0])
-                    aplist_files.append((numap,fname))
+                    numap_start = int(fname.split("-")[-2])
+                    if numap_start == 0:
+                        aplist_files.append((numap,fname))
+            # at the moment we don't load files that start with n > 0
         if aplist_files == []:
             return None,None,None
         if numc == 'max' or numc == -1: # Find max no. of coeffs.
