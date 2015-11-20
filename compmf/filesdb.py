@@ -852,15 +852,16 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         A._HeckeModule_free_module__decomposition = {(None,True):Sequence([A], check=False)}
         return A
 
-    def load_aps(self,N, k, i, d, ambient=None,numc=-1):
+    def load_aps(self,N, k, i, d, ambient=None,nrange='all'):
         r"""
         Load aps for a given factor. If numc > 0 we return all sets.
+        nrange = 'all', 'max', or [nstart,nstop] (for instance, [0,100])
         """
         import sage.modular.modsym.subspace
         if d=='all':
             res = []
             for d in range(self.number_of_known_factors(N,k,i)):
-                res.append(self.load_aps(N,k,i,d,ambient=ambient,numc=numc))
+                res.append(self.load_aps(N,k,i,d,ambient=ambient,nrange=nrange))
             return res
         clogger.debug("Load_aps of {0} at {1}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False)))
         F = self.load_factor(N, k, i, d, ambient)
@@ -873,42 +874,55 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         for fname in tmp:
             if "aplist" in fname:
                 if "meta" in fname:
-                    numap = int(fname.split("-")[-2])
-                    numap_start = int(fname.split("-")[-3])
-                    if numap_start == 0:
-                        aplist_meta_files.append((numap,fname))
+                    n_stop = int(fname.split("-")[-2])
+                    n_start = int(fname.split("-")[-3])
+                    #if numap_start == 0:
+                    aplist_meta_files.append((n_start,n_stop,fname))
                 else:
-                    numap = int(fname.split("-")[-1].split(".")[0])
-                    numap_start = int(fname.split("-")[-2])
-                    if numap_start == 0:
-                        aplist_files.append((numap,fname))
+                    n_stop = int(fname.split("-")[-1].split(".")[0])
+                    n_start = int(fname.split("-")[-2])
+                    #if numap_start == 0:
+                    aplist_files.append((n_start,n_stop,fname))
             # at the moment we don't load files that start with n > 0
         if aplist_files == []:
             return None,None,None
-        if numc == 'max' or numc == -1: # Find max no. of coeffs.
-            numap,fname = max(aplist_files)
-        elif numc == 'min' or numc == 0: # Find min. no. of coeffs.
-            numap,fname = min(aplist_files)
-        elif numc == 'all':
+        if nrange in ['max','min']: # Find max no. of coeffs.
+            if nrange == 'max': n_start = 0; n_stop = 0;fn=""
+            if nrange == 'min': n_start = 0; n_stop = 10000;fn=""            
+            for n1,n2,fn in aplist_files:
+                if n1 != 0:
+                    continue
+                elif nrange == 'max' and n2 > n_stop:
+                    n_stop = n2
+                    fname = fn
+                elif nrange == 'min': and n2 < n_stop:
+                    n_stop = n2
+                    fname = fn                    
+        elif nrange == 'all':
             res = {}
-            for n,c in aplist_files[1:]:
-                clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
-                res[n]=self.load_aps(N,k,i,d,ambient=ambient,numc=n)
+            for n1,n2,c in aplist_files[1:]:
+                clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))
+                res[n]=self.load_aps(N,k,i,d,ambient=ambient,nmin=n1,nmax=n2)
             return res
-        else:
-            numap,fname = aplist_files[0]
-            if numap < numc:
-                for n,c in aplist_files[1:]:
-                    clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
-                    if n >= numc:
-                        numap,fname = n,c
+        elif isinstance(nrange,(tuple,list)):
+            n_min_wanted,n_max_wanted = nrange
+            n_start,n_stop,fname = aplist_files[0]
+            if n_min_wanted >= n_start and n_max_wanted <= n_stop:
+                for n1,n2,c in aplist_files[1:]:
+                    clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))                    
+                    if n_min_wanted >= n1 and n_max_wanted <= n2:
+                        n_start,n_stop,fname = n1,n2,c
                         break
+        if isinstance(nrange,(tuple,list)):
+            n_min_wanted,n_max_wanted = nrange
+        else:
+            n_min_wanted = 0
         #clogger.debug("aplist_files={0}".format(aplist_files))
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))
-        if numc <> 'max' and numc<> 'min' and numc<> 'all' and numc>0 and numap < numc:
-            maxc = max(aplist_files)[0]
+        if not isinstance(nrange,basestring) and (n_stop<n_max_wanted or n_start > n_max_wanted):
+            n1,n2 = max(aplist_files)[0:2]
             clogger.debug("aplist_files={0}".format(aplist_files))
-            raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,maxc)
+            raise ValueError,"We do not have {0} coefficients! We have range: {1} - {2}".format(n_max_wanted,n1,n2)
         metaname = fname.split(".")[0]+"-meta.sobj"
         clogger.debug("fname={0}".format(fname))
         clogger.debug("metaname={0}".format(metaname))
@@ -916,21 +930,22 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             E = load("{0}/{1}".format(factor_dir,fname))
             if isinstance(E,tuple):
                 E = E[0]
-            if prime_pi(numap) > E.nrows():
+            nn = prime_pi(n_stop)-prime_pi(n_start)
+            if nn > E.nrows():
+                clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),nn))
                 
-                clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),prime_pi(numap)))
                 ## Rename the file:
-                new_prec = nth_prime(E.nrows()+1)-1
-                apfname = self.factor_aplist(N,k,i,d,False,0,new_prec)
-                save(E,apfname)
-                meta = load("{0}/{1}".format(factor_dir,metaname))
-                new_metaname = self.meta(apfname)
-                save(meta,new_metaname)
-                self.delete_file("{0}/{1}".format(factor_dir,metaname))
-                self.delete_file("{0}/{1}".format(factor_dir,fname))
-                metaname = new_metaname.split("/")[-1]
-                if numc > new_prec:
-                    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
+                #new_prec = nth_prime(E.nrows()+1)-1
+                #apfname = self.factor_aplist(N,k,i,d,False,0,new_prec)
+                #save(E,apfname)
+                #meta = load("{0}/{1}".format(factor_dir,metaname))
+                #new_metaname = self.meta(apfname)
+                #save(meta,new_metaname)
+                #self.delete_file("{0}/{1}".format(factor_dir,metaname))
+                #self.delete_file("{0}/{1}".format(factor_dir,fname))
+                #metaname = new_metaname.split("/")[-1]
+                #if numc > new_prec:
+                #    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
             raise ValueError,"Could not load coefficients: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
