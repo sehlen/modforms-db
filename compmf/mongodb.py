@@ -691,7 +691,7 @@ class MongoMF(object):
                     res[newform][prec]=(E,v,meta)
                 else:
                     if prec >= prec_needed and coeffs:
-                        res[newform][prec] = E*v
+                        res[newform][prec] = compmf.util.multiply_mat_vec(E,v)
                 if not d is None:
                     res = res[newform]
         elif sources == ['files']:
@@ -703,7 +703,7 @@ class MongoMF(object):
             elif isinstance(prec_needed,int):
                 prec_needed = [0,prec_needed]
             try:
-                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed)
+                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
@@ -713,6 +713,7 @@ class MongoMF(object):
                 #print "res=",res
                 if not res is None:
                     return res
+                    
         return res
 
 

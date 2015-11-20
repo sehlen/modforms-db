@@ -852,7 +852,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         A._HeckeModule_free_module__decomposition = {(None,True):Sequence([A], check=False)}
         return A
 
-    def load_aps(self,N, k, i, d='all', ambient=None,nrange='all'):
+    def load_aps(self,N, k, i, d='all', ambient=None,nrange='all',coeffs=False):
         r"""
         Load aps for a given factor. If numc > 0 we return all sets.
         nrange = 'all', 'max', or [nstart,nstop] (for instance, [0,100])
@@ -959,7 +959,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             except Exception as e:
                 clogger.critical("Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message))
                 meta = {}
-            
+        if coeffs:
+            return compmf.util.multiply_mat_vec(E,v)
         return E,v,meta
 
 
