@@ -52,7 +52,7 @@ except ImportError:
     pass # print "Note that remote files are not supported without paramiko installed!"
 
 from compmf import clogger
-from character_conversions import conrey_character_number_to_conrey_galois_orbit_number
+from character_conversions import conrey_character_number_to_conrey_galois_orbit_number,dirichlet_character_conrey_galois_orbits_reps
 class Filenames(object):
     def __init__(self, datadir,host='',db_file='',username=''):
         r"""
@@ -402,6 +402,8 @@ class FilenamesMFDB(Filenames):
                 #clogger.critical("dirName={0}".format(dirName))
                 #clogger.critical("subdirs={0}".format(subdirList))                        
                 N, k, i = map(int,z) #parse_Nki(Nki)
+                # recall that i is the galois orbit number (in conrey's ordering)
+                i =  int(dirichlet_character_conrey_galois_orbits_reps(N)[i])
                 print N,k,i
                 if k==1: # weight 1 not implemented
                     continue
@@ -788,6 +790,26 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         clogger.warning(s)
         raise ValueError,s
 
+    def load_atkin_lehner(self,N,k,i,d):
+        r"""
+        Load the Atkin-Lehner eigenvalues
+        """
+        from sage.all import prime_divisors
+        try: 
+            fp  = fopen(self.factor_atkin_lehner(M,k,i,d,False))
+        except IOError:
+            return None
+        l = fp.readline().split(' ')
+        eigenvalues = {}
+        primes = prime_divisors(N)
+        i = 0
+        for p in primes:
+            eigenvalues[p]=l[i]
+            i+=1
+        return eigenvalues
+        
+
+    
     def load_factor(self,N, k, i, d, M=None):
         r"""
         Load the factor nr. d in M(N,k,i)
@@ -795,6 +817,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         import sage.modular.modsym.subspace
         if M is None:
             M = self.load_ambient_space(N, k, i)
+        if d=='all':
+            res = []
+            for d in range(self.number_of_known_factors(N,k,i)):
+                res.append(self.load_factor(N,k,i,d))
+            return res
         f = self.factor(N, k, i, d, makedir=False)
         if not self.path_exists(f):
             raise RuntimeError, "no such factor ({0},{1},{2},{3}) at {4}".format(N,k,i,d,f)
@@ -824,6 +851,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         Load aps for a given factor. If numc > 0 we return all sets.
         """
         import sage.modular.modsym.subspace
+        if d=='all':
+            res = []
+            for d in range(self.number_of_known_factors(N,k,i)):
+                res.append(self.load_aps(N,k,i,d,ambient=ambient,numc=numc))
+            return res
         clogger.debug("Load_aps of {0} at {1}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False)))
         F = self.load_factor(N, k, i, d, ambient)
         factor_dir = self.factor(N, k, i, d, makedir=False)
