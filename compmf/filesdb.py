@@ -52,7 +52,7 @@ except ImportError:
     pass # print "Note that remote files are not supported without paramiko installed!"
 
 from compmf import clogger
-from character_conversions import conrey_character_number_to_conrey_galois_orbit_number,dirichlet_character_conrey_galois_orbits_reps
+from character_conversions import conrey_character_number_to_conrey_galois_orbit_number,dirichlet_character_conrey_galois_orbits_reps,conrey_character_from_number
 class Filenames(object):
     def __init__(self, datadir,host='',db_file='',username=''):
         r"""
