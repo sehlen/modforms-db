@@ -522,7 +522,7 @@ class MongoMF(object):
         """
         if isinstance(N,basestring):
             N,k,ci = param_from_label(N)
-        s = {'N':N,'k':k,'cchi':int(ci)}
+        s = {'N':int(N),'k':int(k),'cchi':int(ci)}
         nf = self._newform_factors.find(s).count()
         if nf > 0:
             return nf
@@ -540,6 +540,11 @@ class MongoMF(object):
         ci should be in the conrey naming scheme. Any conversions should take place before calling this function. 
         """
         from utils import orbit_index_from_label,param_from_label
+        if d == 'all':
+            res = []
+            for d in range(self.number_of_factors(N,k,ci)):
+                res.append(self.get_factors(N,k,ci,d,sources=sources))
+            return res
         if isinstance(N,basestring):
             N,k,ci,d = param_from_label(N)
         if isinstance(d,basestring):
@@ -582,6 +587,57 @@ class MongoMF(object):
         elif len(sources)>1:
             for ss in sources:
                 res = self.get_factors(N,k,ci,d,sources=[ss])
+                if not res is None:
+                    return res
+        else:
+            clogger.critical("Can not load factors, unknown source:{0}".format(sources))
+        return res
+
+    def get_atkin_lehner(self,N,k,ci,d='all',sources=['mongo','files']):
+        r"""
+        Get atkin-lehner eigenvalues of newform nr. d of the space M(N,k,i)
+        ci should be in the conrey naming scheme. Any conversions should take place before calling this function. 
+        """
+        from utils import orbit_index_from_label,param_from_label
+        from sage.all import prime_divisors
+        if d == 'all':
+            res = []
+            for d in range(self.number_of_factors(N,k,ci)):
+                res.append(self.get_atkin_lehner(N,k,ci,d,sources=sources))
+            return res
+        if isinstance(N,basestring):
+            N,k,ci,d = param_from_label(N)
+        if isinstance(d,basestring):
+            d = orbit_index_from_label(d)
+        res = None
+        if sources == ['mongo']:
+            ## Fetch the record in the database corresponding to cchi=i or the Galois orbit of
+            ## chi_N,i  (in Conrey's character naming scheme)
+            s = {'N':int(N),'k':int(k),'cchi':int(ci)}            
+            #if self._atkin_lehner.find(s).count()==0:
+            #    s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(ci)]}}
+            if not d is None:
+                s['newform']=int(d)
+            for r in self._atkin_lehner.find(s):
+                if res is None:
+                    res = {}
+                newform = r['newform']
+                fid = r['_id']
+                clogger.debug("r={0}".format(r))
+                f = self.load_from_mongo('Atkin_Lehner',fid)
+                t = (int(N),int(k),int(ci),int(newform))
+                if not d is None:
+                    res = f
+                else:
+                    res[t] = f
+            return res
+        elif sources == ['files']:
+            # The files are named according to Galois orbits.
+            #on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
+            return fopen(self._db.factor_atkin_lehner(N,k,ci,d,False)).readline()
+        elif len(sources)>1:
+            for ss in sources:
+                res = self.get_atkin_lehner(N,k,ci,d,sources=[ss])
                 if not res is None:
                     return res
         else:
@@ -870,6 +926,7 @@ class CompMF(MongoMF):
         ci is a Conrey character number.
         
         """
+        from sage.all import sturm_bound
         N = int(N); k = int(k); ci = int(ci)
         clogger.debug("In Compute and/or Insert N,k,i= {0} kwds={1}".format((N,k,ci),kwds))        
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
@@ -900,6 +957,7 @@ class CompMF(MongoMF):
         kwds['factor_ids']=factor_ids
         # Necessary number of coefficients for L-function computations.
         if not factor_ids is None and factor_ids <> []:
+            # ?
             pprec = precision_needed_for_L(N,k,pprec=100)
             clogger.debug("Computing aps to prec {0} for ci = {1}".format(pprec,ci))
             ap = self.compute_aps(N,k,ci,pprec,**kwds)
@@ -1142,7 +1200,7 @@ class CompMF(MongoMF):
                     filename=fname1,N=int(N),k=int(k),chi=int(sage_i[1]),
                     cchi=int(ci),
                     character_galois_orbit=orbit,
-                    conrey_galois_orbit_number=int(on[1]),
+                    conrey_galois_orbit_number=int(on),
                     newform=int(d),
                     cputime = meta.get("cputime",""),
                     sage_version = meta.get("version",""),
@@ -1154,7 +1212,7 @@ class CompMF(MongoMF):
                                     N=int(N),k=int(k),chi=int(sage_i[1]),
                                     cchi=int(ci),
                                     character_galois_orbit=orbit,
-                                    conrey_galois_orbit_number=int(on[1]),
+                                    conrey_galois_orbit_number=int(on),
                                     newform=int(d),
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),

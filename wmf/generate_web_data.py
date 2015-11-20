@@ -24,7 +24,7 @@ AUTHORS:
 
 import pymongo
 import bson
-from sage.all import parallel,dumps,Gamma1
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete
 from sage.misc.cachefunc import cached_function
@@ -191,7 +191,7 @@ def create_index(host='localhost',port=int(37010),only=None):
     
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
-from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers
+from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers,dirichlet_character_sage_from_conrey_character_number
 import json 
 #import bson
 
@@ -927,8 +927,61 @@ def add_character(D):
         N,k,i = label.split(".")
         C.update({'_id':fid},{"$set":{'cchi':int(i)}})
 
-def fixing_spaces(D,label):
+def fixing_spaces(D,N,k,i):
     r"""
     Check the space with this label and make sure that the coefficients are associated with the same space...
+    PROBLEM: Data in files are sometimes at wrong place... 
     """
-    
+    if isinstance(N,basestring):
+        N,k,i=N.split(".")
+    M = D.get_ambient(N,k,i)
+    x1 = M.character()
+    x2 = dirichlet_character_sage_from_conrey_character_number(N,i)
+    if x1 != x2:
+        return False
+    factors = D.get_factors(N,k,i,'all')
+    d = 0
+    for F in factors:
+        wmf_logger.debug("Checking {0}".format(F))
+        if not F.is_submodule(M):
+            wmf_logger.debug("Newform {0} is not a subspace of ambient space!".format(F))  
+            return False
+        if not F.is_new() or not F.is_cuspidal():
+            wmf_logger.debug("Newform {0} is not new or not cuspidal!".format(F))
+            return False
+        # check coefficients fields
+        K1 = F.eigenvalue(1).parent()
+        a = D.get_aps(N,k,i,d)
+        for prec in a.keys():
+            v = a[prec][1]
+            K2 = v[0].parent()
+            if K1 != QQ:
+                if not K1.is_isomorphic(K2):
+                    wmf_logger.debug("Parents are not isomorphic: K1={0} and K2={1}".format(K1,K2))
+            else:
+                if K2 != QQ:
+                    wmf_logger.debug("Parents are not isomorphic: K1={0} and K2={1}".format(K1,K2))
+                    # so the coefficients have the correct field...
+            if len(v) <> F.dimension():
+                wmf_logger.debug("Length of eigenvector is incorrect!")
+                return False
+            E = a[prec][0]
+            if E.nrows()<>prime_pi(prec):
+                wmf_logger.debug("Number of rows in E is incorrect!")
+                return False
+        d+=1
+        ## We can also check the coefficients explicitly
+        c1 = [F.eigenvalue(n) for n in range(1,F.sturm_bound()+1)]
+        c2 = (E*v)[1:F.sturm_bound()+1]
+        if c1 <> c2:
+            wmf_logger.debug("Coefficients are not equal!")
+    return True
+
+
+def add_name_to_AL(D):
+    C = D._mongodb['Atkin_Lehner.files']
+    for r in C.find({'space_label':{"$exists":True}}):
+        fid = r['_id']
+        label = r.get('space_label')
+        N,k,i = label.split(".")
+        C.update({'_id':fid},{"$set":{'cchi':int(i)}})
