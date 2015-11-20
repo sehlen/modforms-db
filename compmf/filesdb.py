@@ -395,7 +395,7 @@ class FilenamesMFDB(Filenames):
         ## I don't know how to make an iterator over directories in subdirectories...
         for dirName, subdirList, fileList in os.walk(self._data):
             Nki = dirName.split('/')[-1]
-
+            
             z = Nki.split('-')
             if len(z) == 3: ## we are in a space directory
                 #clogger.critical("Nki={0}".format(Nki))
@@ -415,7 +415,7 @@ class FilenamesMFDB(Filenames):
                         # program around a bug in dimension_new_cusp_forms: Trac 12640
                         d = dimension_new_cusp_forms(N,k)
                     else:
-                        chi = character(N, i)
+                        chi = conrey_character_from_number(N, i).sage_character()
                         d = dimension_new_cusp_forms(chi, k)
                     if d == 0:
                         # definitely no newforms
@@ -581,16 +581,21 @@ class FilenamesMFDB(Filenames):
                 for ch in rangify(irange):
 
                     if isinstance(ch, str):
-                        CHI = list(enumerate(characters(N)))
                         if ch == 'quadratic':
-                            CHI = [(i,chi) for i,chi in CHI if chi.order()==2]
+                            CHI = []
+                            for xi in dirichlet_character_conrey_galois_orbits_reps(N):
+                                x = conrey_character_from_number(N,xi)
+                                if x.multiplicative_order() != 2:
+                                    continue
+                                CHI.append((xi,c.sage_character()))
                         elif ch == 'all':
+                            CHI = [conrey_character_from_number(N,xi) for xi in dirichlet_character_conrey_galois_orbits_reps(N)]
                             pass
                         else:
                             raise ValueError
                     else:
                         try:
-                            CHI = [(ch, character(N, ch))]
+                            CHI = [(ch, conrey_character_from_galois_orbit_number(N,ch))]
                         except IndexError:
                             CHI = []
 
@@ -943,36 +948,36 @@ class FilenamesMFDBLoading(FilenamesMFDB):
 
 
 
-@cached_function
-def characters(N):
-    """
-    Return representatives for the Galois orbits of Dirichlet characters of level N.
-    """
-    return [X[0] for X in DirichletGroup(N).galois_orbits()]
+# @cached_function
+# def characters(N):
+#     """
+#     Return representatives for the Galois orbits of Dirichlet characters of level N.
+#     """
+#     return [X[0] for X in DirichletGroup(N).galois_orbits()]
 
-def character_to_int(eps):
-    """
-    Return integer corresponding to given character.
-    """
-    if eps.is_trivial():
-        return 0
-    N = eps.modulus()
-    X = characters(N)
-    try:
-        return X.index(eps)
-    except IndexError:
-        # very unlikely -- would have to be some weird character
-        # not got from character(N,i)
-        for i, Y in enumerate(DirichletGroup(N).galois_orbits()):
-            if X in Y:
-                return i
-        raise RuntimeError
+# def character_to_int(eps):
+#     """
+#     Return integer corresponding to given character.
+#     """
+#     if eps.is_trivial():
+#         return 0
+#     N = eps.modulus()
+#     X = characters(N)
+#     try:
+#         return X.index(eps)
+#     except IndexError:
+#         # very unlikely -- would have to be some weird character
+#         # not got from character(N,i)
+#         for i, Y in enumerate(DirichletGroup(N).galois_orbits()):
+#             if X in Y:
+#                 return i
+#         raise RuntimeError
 
-def character(N, i):
-    if i==0:
-        return trivial_character(N)
-    #clogger.debug("character(%s, %s)"%(N,i))
-    return characters(N)[i]
+# def character(N, i):
+#     if i==0:
+#         return trivial_character(N)
+#     #clogger.debug("character(%s, %s)"%(N,i))
+#     return characters(N)[i]
 
 
 
