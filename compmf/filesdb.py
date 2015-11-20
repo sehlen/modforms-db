@@ -893,7 +893,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                         break
         #clogger.debug("aplist_files={0}".format(aplist_files))
         clogger.debug("want numc={0} and have: {1}".format(numc,numap))
-        if numc <> 'max' and numc<> 'min' and numc>0 and numap < numc:
+        if numc <> 'max' and numc<> 'min' and numc<> 'all' and numc>0 and numap < numc:
             maxc = max(aplist_files)[0]
             clogger.debug("aplist_files={0}".format(aplist_files))
             raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,maxc)
