@@ -1043,7 +1043,10 @@ def fix_pprec_to_nmax(D):
         pprec = r['prec']
         c = multiply_mat_vec(E,v)
         # first check that it satisfies Ramanujan...
-        a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
+        if c[0] in QQ:
+            a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
+        else:
+            a2 = abs(c[0].complex_embeddding())/2.0**(RR(r['k']-1)/RR(2))
         if abs(a2) > 2:
             wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
             D.delete_from_mongo('ap',r['_id'])
