@@ -461,6 +461,20 @@ class MongoMF(object):
         fs = gridfs.GridFS(self._mongodb,col)
         return loads(fs.get(fid).read())
 
+    def delete_from_from_mongo(self,col,fid):
+        r"""
+        Remove a file from gridfs collection col and id nr. fid.
+
+        """
+        if 'files' not in col:
+            col_files = '{0}.files'.format(col)
+        if not col_files in self._mongodb.collection_names():
+            return None
+        if self._mongodb[col_files].find({'_id':fid}).count()==0:
+            return None
+        fs = gridfs.GridFS(self._mongodb,col)
+        return fs.delete(fid)
+
     def get_parameters_from_input(self,*args,**kwds):
         r"""
         Extract the parameters: Level,weight,conrey_character_no
