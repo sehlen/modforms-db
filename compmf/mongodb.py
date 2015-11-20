@@ -700,8 +700,10 @@ class MongoMF(object):
             #on = character_conversions.conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             if prec_needed == 0:
                 prec_needed = 'all'
+            elif isinstance(prec_needed,int):
+                prec_needed = [0,prec_needed]
             try:
-                res = self._db.load_aps(N,k,ci,d,numc=prec_needed)
+                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
