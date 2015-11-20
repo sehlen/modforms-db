@@ -883,6 +883,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             for n,c in aplist_files[1:]:
                 clogger.debug("we have a file with n={0} with name ={1}".format(n,c))
                 res.append(self.load_aps(N,k,i,d,ambient=ambient,numc=n))
+            return res
         else:
             numap,fname = aplist_files[0]
             if numap < numc:
