@@ -997,7 +997,7 @@ def check_files_of_coefficients(D):
     return list(l)
 
 @parallel(ncpus=32)
-def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)):
+def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010),dryrun=False):
     r"""
     Check coefficients in the file for one record
     
@@ -1019,6 +1019,9 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
         if not ok:
             fname = D._db.factor_aplist(N,k,i,d,0,pprec)
             wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
+            if dryrun:
+                continue
+            D._db.delete_file(fname)
             pprecs.remove(pprec)
             if pprec==maxn:
                 wmf_logger.critical("Removing from known db also!")
