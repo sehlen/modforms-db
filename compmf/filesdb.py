@@ -898,6 +898,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             clogger.debug("aplist_files={0}".format(aplist_files))
             raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,maxc)
         metaname = fname.split(".")[0]+"-meta.sobj"
+        clogger.debug("fname={0}".format(fname))
+        clogger.debug("metaname={0}".format(metaname))
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
             if isinstance(E,tuple):
@@ -918,7 +920,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 if numc > new_prec:
                     raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
-            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
+            raise ValueError,"Could not load coefficients: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
             v = load("{0}/v.sobj".format(factor_dir))
         except Exception as e:
