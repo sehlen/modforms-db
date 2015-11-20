@@ -852,7 +852,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         A._HeckeModule_free_module__decomposition = {(None,True):Sequence([A], check=False)}
         return A
 
-    def load_aps(self,N, k, i, d, ambient=None,nrange='all'):
+    def load_aps(self,N, k, i, d='all', ambient=None,nrange='all'):
         r"""
         Load aps for a given factor. If numc > 0 we return all sets.
         nrange = 'all', 'max', or [nstart,nstop] (for instance, [0,100])
@@ -902,7 +902,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             res = {}
             for n1,n2,c in aplist_files[1:]:
                 clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))
-                res[n]=self.load_aps(N,k,i,d,ambient=ambient,nmin=n1,nmax=n2)
+                res[n]=self.load_aps(N,k,i,d,ambient=ambient,nrange=[n1,n2])
             return res
         elif isinstance(nrange,(tuple,list)):
             n_min_wanted,n_max_wanted = nrange
