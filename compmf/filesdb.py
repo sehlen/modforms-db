@@ -414,13 +414,15 @@ class FilenamesMFDB(Filenames):
                 if len(newforms) == 0:
                     # we have nothing i the files database and don't care
                     # whether it is simply not computed or the space is empty
-                    print fileList
-                    return
-                    #if d == 0:
-                    # definitely no newforms
-                    yield (N,k,i,0,0)
-                    #else:
-                    #    # we just don't know the newforms yet
+                    #print fileList
+                    # take the opportunity to fix some file problems
+                    if 'M-meta.sobj' in fileList and 'M.sobj' not in fileList:
+                        self.delete_file("{0}/M-meta.sobj".format(dirName))
+                    if 'decomp-meta.sobj' in fileList and 'decomp.sobj' not in fileList:
+                        self.delete_file("{0}/M-meta.sobj".format(dirName))                    
+                    if 'ambient.sobj' in fileList:
+                        # the ambient space is computed
+                        yield (N,k,i,0,0)
                     #    yield (N,k,i,-1,0)
                 else:
                     for n in newforms:
