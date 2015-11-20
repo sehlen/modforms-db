@@ -24,7 +24,7 @@ AUTHORS:
 
 import pymongo
 import bson
-from sage.all import parallel,dumps,Gamma1,QQ,prime_pi
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete
 from compmf.utils import multiply_mat_vec
