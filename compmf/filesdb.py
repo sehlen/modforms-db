@@ -412,13 +412,9 @@ class FilenamesMFDB(Filenames):
                 newforms = [x for x in subdirList if x.isdigit()]
                 #print "newforms=",newforms
                 if len(newforms) == 0:
-                    # maybe nothing computed?
-                    if i == 0:
-                        # program around a bug in dimension_new_cusp_forms: Trac 12640
-                        d = dimension_new_cusp_forms(N,k)
-                    else:
-                        chi = conrey_character_from_number(N, i).sage_character()
-                        d = dimension_new_cusp_forms(chi, k)
+                    # we have nothing i the files database and don't care
+                    # whether it is simply not computed or the space is empty
+                    print fileList
                     if d == 0:
                         # definitely no newforms
                         yield (N,k,i,0,0)
