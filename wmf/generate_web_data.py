@@ -27,6 +27,7 @@ import bson
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete
+from compmf.util import multiply_mat_vec
 from sage.misc.cachefunc import cached_function
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
@@ -1007,7 +1008,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
     pprecs = deepcopy(a.keys())
     for pprec in pprecs:
         E,v = a[pprec][0:2]
-        c = compmf.utils.multiply_mat_vec(E,v)
+        c = multiply_mat_vec(E,v)
         ok = True
         if len(c) <> prime_p(pprec):
             ok = False
@@ -1040,7 +1041,7 @@ def fix_pprec_to_nmax(D):
     for r in D._aps.find({'nmin':{"$exists":False}}):
         E,v = D.load_from_mongo('ap',r['_id'])
         pprec = r['prec']
-        c = compmf.utils.multiply_mat_vec(E,v)
+        c = multiply_mat_vec(E,v)
         # first check that it satisfies Ramanujan...
         a2 = abs(c[0])/2.0**(RF(r['k']-1)/RF(2))
         if abs(a2) > 2:
