@@ -1013,7 +1013,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
         if len(c) <> prime_p(pprec):
             ok = False
         if ok:
-            a2 = abs(c[0])/RF(2)**(RF(k-1)/RF(2))
+            a2 = abs(c[0])/RR(2)**(RR(k-1)/RR(2))
             if a2 > 2.0:
                 ok = False
         if not ok:
@@ -1043,7 +1043,7 @@ def fix_pprec_to_nmax(D):
         pprec = r['prec']
         c = multiply_mat_vec(E,v)
         # first check that it satisfies Ramanujan...
-        a2 = abs(c[0])/2.0**(RF(r['k']-1)/RF(2))
+        a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
         if abs(a2) > 2:
             wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
             D.delete_from_mongo('ap',r['_id'])
