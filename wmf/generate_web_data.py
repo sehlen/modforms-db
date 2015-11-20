@@ -27,7 +27,7 @@ import bson
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete
-from compmf.util import multiply_mat_vec
+from compmf.utils import multiply_mat_vec
 from sage.misc.cachefunc import cached_function
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
