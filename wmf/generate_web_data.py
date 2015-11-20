@@ -1051,8 +1051,10 @@ def fix_pprec_parallel(fid):
         E,v = D.load_from_mongo('ap',fid)
         c = multiply_mat_vec(E,v)
     except Exception as e:
+        wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
+        D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v:{0}".format(e)
-
+    
     # first check that it satisfies Ramanujan...
     pprec = r['prec']
     if c[0].parent() is QQ:
@@ -1060,7 +1062,7 @@ def fix_pprec_parallel(fid):
     else:
         a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
     if abs(a2) > 2:
-        wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
+        wmf_logger.debug("Removing record {0} that does not satisfy Ramanujan! a2={1}".format(r['hecke_orbit_label'],a2))
         return D.delete_from_mongo('ap',r['_id'])
     n = len(c)
     nmax = int(nth_prime(n+1)-1)
