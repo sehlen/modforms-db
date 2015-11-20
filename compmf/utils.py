@@ -85,6 +85,7 @@ def param_from_label(lab):
 
 
 def multiply_mat_vec(E,v):
+    from sage.all import QQ
     if not E.base_ring() is QQ:
         EE = convert_matrix_to_extension_fld(E,v.base_ring())
         return EE*v
