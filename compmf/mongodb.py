@@ -2323,6 +2323,13 @@ class CheckingDB(CompMF):
                 #clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
+                    c = multiply_mat_vec(E,v)
+                    a2 = c[0].abs()/RR(2.0)**(RR(k-1)/RR(2))
+                    if abs(a2)>2.0:
+                        clogger.debug("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
+                        res['aps'] = False
+                        fs_ap.delete(id)
+                    continue
                 except Exception as e:
                     clogger.debug("Could not load E,v. Error:{0}".format(e))
                     res['aps'] = False
@@ -2334,7 +2341,6 @@ class CheckingDB(CompMF):
                     raise ValueError,"Wrong format of E!"
                 res['aps']=False
                 clogger.debug("checking coefficients! len(v)={0} E.nrows={1}, E.ncols={2}, E[0,0]==0:{3}, pi(pprec)={4} assumed prec={5}".format(len(v),E.nrows(),E.ncols(),E[0,0] is 0,prime_pi(pprec),prec))
-
                 nprimes_in_db = E.nrows()
                 nprimes_assumed = prime_pi(prec)
                 prec_in_db = int(nth_prime(nprimes_in_db+1)-1) # observe that we can get all coefficients up to the next prime - 1
