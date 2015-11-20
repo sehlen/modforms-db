@@ -1061,7 +1061,7 @@ def fix_pprec_parallel(fid):
         a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
     if abs(a2) > 2:
         wmf_logger.debug("Removing record that does not satisfy Ramanujan! a2={0}".format(a2))
-        D.delete_from_mongo('ap',r['_id'])
+        return D.delete_from_mongo('ap',r['_id'])
     n = len(c)
     nmax = int(nth_prime(n+1)-1)
     nmin = int(0)
