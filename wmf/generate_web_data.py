@@ -1036,7 +1036,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)
 
 
 def fix_pprec_to_nmax(D):
-    from sage.all import prime_pi
+    from sage.all import prime_pi,nth_prime
 
     for r in D._aps.find({'nmin':{"$exists":False}}):
         E,v = D.load_from_mongo('ap',r['_id'])
