@@ -1303,7 +1303,8 @@ class CompMF(MongoMF):
                     fs_ap.delete(r['_id'])
                 try:
                     # check again if we have this record in the gridfs db
-                    clogger.debug("ambient id: {0} prec={1}".format(ambient_id,pprec))                                apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                    clogger.debug("ambient id: {0} nmin={1} nmax={2}".format(ambient_id,nmin,nmax))
+                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
                                      conrey_galois_orbit_number=int(on),
