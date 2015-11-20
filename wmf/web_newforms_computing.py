@@ -50,6 +50,7 @@ from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform
 from wmf import wmf_logger
 from compmf import MongoMF
 wmf_logger.setLevel(10)
+emf_logger.setLevel(10)
 
 class WebNewForm_computing(WebNewForm):
     r"""
@@ -259,7 +260,7 @@ class WebNewForm_computing(WebNewForm):
         else:
             t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
-            raise ValueError,"The aps in the coefficients are incorrect for {0} Please check!".format(self.hecke_orbit_label)
+            raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
         self.q_expansion = res.add_bigoh(n+1)
@@ -391,22 +392,16 @@ class WebNewForm_computing(WebNewForm):
         
         if not ((self.character.is_trivial() or self.character.order == 2) and not self._atkin_lehner_eigenvalues is None):
             return None
-        C = connect_to_modularforms_db('Atkin_Lehner.files')
-        fs = get_files_from_gridfs('Atkin_Lehner')
-        s = {'N':int(self.level),'k':int(self.weight),
-             'cchi':int(self.character.number),'newform':int(self.newform_number())}
-        res = C.find_one(s)
         self._atkin_lehner_eigenvalues = {}
-        if not res is None:
-            alid = res['_id']
-            al = loads(fs.get(alid).read())
-            wmf_logger.debug("al = {0}".format(al))
-            i = 0 
-            for d in prime_divisors(self.level):
-                wmf_logger.debug("d = {0}".format(d))
-                self._atkin_lehner_eigenvalues[d] = 1 if al[i]=='+' else -1
+        l = self._db.get_atkin_lehner(self.level,self.weight,self.character.number,self.newform_number())
+        if not l is None:
+            l = l.split(' ')
+            i = 0
+            for p in prime_divisors(self.level):
+                wmf_logger.debug("p = {0} ev={1}".format(p,l[i]))
+                self._atkin_lehner_eigenvalues[p] = 1 if l[i]=='+' else -1
                 i+=1
-        else: # We compute them
+        else: # We try to compute them
             A = self.as_factor()
             for p in prime_divisors(self.level):
                 if self.character.is_trivial() or p==self.level:
