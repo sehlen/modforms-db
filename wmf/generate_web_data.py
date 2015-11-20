@@ -985,3 +985,50 @@ def add_name_to_AL(D):
         label = r.get('space_label')
         N,k,i = label.split(".")
         C.update({'_id':fid},{"$set":{'cchi':int(i)}})
+
+
+def check_files_of_coefficients(D):
+    for N,k,on,d,maxn in D._db.known():
+        if maxn == 0:
+            continue
+        args.append((N,k,ci,d,maxn))
+    l = check_coefficients_one_record(args)
+    return list(l)
+
+@parallel(ncpus=32)
+def check_coefficients_one_record(N,k,ci,d,maxn,host='localhost',port=int(37010)):
+    r"""
+    Check coefficients in the file for one record
+    
+    """
+    from sage.all import deepcopy
+    D = MongoMF(host=host,port=port)
+    a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
+    pprecs = deepcopy(a.keys())
+    for pprec in pprecs:
+        E,v = a[pprec][0:2]
+        c = compmf.utils.multiply_mat_vec(E,v)
+        ok = True
+        if len(c) <> prime_p(pprec):
+            ok = False
+        if ok:
+            a2 = abs(c[0])/RF(2)**(RF(k-1)/RF(2))
+            if a2 > 2.0:
+                ok = False
+        if not ok:
+            fname = D._db.factor_aplist(N,k,i,d,0,pprec)
+            wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
+            pprecs.remove(pprec)
+            if pprec==maxn:
+                wmf_logger.critical("Removing from known db also!")
+                db = sqlite3.connect(D._known_db_file)
+                cursor = db.cursor()
+                # remove old record
+                cursor.execute("DELETE FROM known WHERE N={0} AND k={1} AND i={2} AND newforms={3} and maxp={4}".format(N,k,ci,d,maxn))
+                if pprecs != []:
+                    prec_max = max(pprecs)
+                    # insert new with possible smaller precision given
+                    cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
+                db.commit()
+            #D._db.delete_file(apfile)
+            

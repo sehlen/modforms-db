@@ -395,7 +395,6 @@ class FilenamesMFDB(Filenames):
         ## I don't know how to make an iterator over directories in subdirectories...
         for dirName, subdirList, fileList in os.walk(self._data):
             Nki = dirName.split('/')[-1]
-            
             z = Nki.split('-')
             if len(z) == 3: ## we are in a space directory
                 #clogger.critical("Nki={0}".format(Nki))
@@ -403,7 +402,10 @@ class FilenamesMFDB(Filenames):
                 #clogger.critical("subdirs={0}".format(subdirList))                        
                 N, k, i = map(int,z) #parse_Nki(Nki)
                 # recall that i is the galois orbit number (in conrey's ordering)
-                i =  int(dirichlet_character_conrey_galois_orbits_reps(N)[i])
+                if i == 0: # the 0th orbit is always only the trivial character
+                    i = 1
+                else:
+                    i =  int(dirichlet_character_conrey_galois_orbits_reps(N)[i])
                 print N,k,i
                 if k==1: # weight 1 not implemented
                     continue
