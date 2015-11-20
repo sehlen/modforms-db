@@ -895,7 +895,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 elif nrange == 'max' and n2 > n_stop:
                     n_stop = n2
                     fname = fn
-                elif nrange == 'min': and n2 < n_stop:
+                elif nrange == 'min' and n2 < n_stop:
                     n_stop = n2
                     fname = fn                    
         elif nrange == 'all':
