@@ -1052,7 +1052,7 @@ def fix_pprec_to_nmax(D):
             D.delete_from_mongo('ap',r['_id'])
         n = len(c)
         nmax = nth_prime(n+1)-1
-        minn = 0
+        nmin = 0
         wmf_logger.debug("Updating from pprec:{0} to nmanx:{1}".format(pprec,nmax))
         D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin},"$unset":{'pprec':''}})
         
