@@ -100,18 +100,16 @@ class ComputeMFData(object):
                     self.compute_ambient_space(N,k,j ,**kwds)
             return
 
-        # if i == 'quadratic':
-        #     G = DirichletGroup(N).galois_orbits()
-        #     sgn = (-1)**k
-        #     j = 0
-        #     for g in dirichlet_character_sage_galois_orbits_reps(N):
-        #         if g(-1) == sgn and g.order()==2:
-        #             self.compute_ambient_space(N,k,j,**kwds)
-        #         j+=1
-        #     return
+        if i == 'quadratic':
+            for xi in dirichlet_character_conrey_galois_orbits_reps(N):
+                x = conrey_character_from_number(N,xi)
+                if x.multiplicative_order() != 2:
+                    continue
+                if ((k % 2) == 0 and x.is_even()) or ((k % 2) == 1 and x.is_odd()):
+                     self.compute_ambient_space(N,k,xi,**kwds)
+            return
         eps = dirichlet_character_sage_from_conrey_character_number(N,i)
         #N,ii = sage_character_to_sage_galois_orbit_number(eps)
-        N,ii = conrey_character_number_to_conrey_galois_orbit_number(N,i)
         ## for the moment we still use the  Sage numbering for the files...
         filename = self.files().ambient(N, k, i)
         clogger.debug("filename={0}".format(filename))
@@ -152,6 +150,7 @@ class ComputeMFData(object):
        
     #@fork    
     def compute_decompositions(self,N, k, i,**kwds):
+        recompute = kwds.get('recompute',False)
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
@@ -198,7 +197,7 @@ class ComputeMFData(object):
         for d in range(len(D)):
             self.files().factor(N,k,i,d,makedir=True)
             f = self.files().factor_basis_matrix(N, k, i, d)
-            if self.files().path_exists(f):
+            if self.files().path_exists(f) and not recompute:
                 continue
             A = D[d]
             B  = A.free_module().basis_matrix()
@@ -216,19 +215,19 @@ class ComputeMFData(object):
         save(meta, self.files().decomp_meta(N, k, i))
         return len(D)
     
-    def compute_decomposition_ranges(self,Nrange, krange, irange, ncpu):
+    def compute_decomposition_ranges(self,Nrange, krange, irange, ncpu,**kwds):
         @parallel(ncpu)
         def f(N,k,i):
-            self.compute_decompositions(N,k,i)
+            self.compute_decompositions(N,k,i,**kwds)
 
         v = [(N,k,i) for N in rangify(Nrange) for k in rangify(krange) for i in rangify(irange)]
         for X in f(v):
             print X
 
-    def compute_ambient_space_ranges(self,Nrange, krange, irange, ncpu):
+    def compute_ambient_space_ranges(self,Nrange, krange, irange, ncpu,**kwds):
         @parallel(ncpu)
         def f(N,k,i):
-            self.files().compute_ambient_space(N,k,i)
+            self.files().compute_ambient_space(N,k,i,**kwds)
         v = [(N,k,i) for N in rangify(Nrange) for k in rangify(krange) for i in rangify(irange)]
         for X in f(v):
             print X
@@ -236,6 +235,7 @@ class ComputeMFData(object):
     #@fork    
     def compute_atkin_lehner(self,N, k, i,M=None,m=None,**kwds):
         filename = self.files().ambient(N, k, i)
+        recompute = kwds.gete('recompute',False)
         if not self.files().path_exists(filename):
             clogger.warning("Ambient (%s,%s,%s) space not computed. Filename=%s "%(N,k,i,filename))
             return -1
@@ -247,7 +247,7 @@ class ComputeMFData(object):
             M = self.files().load_ambient_space(N, k, i)
         for d in range(m):
             atkin_lehner_file = self.files().factor_atkin_lehner(N, k, i, d, False)
-            if self.files().path_exists(atkin_lehner_file):
+            if self.files().path_exists(atkin_lehner_file) and not recompute:
                 clogger.debug("skipping computing atkin_lehner for (%s,%s,%s,%s) since it already exists"%(N,k,i,d))
                 # already done
                 continue
@@ -273,20 +273,23 @@ class ComputeMFData(object):
         We store the list in a file named aplist-n0-n1.sobj where n0 and n1 are padded with zeros to
         length 5.
         """
+        recompute = kwds.get('recompute',False)
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
-            for j, g in enumerate(G):
-                if g[0](-1) == sgn:
-                    self.compute_aplists(N,k,j,n0,n1)
+            for xi in dirichlet_character_conrey_galois_orbits_reps(N):
+                x = conrey_character_from_number(N,xi)
+                if ((k % 2) == 0 and x.is_even()) or ((k % 2) == 1 and x.is_odd()):
+                    self.compute_aplists(N,k,xi,n0,n1,**kwds)
             return
 
         if i == 'quadratic':
-            G = DirichletGroup(N).galois_orbits()
-            sgn = (-1)**k
-            for j, g in enumerate(G):
-                if g[0](-1) == sgn and g[0].order()==2:
-                    self.compute_aplists(N,k,j,n0,n1)
+            for xi in dirichlet_character_conrey_galois_orbits_reps(N):
+                x = conrey_character_from_number(N,xi)
+                if x.multiplicative_order() != 2:
+                    continue
+                if ((k % 2) == 0 and x.is_even()) or ((k % 2) == 1 and x.is_odd()):
+                    self.compute_aplists(N,k,xi,n0,n1,**kwds)
             return
         if n1 == 100:
             n1 = 100
@@ -320,7 +323,7 @@ class ComputeMFData(object):
                     continue
             aplist_file = self.files().factor_aplist(N, k, i, d, False, n0,n1)
             clogger.debug("Checking file:{0}".format(aplist_file))
-            if self.files().path_exists(aplist_file):
+            if self.files().path_exists(aplist_file) and not recompute:
                 clogger.debug("skipping computing aplist(%s) for (%s,%s,%s,%s) since it already exists"%((n0,n1), N,k,i,d))
                 # already done
                 continue
