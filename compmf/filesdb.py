@@ -882,6 +882,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     n_stop = int(fname.split("-")[-1].split(".")[0])
                     n_start = int(fname.split("-")[-2])
                     #if numap_start == 0:
+                    print 
                     aplist_files.append((n_start,n_stop,fname))
             # at the moment we don't load files that start with n > 0
         if aplist_files == []:
@@ -919,11 +920,17 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             clogger.debug("Here we want nrange as integer we got: {0}".format(nrange))
             return None
         #clogger.debug("aplist_files={0}".format(aplist_files))
-        clogger.debug("want numc={0} and have: {1}".format(n_min_wanted,n_max_wanted,n_start,n_stop))
-        if not isinstance(nrange,basestring) and (n_stop<n_max_wanted or n_start > n_min_wanted):
-            n1,n2 = max(aplist_files)[0:2]
-            clogger.debug("aplist_files={0}".format(aplist_files))
-            raise ValueError,"We do not have {0} coefficients! We have range: {1} - {2}".format(n_max_wanted,n1,n2)
+
+        clogger.debug("aplist_files={0}".format(aplist_files))
+        if isinstance(nrange,basestring):
+            raise ValueError,"Need a range of integers in nrange. Got:{0}".format(nrange)
+        ok = False
+        for n1,n2,fn in aplist_files:
+            if n1 <= n_max_wanted and n2 >= n_min_wanted:
+                ok = True
+        if not ok:
+            clogger.debug("want numc={0} and have: {1}".format(n_min_wanted,n_max_wanted,n_start,n_stop))
+            raise ValueError,"We do not have {0}-{1} coefficients!".format(n_min_wanted,n_max_wanted)
         metaname = fname.split(".")[0]+"-meta.sobj"
         clogger.debug("fname={0}".format(fname))
         clogger.debug("metaname={0}".format(metaname))
