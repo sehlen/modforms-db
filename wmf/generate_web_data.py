@@ -1047,10 +1047,14 @@ def fix_pprec_parallel(fid):
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
     r = D._aps.find_one({'_id':fid})
-    E,v = D.load_from_mongo('ap',fid)
-    pprec = r['prec']
-    c = multiply_mat_vec(E,v)
+    try:
+        E,v = D.load_from_mongo('ap',fid)
+        c = multiply_mat_vec(E,v)
+    except Exception as e:
+        raise ValueError,"Could not load E,v:{0}".format(e)
+
     # first check that it satisfies Ramanujan...
+    pprec = r['prec']
     if c[0].parent() is QQ:
         a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
     else:
@@ -1063,5 +1067,5 @@ def fix_pprec_parallel(fid):
     nmin = int(0)
     nn =nth_prime(n)
     wmf_logger.debug("Updating r={0} from pprec:{1} to nmanx:{2}".format(r['hecke_orbit_label'],pprec,nmax))
-    D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'pprec':''}})
+    D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'prec':''}})
         

@@ -81,7 +81,8 @@ class MongoMF(object):
 #        if password == '':
         user = 'editor'
         password = open(pw_filename, "r").readlines()[0].strip()
-        clogger.debug("Trying name:{0} and password:{1}".format(user,password))
+        if verbose>0:
+            clogger.debug("Trying name:{0} and password:{1}".format(user,password))
         self._user = user
         self._password = password
         if pymongo.version_tuple[0] < 3:
@@ -461,7 +462,7 @@ class MongoMF(object):
         fs = gridfs.GridFS(self._mongodb,col)
         return loads(fs.get(fid).read())
 
-    def delete_from_from_mongo(self,col,fid):
+    def delete_from_mongo(self,col,fid):
         r"""
         Remove a file from gridfs collection col and id nr. fid.
 
