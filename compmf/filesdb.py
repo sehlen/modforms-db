@@ -419,7 +419,7 @@ class FilenamesMFDB(Filenames):
                     if 'M-meta.sobj' in fileList and 'M.sobj' not in fileList:
                         self.delete_file("{0}/M-meta.sobj".format(dirName))
                     if 'decomp-meta.sobj' in fileList and 'decomp.sobj' not in fileList:
-                        self.delete_file("{0}/M-meta.sobj".format(dirName))                    
+                        self.delete_file("{0}/decomp-meta.sobj".format(dirName))                    
                     if 'ambient.sobj' in fileList:
                         # the ambient space is computed
                         yield (N,k,i,0,0)
