@@ -882,7 +882,6 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     n_stop = int(fname.split("-")[-1].split(".")[0])
                     n_start = int(fname.split("-")[-2])
                     #if numap_start == 0:
-                    print 
                     aplist_files.append((n_start,n_stop,fname))
             # at the moment we don't load files that start with n > 0
         if aplist_files == []:
