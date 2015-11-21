@@ -935,8 +935,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),nn))
                 
                 ## Rename the file:
-                new_prec = nth_prime(E.nrows()+1)-1
-                apfname = self.factor_aplist(N,k,i,d,False,0,new_prec)
+                new_n_start = n_start # assuming this is correct... 
+                new_n_stop = nth_prime(E.nrows()+1+prime_pi(n_start))-1
+                apfname = self.factor_aplist(N,k,i,d,False,n_start,new_prec)
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
                 new_metaname = self.meta(apfname)
@@ -944,8 +945,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 self.delete_file("{0}/{1}".format(factor_dir,metaname))
                 self.delete_file("{0}/{1}".format(factor_dir,fname))
                 metaname = new_metaname.split("/")[-1]
-                if numc > new_prec:
-                    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
+                #if nnnumc > new_prec:
+                #    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
             raise ValueError,"Could not load coefficients: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
         try: 
