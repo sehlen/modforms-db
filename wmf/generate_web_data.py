@@ -1022,7 +1022,10 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
             ok = False
         if ok:
-            a2 = abs(c[0])/RR(2)**(RR(k-1)/RR(2))
+            if c[0].parent() is QQ:
+                a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
+            else:
+                a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
             if a2 > 2.0:
                 ok = False
         if not ok:
