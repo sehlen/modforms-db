@@ -883,7 +883,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 clogger.debug("l={0}".format(l))                
                 if len(l)>=3:
                     n_start = int(l[1])
-                    n_stop  = int(l[2])
+                    n_stop = l[2].replace(".sobj","")
+                    n_stop  = int(n_stop)
                 else:
                     continue
                 if "meta" in fname:
