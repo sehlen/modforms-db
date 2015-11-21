@@ -1062,7 +1062,9 @@ def fix_pprec_to_nmax(D):
 def fix_pprec_parallel(fid):
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
-    r = D._aps.find_one({'_id':fid})
+    r = D._aps.find_one({'_id':fid,'pmax':{"$exists":False}})
+    if r is None:
+        return 
     try:
         E,v = D.load_from_mongo('ap',fid)
         c = multiply_mat_vec(E,v)
