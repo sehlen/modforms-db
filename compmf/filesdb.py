@@ -868,6 +868,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         clogger.debug("Load_aps of {0} at {1} for nrange={2}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False),nrange))
         F = self.load_factor(N, k, i, d, ambient)
         factor_dir = self.factor(N, k, i, d, makedir=False)
+        clogger.debug("here fd={0}".format(fator_dir))
         try:
             tmp = self.listdir(factor_dir)
         except OSError:
