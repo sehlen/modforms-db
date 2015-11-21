@@ -1023,9 +1023,9 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             ok = False
         if ok:
             if c[0].parent() is QQ:
-                a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
+                a2 = abs(c[0])/2.0**(RR(k-1)/RR(2))
             else:
-                a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
+                a2 = abs(c[0].complex_embedding())/2.0**(RR(k-1)/RR(2))
             if a2 > 2.0:
                 ok = False
         if not ok:

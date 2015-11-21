@@ -945,7 +945,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 ## Rename the file:
                 new_n_start = n_start # assuming this is correct... 
                 new_n_stop = nth_prime(E.nrows()+1+prime_pi(n_start))-1
-                apfname = self.factor_aplist(N,k,i,d,False,n_start,new_prec)
+                apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
                 new_metaname = self.meta(apfname)
