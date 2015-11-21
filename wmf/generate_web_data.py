@@ -990,10 +990,11 @@ def add_name_to_AL(D):
 
 def check_files_of_coefficients(D):
     args=[]
-    for N,k,ci,d,maxn in D._db.known(""):
+    for N,k,ci,nd,maxn in D._db.known(""):
         if maxn == 0:
             continue
-        args.append((N,k,ci,d,maxn))
+        for d in range(nd):
+            args.append((N,k,ci,d,maxn))
     l = check_coefficients_one_record(args)
     return list(l)
 
