@@ -877,13 +877,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         for fname in tmp:
             if "aplist" in fname:
                 clogger.debug("fname={0}".format(fname))
-                fname=fname.replace(".sobj","")
-                fname=fname.replace("aplist-","")
+                #fname=fname.replace(".sobj","")
+                #fname=fname.replace("aplist-","")
                 l = fname.split("-")
                 clogger.debug("l={0}".format(l))                
-                if len(l)>=2:
-                    n_start = int(l[0])
-                    n_stop  = int(l[1])
+                if len(l)>=3:
+                    n_start = int(l[1])
+                    n_stop  = int(l[2])
                 else:
                     continue
                 if "meta" in fname:
