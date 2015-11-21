@@ -1052,15 +1052,29 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             
 
 
-def fix_pprec_to_nmax(D):
+def fix_pprec_to_nmax(D,ncpus=1):
     args = []
     for r in D._aps.find({'pmax':{"$exists":False}}).sort([('N',int(1))]):
         args.append(r['_id'])
-    l = fix_pprec_parallel(args)
+    if ncpus>=32:
+        l = fix_pprec_parallel_32(args)
+    elif ncpus>=8:
+        l = fix_pprec_parallel_8(args)
+    else:
+        l = fix_pprec_parallel_one(args)
     return list(l)
 
+@parallel(ncpus=8)
+def fix_pprec_parallel_8(fid):
+    return fix_pprec_parallel_8(fid)
+
+
 @parallel(ncpus=32)
-def fix_pprec_parallel(fid):
+def fix_pprec_parallel_32(fid):
+    return fix_pprec_parallel_32(fid)
+
+@parallel(ncpus=1)
+def fix_pprec_parallel_one(fid):
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
     r = D._aps.find_one({'_id':fid,'pmax':{"$exists":False}})
@@ -1088,6 +1102,6 @@ def fix_pprec_parallel(fid):
     nmax = int(nth_prime(n+1)-1)
     nmin = int(0)
     nn =nth_prime(n)
-    wmf_logger.debug("Updating r={0} from pprec:{1} to nmanx:{2}".format(r['hecke_orbit_label'],pprec,nmax))
+    wmf_logger.debug("Updating r={0} from pprec:{1} to nmin:{2} and nmax={3}".format(r['hecke_orbit_label'],pprec,nmin,nmax))
     D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'prec':''}})
         
