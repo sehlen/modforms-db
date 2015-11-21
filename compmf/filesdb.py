@@ -875,18 +875,19 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             return None,None,None
         aplist_files = []; aplist_meta_files = []
         for fname in tmp:
-            fname=fname.replace(".sobj","")
             if "aplist" in fname:
+                clogger.debug("fname={0}".format(fname))
+                fname=fname.replace(".sobj","")
                 fname=fname.replace("aplist-","")
+                l = fname.split("-")
+                if len(l)>=2:
+                    n_start = int(l[0])
+                    n_stop  = int(l[1])
+                else:
+                    continue
                 if "meta" in fname:
-                    fname = fname.replace("-meta","")
-                    n_start = int(fname.split("-")[0])
-                    n_stop  = int(fname.split("-")[1])
-                    #if numap_start == 0:
                     aplist_meta_files.append((n_start,n_stop,fname))
                 else:
-                    n_start = int(fname.split("-")[0])
-                    n_stop  = int(fname.split("-")[1])
                     #if numap_start == 0:
                     aplist_files.append((n_start,n_stop,fname))
                 clogger.debug("n_start={0}, n_stop={1} fname={2}".format(n_start,n_stop))
