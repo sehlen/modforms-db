@@ -1012,6 +1012,9 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     C = D._mongodb['file_checked']
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     pprecs = deepcopy(a.keys())
+    if pprecs == []:
+        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[]})
+        return 
     for pprec in pprecs:
         E,v = a[pprec][0:2]
         c = multiply_mat_vec(E,v)
