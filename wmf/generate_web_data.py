@@ -1022,14 +1022,15 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
             ok = False
         if ok:
+            p = nth_prime(pprec[0]+1)
             if c[0].parent() is QQ:
-                a2 = abs(c[0])/2.0**(RR(k-1)/RR(2))
+                ap = abs(c[0])/RR(p)**(RR(k-1)/RR(2))
             else:
-                a2 = abs(c[0].complex_embedding())/2.0**(RR(k-1)/RR(2))
-            if a2 > 2.0:
+                ap = abs(c[0].complex_embedding())/RR(p)**(RR(k-1)/RR(2))
+            if ap > 2.0:
                 ok = False
         if not ok:
-            fname = D._db.factor_aplist(N,k,ci,d,0,False,pprec[0],pprec[1])
+            fname = D._db.factor_aplist(N,k,ci,d,False,pprec[0],pprec[1])
             wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
             if dryrun:
                 continue
