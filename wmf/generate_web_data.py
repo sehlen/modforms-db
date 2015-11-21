@@ -1066,12 +1066,12 @@ def fix_pprec_to_nmax(D,ncpus=1):
 
 @parallel(ncpus=8)
 def fix_pprec_parallel_8(fid):
-    return fix_pprec_parallel_8(fid)
+    return fix_pprec_parallel_one(fid)
 
 
 @parallel(ncpus=32)
 def fix_pprec_parallel_32(fid):
-    return fix_pprec_parallel_32(fid)
+    return fix_pprec_parallel_one(fid)
 
 def fix_pprec_parallel_one(fid):
     from sage.all import prime_pi,nth_prime
