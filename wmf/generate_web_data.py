@@ -992,7 +992,7 @@ def check_files_of_coefficients(D):
     args=[]
     C = D._mongodb['file_checked']
     for N,k,ci,nd,maxn in D._db.known(""):
-        s = {'N':N,'k':k,'ci':ci,'nd':nd,'maxn':maxn}
+        s = {'N':N,'k':k,'ci':ci,'d':int(nd-1),'maxn':maxn}
         if C.find(s).count()>0:
             continue
         if maxn == 0:
@@ -1040,7 +1040,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     # insert new with possible smaller precision given
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
-    C.insert({'N':int(N),'k':int(k),'ci':int(ci),'nd':int(nd),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
+    C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
             #D._db.delete_file(apfile)
             
 
