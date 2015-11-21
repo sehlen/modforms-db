@@ -1073,7 +1073,6 @@ def fix_pprec_parallel_8(fid):
 def fix_pprec_parallel_32(fid):
     return fix_pprec_parallel_32(fid)
 
-@parallel(ncpus=1)
 def fix_pprec_parallel_one(fid):
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
