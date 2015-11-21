@@ -990,7 +990,10 @@ def add_name_to_AL(D):
 
 def check_files_of_coefficients(D):
     args=[]
+    C = D._mongodb['file_checked']
     for N,k,ci,nd,maxn in D._db.known(""):
+        if C.find({'N':int(N),'k':int(k),'ci':int(ci),'nd':int(nd),'maxn':int(maxn)}).count()>0:
+            continue
         if maxn == 0:
             continue
         for d in range(nd):
@@ -1005,6 +1008,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     
     """
     D = CompMF(datadir=datadir,host=host,port=port)
+    C = D._mongodb['file_checked']
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     pprecs = deepcopy(a.keys())
     for pprec in pprecs:
@@ -1035,6 +1039,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     # insert new with possible smaller precision given
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
+    C.insert({'N':int(N),'k':int(k),'ci':int(ci),'nd':int(nd),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
             #D._db.delete_file(apfile)
             
 
