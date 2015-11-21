@@ -988,10 +988,10 @@ def add_name_to_AL(D):
         C.update({'_id':fid},{"$set":{'cchi':int(i)}})
 
 
-def check_files_of_coefficients(D):
+def check_files_of_coefficients(D,s=""):
     args=[]
     C = D._mongodb['file_checked']
-    for N,k,ci,nd,maxn in D._db.known(""):
+    for N,k,ci,nd,maxn in D._db.known(s):
         s = {'N':N,'k':k,'ci':ci,'d':int(nd-1),'maxn':maxn}
         if C.find(s).count()>0:
             continue

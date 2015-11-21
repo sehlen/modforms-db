@@ -868,7 +868,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         clogger.debug("Load_aps of {0} at {1} for nrange={2}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False),nrange))
         F = self.load_factor(N, k, i, d, ambient)
         factor_dir = self.factor(N, k, i, d, makedir=False)
-        clogger.debug("here fd={0}".format(fator_dir))
+        clogger.debug("here fd={0}".format(factor_dir))
         try:
             tmp = self.listdir(factor_dir)
         except OSError:
@@ -889,6 +889,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     n_stop  = int(fname.split("-")[1])
                     #if numap_start == 0:
                     aplist_files.append((n_start,n_stop,fname))
+                clogger.debug("n_start={0}, n_stop={1} fname={2}".format(n_start,n_stop))
             # at the moment we don't load files that start with n > 0
         if aplist_files == []:
             return None,None,None
