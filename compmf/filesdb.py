@@ -891,7 +891,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 else:
                     #if numap_start == 0:
                     aplist_files.append((n_start,n_stop,fname))
-                clogger.debug("n_start={0}, n_stop={1} fname={2}".format(n_start,n_stop))
+                clogger.debug("n_start={0}, n_stop={1} fname={2}".format(n_start,n_stop,fname))
             # at the moment we don't load files that start with n > 0
         if aplist_files == []:
             return None,None,None
