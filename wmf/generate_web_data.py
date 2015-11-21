@@ -1056,7 +1056,8 @@ def fix_pprec_parallel(fid):
         c = multiply_mat_vec(E,v)
     except Exception as e:
         wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
-        D.delete_from_mongo('ap',r['_id'])
+        if not 'out of memory' in str(e):
+            D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v:{0}".format(e)
     
     # first check that it satisfies Ramanujan...
