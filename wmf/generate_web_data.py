@@ -1029,7 +1029,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             if a2 > 2.0:
                 ok = False
         if not ok:
-            fname = D._db.factor_aplist(N,k,i,d,0,False,pprec[0],pprec[1])
+            fname = D._db.factor_aplist(N,k,ci,d,0,False,pprec[0],pprec[1])
             wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
             if dryrun:
                 continue
