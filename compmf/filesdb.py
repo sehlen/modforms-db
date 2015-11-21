@@ -880,6 +880,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 fname=fname.replace(".sobj","")
                 fname=fname.replace("aplist-","")
                 l = fname.split("-")
+                clogger.debug("l={0}".format(l))                
                 if len(l)>=2:
                     n_start = int(l[0])
                     n_stop  = int(l[1])
