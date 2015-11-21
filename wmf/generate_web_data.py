@@ -1011,14 +1011,14 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         E,v = a[pprec][0:2]
         c = multiply_mat_vec(E,v)
         ok = True
-        if len(c) <> prime_pi(pprec):
+        if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
             ok = False
         if ok:
             a2 = abs(c[0])/RR(2)**(RR(k-1)/RR(2))
             if a2 > 2.0:
                 ok = False
         if not ok:
-            fname = D._db.factor_aplist(N,k,i,d,0,pprec)
+            fname = D._db.factor_aplist(N,k,i,d,0,False,pprec[0],pprec[1])
             wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
             if dryrun:
                 continue
