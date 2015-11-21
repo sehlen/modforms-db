@@ -992,7 +992,8 @@ def check_files_of_coefficients(D):
     args=[]
     C = D._mongodb['file_checked']
     for N,k,ci,nd,maxn in D._db.known(""):
-        if C.find({'N':int(N),'k':int(k),'ci':int(ci),'nd':int(nd),'maxn':int(maxn)}).count()>0:
+        s = {'N':N,'k':k,'ci':ci,'nd':nd,'maxn':maxn})
+        if C.find(s).count()>0:
             continue
         if maxn == 0:
             continue
