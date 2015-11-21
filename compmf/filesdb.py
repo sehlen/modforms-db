@@ -874,15 +874,18 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             return None,None,None
         aplist_files = []; aplist_meta_files = []
         for fname in tmp:
+            fname=fname.replace(".sobj","")
             if "aplist" in fname:
+                fname=fname.replace("aplist-","")
                 if "meta" in fname:
-                    n_stop = int(fname.split("-")[-2])
-                    n_start = int(fname.split("-")[-3])
+                    fname = fname.replace("-meta","")
+                    n_start = int(fname.split("-")[0])
+                    n_stop  = int(fname.split("-")[1])
                     #if numap_start == 0:
                     aplist_meta_files.append((n_start,n_stop,fname))
                 else:
-                    n_stop = int(fname.split("-")[-1].split(".")[0])
-                    n_start = int(fname.split("-")[-2])
+                    n_start = int(fname.split("-")[0])
+                    n_stop  = int(fname.split("-")[1])
                     #if numap_start == 0:
                     aplist_files.append((n_start,n_stop,fname))
             # at the moment we don't load files that start with n > 0
