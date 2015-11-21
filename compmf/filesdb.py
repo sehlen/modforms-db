@@ -924,8 +924,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         else: 
             raise ValueError,"Need a range of integers in nrange. Got:{0}".format(nrange)
         metaname = fname.split(".")[0]+"-meta.sobj"
-        clogger.debug("fname={0}".format(fname))
-        clogger.debug("metaname={0}".format(metaname))
+        #clogger.debug("fname={0}".format(fname))
+        #clogger.debug("metaname={0}".format(metaname))
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
             if isinstance(E,tuple):

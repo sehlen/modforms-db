@@ -24,7 +24,7 @@ AUTHORS:
 
 import pymongo
 import bson
-from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF
 from compmf.utils import multiply_mat_vec
@@ -1004,7 +1004,6 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     Check coefficients in the file for one record
     
     """
-    from sage.all import deepcopy
     D = CompMF(datadir=datadir,host=host,port=port)
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     pprecs = deepcopy(a.keys())
@@ -1012,7 +1011,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         E,v = a[pprec][0:2]
         c = multiply_mat_vec(E,v)
         ok = True
-        if len(c) <> prime_p(pprec):
+        if len(c) <> prime_pi(pprec):
             ok = False
         if ok:
             a2 = abs(c[0])/RR(2)**(RR(k-1)/RR(2))
