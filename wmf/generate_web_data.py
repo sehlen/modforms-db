@@ -1054,7 +1054,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
 
 def fix_pprec_to_nmax(D):
     args = []
-    for r in D._aps.find({'pmax':{"$exists":False}}):
+    for r in D._aps.find({'pmax':{"$exists":False}}).sort([('N',int(1))]):
         args.append(r['_id'])
     l = fix_pprec_parallel(args)
     return list(l)
