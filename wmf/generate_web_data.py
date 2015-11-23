@@ -1102,5 +1102,6 @@ def fix_pprec_parallel_one(fid):
     nmin = int(0)
     nn =nth_prime(n)
     wmf_logger.debug("Updating r={0} with id={4} from pprec:{1} to nmin:{2} and nmax={3}".format(r['hecke_orbit_label'],pprec,nmin,nmax,r['_id']))
-    res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)},"$unset":{'prec':''}})
+    res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})
+    #,"$unset":{'prec':''}})
     wmf_logger.debug("updated: {0}".format(res))
