@@ -85,13 +85,14 @@ def param_from_label(lab):
 
 
 def multiply_mat_vec(E,v):
-    if not E.base_ring() is QQ:
-        EE = convert_matrix_to_extension_fld(E,v.base_ring())
-        return EE*v
-    else:
-        return E*v
+    EE = convert_matrix_to_extension_fld(E,v.base_ring())
+    return EE*v
 
 def convert_matrix_to_extension_fld(E,K):
+    if E.base_ring() == K:
+        return E
+    if E.base_ring() == QQ:
+        return E.change_ring(K)
     EE=Matrix(K,E.nrows(), E.ncols())
     z = K(E.base_ring().gen())
     x = E[0,0].polynomial().parent().gen()

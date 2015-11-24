@@ -1402,7 +1402,7 @@ class CompMF(MongoMF):
                         break
                     else:
                         insert_aps_into_mongodb(aps)
-            if aps_inf_file == 0:
+            if aps_in_file == 0:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
                 return aps
         elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
