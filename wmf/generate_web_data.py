@@ -1242,8 +1242,8 @@ def change_base_ring_one(fid):
             else:
                 wmf_logger.debug("Could not change base ring  for {0}".format(r['hecke_orbit_label']))
     except Exception as e:
-        wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
-        #if not 'out of memory' in str(e):
-        #    D.delete_from_mongo('ap',r['_id'])
+        if not 'out of memory' in str(e):
+            wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
+            #    D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v for {0}. Error:{1}".format(r['hecke_orbit_label'],e)
     return r['hecke_orbit_label']

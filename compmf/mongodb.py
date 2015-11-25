@@ -1307,7 +1307,7 @@ class CompMF(MongoMF):
                     E,v = E
                 ### convert base ring of E
                 E = convert_matrix_to_extension_fld(E,v.base_ring())
-                clogger.debug("E={0}".format(E))
+                clogger.debug("E= matrix over {0} of size {1} x {0}".format(E.base_ring(),E.nrows(),E.ncols()))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,ci).split("/")[-1])
