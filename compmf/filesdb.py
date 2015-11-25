@@ -917,15 +917,15 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         elif isinstance(nrange,(tuple,list)):
             ok = False
             n_min_wanted,n_max_wanted = nrange
-            n_start,n_stop,fname = aplist_files[0]
-            for n1,n2,c in aplist_files[1:]:
+            #n_start,n_stop,fname = aplist_files[0]
+            for n1,n2,c in aplist_files:
                 clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))                 
                 if n_min_wanted >= n1 and n_max_wanted <= n2:
                     n_start,n_stop,fname = n1,n2,c
                     ok = True
                     break
             if not ok:
-                clogger.debug("want numc={0} and have: {1}".format(n_min_wanted,n_max_wanted,n_start,n_stop))
+                clogger.debug("want numc={0}--{1} and have: {2}--{3}".format(n_min_wanted,n_max_wanted,n_start,n_stop))
                 raise ValueError,"We do not have {0}-{1} coefficients!".format(n_min_wanted,n_max_wanted)
 
         else: 
