@@ -1002,7 +1002,10 @@ def add_name_to_AL(D):
 def check_files_of_coefficients(D,s=""):
     args=[]
     C = D._mongodb['file_checked']
+    l = []
     for N,k,ci,nd,maxn in D._db.known(s):
+        l.append((N,k,ci,nd,maxn))
+    for N,k,ci,nd,maxn in l:
         s = {'N':N,'k':k,'ci':ci,'d':{"$in": [int(nd),int(nd-1)]},'maxn':maxn}
         #wmf_logger.debug("search for {0}".format(s))
         if C.find(s).count()>0:
