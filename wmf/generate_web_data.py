@@ -1004,6 +1004,7 @@ def check_files_of_coefficients(D,s=""):
     C = D._mongodb['file_checked']
     for N,k,ci,nd,maxn in D._db.known(s):
         s = {'N':N,'k':k,'ci':ci,'d':{"$in": [int(nd),int(nd-1)]},'maxn':maxn}
+        wmf_logger.debug("search for {0}".format(s))
         if C.find(s).count()>0:
             continue
         if maxn == 0:
