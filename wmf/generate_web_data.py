@@ -1103,16 +1103,19 @@ def fix_pprec_parallel_one(fid,verbose=0):
             D.delete_from_mongo('ap',r['_id'])
             # Insert an updated version of E with changed base ring
             fs_ap = gridfs.GridFS(D._mongodb, 'ap')
-            t = fs_ap.put(dumps( (EE,v)),filename=r['filename'],
-                          N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
-                          character_galois_orbit=r['character_galois_orbit'],
-                          conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
-                          newform=r['newform'],
-                          hecke_orbit_label=r['hecke_orbit_label'],
-                          nmin=r['nmin'],nmax=r['nmax'],
-                          cputime = r['cputime'],
-                          sage_version = r['sage_version'],
-                          ambient_id = r['ambient_id'])
+            rr = deepcopy(r)
+            rr.pop('_id')
+            t = fs_ap.put(dumps( (EE,v)),**rr)
+            # filename=r['filename'],
+            #               N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
+            #               character_galois_orbit=r['character_galois_orbit'],
+            #               conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
+            #               newform=r['newform'],
+            #               hecke_orbit_label=r['hecke_orbit_label'],
+            #               nmin=r['nmin'],nmax=r['nmax'],
+            #               cputime = r['cputime'],
+            #               sage_version = r['sage_version'],
+            #               ambient_id = r['ambient_id'])
             if t is not None:
                 # delete old record
                 D.delete_from_mongo('ap',r['_id'])
@@ -1181,31 +1184,38 @@ def change_base_ring_one(fid):
     C = D._mongodb['converted_E']
     if r is None:
         return
-    if not C.find_one({'hecke_orbit_label':r['hecke_orbit_label']}) is None:
+    if not C.find_one({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']}) is None:
         return
     wmf_logger.debug("want to change base ring for {0}".format(r['hecke_orbit_label']))
     try:
         E,v = D.load_from_mongo('ap',fid)
-        if E.base_ring() <> v.base_ring():
+        if E.base_ring() == v.base_ring():
+            C.insert({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']})
+        else:
             EE = convert_matrix_to_extension_fld(E,v.base_ring())
             D.delete_from_mongo('ap',r['_id'])
             # Insert an updated version of E with changed base ring
             fs_ap = gridfs.GridFS(D._mongodb, 'ap')
-            t = fs_ap.put(dumps( (EE,v)),filename=r['filename'],
-                          N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
-                          character_galois_orbit=r['character_galois_orbit'],
-                          conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
-                          newform=r['newform'],
-                          hecke_orbit_label=r['hecke_orbit_label'],
-                          nmin=r['nmin'],nmax=r['nmax'],
-                          cputime = r['cputime'],
-                          sage_version = r['sage_version'],
-                          ambient_id = r['ambient_id'])
+            rr = deepcopy(r)
+            rr.pop('_id')
+            t = fs_ap.put(dumps( (EE,v)),**rr)
+                          # N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
+                          # character_galois_orbit=r['character_galois_orbit'],
+                          # conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
+                          # newform=r['newform'],
+                          # hecke_orbit_label=r['hecke_orbit_label'],
+                          
+                          # nmin=r['nmin'],nmax=r['nmax'],
+                          # cputime = r['cputime'],
+                          # sage_version = r['sage_version'],
+                          # ambient_id = r['ambient_id'])
             if t is not None:
                 # delete old record
                 D.delete_from_mongo('ap',r['_id'])
-                C.insert({'hecke_orbit_label':r['hecke_orbit_label']})
+                C.insert({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']})
                 wmf_logger.debug("did change base ring for {0}".format(r['hecke_orbit_label']))
+            else:
+                wmf_logger.debug("Could not change base ring  for {0}".format(r['hecke_orbit_label']))
     except Exception as e:
         wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
         #if not 'out of memory' in str(e):
