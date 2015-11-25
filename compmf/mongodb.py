@@ -1391,6 +1391,7 @@ class CompMF(MongoMF):
         elif len(aps_in_mongo) < num_factors:
             aps = {}          
             if aps_in_file == 0:
+                clogger.debug("Compute={0}".format(compute))
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
