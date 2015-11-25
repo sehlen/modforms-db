@@ -806,8 +806,8 @@ def fix_orbit_labels_ap(D):
         N = r.get('N'); k=r.get('k'); ci=r.get('cchi')
         on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
         D._aps.update({'_id':r['_id']},{"$set":{'conrey_galois_orbit_number':int(on)}})
-        label = (r.get('hecke_orbit_label')
-        wmf_logger.debug("{0}".format))
+        label = r.get('hecke_orbit_label')
+        wmf_logger.debug("{0}".format(label))
 
         
 def fix_spaces(D):
