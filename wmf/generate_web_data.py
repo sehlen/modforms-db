@@ -1155,6 +1155,7 @@ def fix_pprec_parallel_one(fid,verbose=0):
 
 
 def change_base_ring(D,nmax=None,nlimit=None,ncpus=1,verbose=0):
+    from sage.all import Integer
     args = []
     C = D._mongodb['converted_E']
     s = {}
