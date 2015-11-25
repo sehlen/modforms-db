@@ -1161,6 +1161,7 @@ def change_base_ring(D,nmax=10,nlimit=None,ncpus=1,verbose=0):
         elif C.find({'hecke_orbit_label':label}).count()>0:
             continue
         args.append(r['_id'])
+    wmf_logger.debug("Will change ring for {0} records!".format(len(args)))
     if ncpus>=32:
         return list(change_base_ring_32(args))
     elif ncpus>=16:
