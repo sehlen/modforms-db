@@ -1010,6 +1010,7 @@ def check_files_of_coefficients(D,s=""):
             continue
         for d in range(nd):
             args.append((N,k,ci,d,maxn))
+    wmf_logger.debug("Will check {0} records!".format(len(args)))
     l = check_coefficients_one_record(args)
     return list(l)
 
@@ -1022,6 +1023,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     D = CompMF(datadir=datadir,host=host,port=port)
     C = D._mongodb['file_checked']
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
+    wmf_logger.debug("Checking {0}".format((N,k,ci,d)))
     pprecs = deepcopy(a.keys())
     if pprecs == []:
         C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[]})
