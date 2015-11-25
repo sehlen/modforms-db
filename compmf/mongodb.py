@@ -1398,6 +1398,7 @@ class CompMF(MongoMF):
                 aps = self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
             clogger.debug("aps={0} num_Facts={1}".format(aps,num_factors))
             if aps is None or aps is {}:
+                clogger.debug("here")
                 for d in range(num_factors):
                     clogger.debug("Loading d={0}".format(d))
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
