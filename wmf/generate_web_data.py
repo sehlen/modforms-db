@@ -1154,7 +1154,7 @@ def fix_pprec_parallel_one(fid,verbose=0):
     #wmf_logger.debug("updated: {0}".format(res))
 
 
-def change_base_ring(D,nmax=10,nlimit=None,nmax=None,ncpus=1,verbose=0):
+def change_base_ring(D,nmax=None,nlimit=None,ncpus=1,verbose=0):
     args = []
     C = D._mongodb['converted_E']
     s = {}
