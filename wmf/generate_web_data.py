@@ -1147,11 +1147,15 @@ def fix_pprec_parallel_one(fid,verbose=0):
     #wmf_logger.debug("updated: {0}".format(res))
 
 
-def change_base_ring(D,nmax=10,nlimit=10,ncpus=1,verbose=0):
+def change_base_ring(D,nmax=10,nlimit=None,ncpus=1,verbose=0):
     args = []
     C = D._mongodb['converted_E']
+    #if nlimit is None:
     for r in D._aps.find().sort([('N',int(1)),('k',int(1))]).limit(int(nlimit)):
-        if C.find({'hecke_orbit_label':r['hecke_orbit_label']}).count()>0:
+        label = r.get('hecke_orbit_label')
+        if label is None:
+            wmf_logger.debug("No label for r={0}".format(r))
+        elif C.find({'hecke_orbit_label':label}).count()>0:
             continue
         args.append(r['_id'])
     if ncpus>=32:
