@@ -1158,6 +1158,7 @@ def change_base_ring(D,nmax=None,nlimit=None,ncpus=1,verbose=0):
     from sage.all import Integer
     args = []
     C = D._mongodb['converted_E']
+    C1 = D._mongodb['not_converted_E']    
     s = {}
     if isinstance(nmax,(int,Integer)):
         s['N']={"$lt":int(nmax)}
@@ -1171,6 +1172,7 @@ def change_base_ring(D,nmax=None,nlimit=None,ncpus=1,verbose=0):
             wmf_logger.debug("No label for r={0}".format(r))
         elif C.find({'hecke_orbit_label':label}).count()>0:
             continue
+        C1.insert({'hecke_orbit_label':label})
         args.append(r['_id'])
     wmf_logger.debug("Will change ring for {0} records!".format(len(args)))
     if ncpus>=32:
@@ -1207,6 +1209,7 @@ def change_base_ring_one(fid):
     s = {'_id':fid}
     r = D._aps.find_one(s)
     C = D._mongodb['converted_E']
+    C1 = D._mongodb['not_converted_E']
     if r is None:
         return
     if not C.find_one({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']}) is None:
@@ -1238,6 +1241,7 @@ def change_base_ring_one(fid):
                 # delete old record
                 D.delete_from_mongo('ap',r['_id'])
                 C.insert({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']})
+                C1.remove({'hecke_orbit_label':r['hecke_orbit_label']})
                 wmf_logger.debug("did change base ring for {0}".format(r['hecke_orbit_label']))
             else:
                 wmf_logger.debug("Could not change base ring  for {0}".format(r['hecke_orbit_label']))
