@@ -1396,14 +1396,10 @@ class CompMF(MongoMF):
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
                 aps = self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
-            clogger.debug("aps={0} num_Facts={1}".format(aps,num_factors))
-            if aps is None or aps is {}:
-                clogger.debug("here")
+            if aps is None or aps == {}:
                 for d in range(num_factors):
-                    clogger.debug("Loading d={0}".format(d))
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
-                    clogger.debug("aps={0}".format(aps))
-                    if aps is {} or aps is None:
+                    if aps == {} or aps is None:
                         aps_in_file = 0
                         break
                     else:
