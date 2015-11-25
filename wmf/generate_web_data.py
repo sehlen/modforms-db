@@ -806,7 +806,8 @@ def fix_orbit_labels_ap(D):
         N = r.get('N'); k=r.get('k'); ci=r.get('cchi')
         on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
         D._aps.update({'_id':r['_id']},{"$set":{'conrey_galois_orbit_number':int(on)}})
-        wmf_logger.debug("{0}".format(r['hecke_orbit_label']))
+        label = (r.get('hecke_orbit_label')
+        wmf_logger.debug("{0}".format))
 
         
 def fix_spaces(D):
@@ -1160,8 +1161,10 @@ def change_base_ring(D,nmax=10,nlimit=None,ncpus=1,verbose=0):
         args.append(r['_id'])
     if ncpus>=32:
         return list(change_base_ring_32(args))
+    elif ncpus>=16:
+        return list(change_base_ring_16(args))
     elif ncpus>=8:
-        return list(change_base_ring_8(args))
+        return list(change_base_ring_8(args))    
     else:
         l = []
         for fid in args:
@@ -1174,6 +1177,10 @@ def change_base_ring_4(fid):
 
 @parallel(ncpus=8)
 def change_base_ring_8(fid):
+    return change_base_ring_one(fid)
+
+@parallel(ncpus=16)
+def change_base_ring_16(fid):
     return change_base_ring_one(fid)
 
 @parallel(ncpus=32)

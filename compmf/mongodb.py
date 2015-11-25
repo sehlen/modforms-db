@@ -52,7 +52,7 @@ from compmf.character_conversions import (
     conrey_character_from_number
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
-from utils import are_compatible,multiply_mat_vec
+from utils import are_compatible,multiply_mat_vec,convert_matrix_to_extension_fld
 from compmf import clogger,data_record_checked_and_complete
 
 class MongoMF(object):
@@ -1305,6 +1305,8 @@ class CompMF(MongoMF):
                 E,v,meta = value
                 if isinstance(E,tuple):
                     E,v = E
+                ### convert base ring of E
+                E = convert_matrix_to_extension_fld(E,v.base_ring())
                 clogger.debug("E={0}".format(E))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
