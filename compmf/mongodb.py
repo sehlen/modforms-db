@@ -1391,7 +1391,6 @@ class CompMF(MongoMF):
         elif len(aps_in_mongo) < num_factors:
             aps = {}          
             if aps_in_file == 0:
-                clogger.debug("Compute={0}".format(compute))
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
@@ -1399,7 +1398,9 @@ class CompMF(MongoMF):
                 aps = self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
             if aps is None or aps is {}:
                 for d in range(num_factors):
+                    clogger.debug("Loading d={0}".format(d))
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
+                    clogger.debug("aps={0}".format(aps))
                     if aps is {} or aps is None:
                         aps_in_file = 0
                         break
