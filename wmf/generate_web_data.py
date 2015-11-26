@@ -1265,3 +1265,13 @@ def change_base_ring_one(fid):
             #    D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v for {0}. Error:{1}".format(r['hecke_orbit_label'],e)
     return r['hecke_orbit_label']
+
+def clear_checked(D):
+    for r in D._mongodb['file_checked'].find({'checked':True}):
+        N = int(r['N']); k= int(r['k']); ci=int(r['ci']); d=int(r['d'])
+        maxn=int(r['maxn']); pprec=r['pprec']
+        s = deepcopy(r)
+        s.pop('_id');
+        s['checked']=False
+        D._mongodb['file_checked'].delete_many(s)
+        
