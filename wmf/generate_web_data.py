@@ -1168,14 +1168,14 @@ def fix_pprec_parallel_one(fid,verbose=0):
     #wmf_logger.debug("updated: {0}".format(res))
 
 
-def change_base_ring(D,nmax=None,nlimit=None,ncpus=1,verbose=0):
+def change_base_ring(D,nmax=None,nmin=0,nlimit=None,ncpus=1,verbose=0):
     from sage.all import Integer
     args = []
     C = D._mongodb['converted_E']
     C1 = D._mongodb['not_converted_E']    
     s = {}
     if isinstance(nmax,(int,Integer)):
-        s['N']={"$lt":int(nmax)}
+        s['N']={"$lt":int(nmax),"$gt":int(nmin)}        
     if nlimit is None:
         q = D._aps.find(s).sort([('N',int(1)),('k',int(1))])
     else:
