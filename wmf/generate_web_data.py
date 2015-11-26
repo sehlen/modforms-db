@@ -1273,5 +1273,5 @@ def clear_checked(D):
         s = deepcopy(r)
         s.pop('_id');
         s['checked']=False
-        D._mongodb['file_checked'].delete_many(s)
+        D._mongodb['file_checked'].remove(s)
         
