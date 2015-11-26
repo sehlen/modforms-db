@@ -1997,7 +1997,7 @@ class CompMF(MongoMF):
                 continue
             conrey_i = conrey_eps.number()
             #clogger.debug("eps={0}".format(eps))
-            NN,j = conrey_character_number_to_conrey_galois_orbit_number(N,conrey_i)
+            #NN,j = conrey_character_number_to_conrey_galois_orbit_number(N,conrey_i)
             #NN,j = sage_character_to_conrey_galois_orbit_number(eps)
             #if j == i:
             #    clogger.debug("File {0} is ok!".format(mname))
@@ -2007,8 +2007,8 @@ class CompMF(MongoMF):
 #            clogger.debug("Sage eps.values:{0}".format(eps.values()))
 #            clogger.debug("Conrey eps.values:{0}".format(conrey_eps.values()))
             
-            mnamenew = self._db.ambient(N,k,j)
-            snamenew = self._db.space(N,k,j)
+            mnamenew = self._db.ambient(N,k,conrey_i)
+            snamenew = self._db.space(N,k,conrey_i)
             snamenew = snamenew+"-c"
             t = (int(N),int(k),int(conrey_i))
             if modsym['space'] <> t:
