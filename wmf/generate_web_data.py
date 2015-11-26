@@ -1013,13 +1013,14 @@ def check_files_of_coefficients(D,s=""):
     wmf_logger.debug("l has {0} elements".format(len(l)))
     for N,k,ci,nd,maxn in l:
         #s = {'N':N,'k':k,'ci':ci,'d':{"$in": [int(nd),int(nd-1)]},'maxn':maxn}
-        s = {'N':N,'k':k,'ci':ci,'d':int(nd-1),'maxn':maxn,'checked':True}        
         #wmf_logger.debug("search for {0}".format(s))
-        if C.find(s).count()>0:
-            continue
-        if maxn == 0:
+        #    continue
+        if maxn == 0 or nd==0:
             continue
         for d in range(nd):
+            s = {'N':N,'k':k,'ci':ci,'d':int(d),'maxn':maxn,'checked':True}        
+            if C.find(s).count()>0:
+                continue
             args.append((N,k,ci,d,maxn))
     wmf_logger.debug("Will check {0} records!".format(len(args)))
     l = check_coefficients_one_record(args)
@@ -1072,8 +1073,9 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
         s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn)}
-        r = C.find_one(s)
-        if not r is None:
+        q = C.find(s)
+        if q.count()>0:
+            for r in q:
             C.update({'_id':r['_id']},{"$set":{'checked':True,'pprec':[int(pprec[0]),int(pprec[1])]}})
         else:
             C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True})
