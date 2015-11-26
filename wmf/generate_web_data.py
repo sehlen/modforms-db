@@ -1037,7 +1037,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     wmf_logger.debug("Checking {0}".format((N,k,ci,d)))
     pprecs = deepcopy(a.keys())
     if pprecs == []:
-        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[]})
+        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[],'checked':True})
         return 
     for pprec in pprecs:
         E,v = a[pprec][0:2]
@@ -1071,7 +1071,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     # insert new with possible smaller precision given
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
-        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
+        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True})
             #D._db.delete_file(apfile)
             
 
