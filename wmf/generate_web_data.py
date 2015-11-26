@@ -1005,7 +1005,7 @@ def check_files_of_coefficients(D,s=""):
     l = []
     wmf_logger.debug("s={0}".format(s))
     if s <> "":
-        s + = " AND newforms > 0"
+        s += " AND newforms > 0"
     else:
         s = "newforms > 0"
     for N,k,ci,nd,maxn in D._db.known(s):
