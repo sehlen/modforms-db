@@ -1076,7 +1076,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         q = C.find(s)
         if q.count()>0:
             for r in q:
-            C.update({'_id':r['_id']},{"$set":{'checked':True,'pprec':[int(pprec[0]),int(pprec[1])]}})
+                C.update({'_id':r['_id']},{"$set":{'checked':True,'pprec':[int(pprec[0]),int(pprec[1])]}})
         else:
             C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True})
             #D._db.delete_file(apfile)
