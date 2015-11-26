@@ -1004,11 +1004,16 @@ def check_files_of_coefficients(D,s=""):
     C = D._mongodb['file_checked']
     l = []
     wmf_logger.debug("s={0}".format(s))
+    if s <> "":
+        s + = " AND newforms > 0"
+    else:
+        s = "newforms > 0"
     for N,k,ci,nd,maxn in D._db.known(s):
         l.append((N,k,ci,nd,maxn))
     wmf_logger.debug("l has {0} elements".format(len(l)))
     for N,k,ci,nd,maxn in l:
-        s = {'N':N,'k':k,'ci':ci,'d':{"$in": [int(nd),int(nd-1)]},'maxn':maxn}
+        #s = {'N':N,'k':k,'ci':ci,'d':{"$in": [int(nd),int(nd-1)]},'maxn':maxn}
+        s = {'N':N,'k':k,'ci':ci,'d':int(nd-1),'maxn':maxn}        
         #wmf_logger.debug("search for {0}".format(s))
         if C.find(s).count()>0:
             continue
