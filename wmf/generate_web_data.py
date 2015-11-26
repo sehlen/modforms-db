@@ -1221,7 +1221,7 @@ def change_base_ring_one(fid):
             C.insert({'hecke_orbit_label':r['hecke_orbit_label'],'aid':r['_id']})
         else:
             EE = convert_matrix_to_extension_fld(E,v.base_ring())
-            D.delete_from_mongo('ap',r['_id'])
+            #D.delete_from_mongo('ap',r['_id'])
             # Insert an updated version of E with changed base ring
             fs_ap = gridfs.GridFS(D._mongodb, 'ap')
             rr = deepcopy(r)
