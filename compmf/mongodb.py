@@ -1362,6 +1362,9 @@ class CompMF(MongoMF):
                     clogger.debug("val.keys()={0}".format(val.keys()))
                 #N,k,i,d = key
                 #d = key
+                if not hasattr(val,"keys"):
+                    clogger.critical("val={0} is not a dictionary!".format(val))
+                    continue
                 for prec in val.keys():
                     E,v,meta = val[prec]
                     aplist_file = self._db.factor_aplist(N, k, ci, d, False, prec)
