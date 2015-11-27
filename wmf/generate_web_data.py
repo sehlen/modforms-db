@@ -1018,8 +1018,8 @@ def check_files_of_coefficients(D,s=""):
         if maxn == 0 or nd==0:
             continue
         for d in range(nd):
-            s = {'N':N,'k':k,'ci':ci,'d':int(d),'maxn':maxn,'checked':True}        
-            if C.find(s).count()>0:
+            s = {'N':N,'k':k,'ci':ci,'d':int(d),'maxn':maxn,'checked':False}        
+            if C.find(s).count()==0:
                 continue
             args.append((N,k,ci,d,maxn))
     wmf_logger.debug("Will check {0} records!".format(len(args)))
@@ -1186,7 +1186,8 @@ def change_base_ring(D,nmax=None,nmin=0,nlimit=None,ncpus=1,verbose=0):
             wmf_logger.debug("No label for r={0}".format(r))
         elif C.find({'hecke_orbit_label':label}).count()>0:
             continue
-        C1.insert({'hecke_orbit_label':label})
+        if C1.find({'hecke_orbit_label':label}).count()==0:
+            C1.insert({'hecke_orbit_label':label})
         args.append(r['_id'])
     wmf_logger.debug("Will change ring for {0} records!".format(len(args)))
     if ncpus>=32:
