@@ -1037,7 +1037,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     pprecs = deepcopy(a.keys())
     if pprecs == []:
-        C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[],'checked':True})
+        C.update({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[]},{"$set":{'checked':True}})
         return 
     for pprec in pprecs:
         if C.find({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True}).count()>0:
