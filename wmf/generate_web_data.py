@@ -1051,6 +1051,8 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 if dryrun:
                     continue
             D._db.delete_file(fname)
+            
+            continue
         #wmf_logger.debug("E= {0}, v={1}".format(E,v))
         c = multiply_mat_vec(E,v)
         ok = True
@@ -1070,6 +1072,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             if dryrun:
                 continue
             D._db.delete_file(fname)
+            C.remove({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
             pprecs.remove(pprec)
             if pprec==maxn:
                 wmf_logger.critical("Removing from known db also!")
