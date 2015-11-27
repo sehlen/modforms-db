@@ -1045,7 +1045,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         wmf_logger.debug("Checking {0}".format((N,k,ci,d,pprec)))
         
         E,v = a[pprec][0:2]
-        wmf_logger.debug("E= {0}, v={1}".format(E,v)        
+        wmf_logger.debug("E= {0}, v={1}".format(E,v))
         c = multiply_mat_vec(E,v)
         ok = True
         if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
