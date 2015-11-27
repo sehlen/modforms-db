@@ -1043,8 +1043,14 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         if C.find({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True}).count()>0:
             continue
         wmf_logger.debug("Checking {0}".format((N,k,ci,d,pprec)))
-        
         E,v = a[pprec][0:2]
+        if E.ncols() <> len(v):
+            if pprec[0]>0:
+                fname = D._db.factor_aplist(N,k,ci,d,False,pprec[0],pprec[1])
+                wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
+                if dryrun:
+                    continue
+            D._db.delete_file(fname)
         #wmf_logger.debug("E= {0}, v={1}".format(E,v))
         c = multiply_mat_vec(E,v)
         ok = True
