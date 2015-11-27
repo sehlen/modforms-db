@@ -1041,6 +1041,8 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[],'checked':True})
         return 
     for pprec in pprecs:
+        if C.find({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True}).count()>0:
+            continue
         E,v = a[pprec][0:2]
         c = multiply_mat_vec(E,v)
         ok = True
