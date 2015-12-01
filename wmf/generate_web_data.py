@@ -1030,7 +1030,7 @@ def check_files_of_coefficients(D,s="",ncpus=32):
     else:
         l = []
         for r in args:
-            l.append(check_coefficients_one_record(**r)
+            l.append(check_coefficients_one_record(**r))
     return list(l)
 
 @parallel(ncpus=16)
