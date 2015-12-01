@@ -1089,6 +1089,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 D.delete_from_mongo('ap',fid)
                 wmf_logger.debug("Removed record {0} from mongo!".format(r))
             ok = False
+            c = []
         if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
             ok = False
         if ok:
