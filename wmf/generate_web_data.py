@@ -1105,7 +1105,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     # insert new with possible smaller precision given
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
-        s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn)}
+    s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(pprec[1])}
         q = C.find(s)
         wmf_logger.debug("Updating record for s={0}. count={1}".format(s,q.count()))
         if q.count()>0:
@@ -1113,9 +1113,9 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             for r in q:
                 C.update({'_id':r['_id']},new_rec,multi=True)
         else:
-            new_rec = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True} 
+            new_rec = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(pprec[1]),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True} 
             fid = C.insert(new_rec)
-            wmf_logger.debug("inserted new record: {0}".format(fid))
+            wmf_logger.debug("inserted new record: {0}".format(fid))            
             #D._db.delete_file(apfile)
 
 
