@@ -910,7 +910,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     fname = fn                    
         elif nrange == 'all':
             res = {}
-            for n1,n2,c in aplist_files[1:]:
+            for n1,n2,c in aplist_files: #[1:]:
                 clogger.debug("we have a file with n1={0} n2={1} with name ={2}".format(n1,n2,c))
                 res[(n1,n2)]=self.load_aps(N,k,i,d,ambient=ambient,nrange=[n1,n2])
             return res
