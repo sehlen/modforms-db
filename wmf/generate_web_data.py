@@ -1055,7 +1055,10 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     D = CompMF(datadir=datadir,host=host,port=port)
     C = D._mongodb['file_checked']
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
-    pprecs = deepcopy(a.keys())
+    try:
+        pprecs = deepcopy(a.keys())
+    except AttributeError:
+        pprecs=[]
     if pprecs == []:
         C.update({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn)},{"$set":{'checked':True,'pprec':[]}})
         return
