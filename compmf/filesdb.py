@@ -970,6 +970,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             except Exception as e:
                 clogger.critical("Could not load factor: {0}/{1} or /{2}. Error:{3}".format(factor_dir,metaname,metaname1,e.message))
                 meta = {}
+                save(meta,metaname)
         if coeffs:
             return multiply_mat_vec(E,v)
         return E,v,meta
