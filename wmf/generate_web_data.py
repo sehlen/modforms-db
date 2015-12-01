@@ -1057,6 +1057,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     a = D.get_aps(N,k,ci,d,sources=['files'],prec_needed='all')
     try:
         pprecs = deepcopy(a.keys())
+        wmf_logger.debug("Got pprecs: {0}".format(pprecs))        
     except AttributeError as e:
         wmf_logger.debug("Can not get aps: {0}".format(e))
         pprecs=[]
