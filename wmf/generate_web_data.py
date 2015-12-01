@@ -1105,7 +1105,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                     # insert new with possible smaller precision given
                     cursor.execute("INSERT INTO known VALUES(?,?,?,?,?)", (N,k,ci,d,prec_max))
                 db.commit()
-    s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(pprec[1])}
+        s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(pprec[1])}
         q = C.find(s)
         wmf_logger.debug("Updating record for s={0}. count={1}".format(s,q.count()))
         if q.count()>0:
