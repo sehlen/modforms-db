@@ -938,13 +938,14 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             if isinstance(E,tuple):
                 E = E[0]
             nn = prime_pi(n_stop)-prime_pi(n_start)
+            apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)            
             if nn != E.nrows():
                 clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),nn))
                 
                 ## Rename the file:
                 new_n_start = n_start # assuming this is correct... 
                 new_n_stop = nth_prime(E.nrows()+1+prime_pi(n_start))-1
-                apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)
+                #apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
                 new_metaname = self.meta(apfname)
