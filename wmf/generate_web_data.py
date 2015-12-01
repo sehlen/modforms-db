@@ -1107,11 +1107,15 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 db.commit()
         s = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn)}
         q = C.find(s)
+        clogger.debug("Updating record for s={0}. count={1}".format(s,q.count()))
         if q.count()>0:
+            new_rec = {"$set":{'checked':True,'pprec':[int(pprec[0]),int(pprec[1])]}}
             for r in q:
-                C.update({'_id':r['_id']},{"$set":{'checked':True,'pprec':[int(pprec[0]),int(pprec[1])]}})
+                C.update({'_id':r['_id']},new_rec,multi=True)
         else:
-            C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True})
+            new_rec = {'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True} 
+            fid = C.insert(new_rec)
+            clogger.debug("inserted new record: {0}".format(fid))
             #D._db.delete_file(apfile)
 
 
