@@ -18,8 +18,8 @@ r""" Class for newforms in format which can be presented on the web easily
 
 AUTHORS:
 
- - Fredrik Stroemberg
- - Stephan Ehlen
+- Fredrik Stroemberg
+- Stephan Ehlen
 """
 
 import pymongo
@@ -38,7 +38,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     NOTE: We only compute forms which have an entry in the mongodb so you need to use the MongoMF class first to generate these.
 
     """
-    try: 
+    try:
         D  = MongoMF(host=host,port=port,user=user,password=password)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -77,7 +77,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     if ncpus>=32:
         l = generate_one_webmodform_space32(args)
     elif ncpus>=16:
-        l = generate_one_webmodform_space16(args)        
+        l = generate_one_webmodform_space16(args)
     elif ncpus>=8:
         l = generate_one_webmodform_space8(args)
     elif ncpus>=4:
@@ -85,7 +85,7 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     else:
         l =  generate_one_webmodform_space1_par(args)
     return list(l)
-    
+
 @parallel(ncpus=32)
 def generate_one_webmodform_space32(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
@@ -102,8 +102,8 @@ def generate_one_webmodform_space4(level,weight,chi,**kwds):
 def generate_one_webmodform_space1_par(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
 
-    
-def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(37010),recompute=True):    
+
+def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(37010),recompute=True):
     r"""
     Generates one modform space.
 
@@ -116,7 +116,7 @@ def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(3
     D.register_computation_closed(cid)
 
 def web_modformspace_collection(host='localhost',port=int(37010)):
-    try: 
+    try:
         D = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -127,7 +127,7 @@ def web_modformspace_collection(host='localhost',port=int(37010)):
     return D._mongodb[col]
 
 def web_newform_collection(host='localhost',port=int(37010)):
-    try: 
+    try:
         D = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -136,7 +136,7 @@ def web_newform_collection(host='localhost',port=int(37010)):
     except AttributeError:
         col = 'webnewforms'
     return D._mongodb[col]
-    
+
 ## Create the indices we want on the collections
 
 from pymongo import ASCENDING, DESCENDING
@@ -147,36 +147,36 @@ def create_index(host='localhost',port=int(37010),only=None):
     D = C._mongodb
     collections_indices = [
         {'name':'webnewforms', 'index':[
-            ('level',pymongo.ASCENDING),
-            ('weight',pymongo.ASCENDING),
-            ('chi',pymongo.ASCENDING)],
-                        'unique':False},
+                ('level',pymongo.ASCENDING),
+                ('weight',pymongo.ASCENDING),
+                ('chi',pymongo.ASCENDING)],
+         'unique':False},
         {'name':'webnewforms', 'index':[
-            ('hecke_orbit_label',pymongo.ASCENDING)],
-                         'unique':True},
+                ('hecke_orbit_label',pymongo.ASCENDING)],
+         'unique':True},
         {'name': 'webnewforms.files', 'index': [
-            ('hecke_orbit_label',pymongo.ASCENDING)],
-                               'unique':True},
+                ('hecke_orbit_label',pymongo.ASCENDING)],
+         'unique':True},
         {'name': 'webmodformspace' ,'index':[
-            ('level',pymongo.ASCENDING),
-            ('weight',pymongo.ASCENDING),
-            ('chi',pymongo.ASCENDING)],
-                            'unique':False},
+                ('level',pymongo.ASCENDING),
+                ('weight',pymongo.ASCENDING),
+                ('chi',pymongo.ASCENDING)],
+         'unique':False},
         {'name': 'webmodformspace', 'index':[
-            ('space_label',pymongo.ASCENDING)],
-                             'unique':True},
+                ('space_label',pymongo.ASCENDING)],
+         'unique':True},
         {'name':  'webmodformspace.files', 'index':[
-            ('space_label',pymongo.ASCENDING)],
-                                   'unique':True},
-       {'name':  'webchar', 'index': [
-            ('modulus',pymongo.ASCENDING),
-            ('number',ASCENDING)],
-                     'unique':True},
-#       {'name':  'webchar', 'index': [
-#            ('label',ASCENDING)],
-#        'unique':True},
+                ('space_label',pymongo.ASCENDING)],
+         'unique':True},
+        {'name':  'webchar', 'index': [
+                ('modulus',pymongo.ASCENDING),
+                ('number',ASCENDING)],
+         'unique':True},
+        #       {'name':  'webchar', 'index': [
+        #            ('label',ASCENDING)],
+        #        'unique':True},
         {'name' : 'webeigenvalues', 'index':[
-            ('hecke_orbit_label',ASCENDING)],
+                ('hecke_orbit_label',ASCENDING)],
          'unique':True}
         ]
     for r in collections_indices:
@@ -186,15 +186,15 @@ def create_index(host='localhost',port=int(37010),only=None):
         if r['name'] in D.collection_names():
             D[r['name']].create_index(r['index'],unique=r['unique'])
             print "Created indeex r={0}".format(r)
-        
 
 
 
-    
+
+
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
 from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers,dirichlet_character_sage_from_conrey_character_number
-import json 
+import json
 #import bson
 
 def my_dumps(s):
@@ -205,19 +205,19 @@ def my_dumps(s):
 #    return dumps(s)
 
 def my_loads(s):
-#    return json.loads(s)
+    #    return json.loads(s)
     return json.loads(s)
-    
+
 def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=[],ncpus=1,only_new=True,host='localhost',port=int(37010)):
     r"""
     Generates a table of the available (computed) WebModFormSpaces.
     In addition we also add data for (level,weight,chi) with
     level in level_range, weight in weight_range and chi in chi_range
-    
+
 
     We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
     """
-    try: 
+    try:
         D = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -228,7 +228,7 @@ def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=
     ## If we have an old table we load it.
     ## Do Gamma0 data first
     r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
-    
+
     id0 = None; id1 = None
     tbl0 = {}; tbl1={}
     level_max_in_db = 0;weight_max_in_db = 0
@@ -272,7 +272,7 @@ def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=
     # Now compute the gamma1 data
     r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})
     level_max_in_db = 0; weight_max_in_db = 0
-    
+
     if r1:
         if r1.get('_id'):
             id1 = r1.get('_id')
@@ -341,18 +341,18 @@ def generate_dimension_tables(level_range=[1,500],weight_range=[2,12],chi_range=
     if id1:
         D._mongodb['webmodformspace_dimension'].remove(id1)
     D._mongodb['webmodformspace_dimension'].insert(rec1)
-        
+
     return tbl0,tbl1
 
 
 def update_dimension_tables(host='localhost',port=int(37010)):
     r"""
     Update the tabel by adding all known spaces.
-    
+
 
     We use the field level_max and weight_max in the database to indicate the endpoints of the range of systematically computed dimensions.
     """
-    try: 
+    try:
         D  = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -363,7 +363,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
     ## If we have an old table we load it.
     ## Do Gamma0 data first
     r0 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma0'})
-    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})    
+    r1 = D._mongodb['webmodformspace_dimension'].find_one({'group':'gamma1'})
     id0 = None; id1 = None
     tbl0 = {}; tbl1={}
     level_max_in_db = 0;weight_max_in_db = 0
@@ -374,7 +374,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
     if r1:
         if r1.get('data'):
             tbl1 = my_loads(r1.get('data'))
-            id1 = r1.get('_id')            
+            id1 = r1.get('_id')
     #q = D._mongodb[webmodformspace].find().sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)])
     q = D._modular_symbols.find().sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)])
     wmf_logger.debug("Update dimension tables!")
@@ -428,7 +428,7 @@ def update_dimension_tables(host='localhost',port=int(37010)):
                     # Remember that these are for Galois conjugacy classes
                     for o in orbits:
                         if int(n)==17 and int(k)==10:
-                            wmf_logger.debug("o={0} i={1}".format(o,int(i)))                        
+                            wmf_logger.debug("o={0} i={1}".format(o,int(i)))
                         if int(i) in o:
                             mul = len(o)
                             break
@@ -450,12 +450,12 @@ def update_dimension_tables(host='localhost',port=int(37010)):
     print "res=",d0,d1
     return tbl0,tbl1,t0,t1
 
-    
+
 def drop_webmodform_data(host='localhost',port=int(37010)):
     r"""
     Drop all collections related to webnewforms and webmodforms
     """
-    try: 
+    try:
         D  = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -465,18 +465,18 @@ def drop_webmodform_data(host='localhost',port=int(37010)):
     except AttributeError:
         webmodformspace = 'webmodformspace'
         webnewforms = 'webnewforms'
-    
+
     for col in [webmodformspace,webnewforms]:
         D._mongodb.drop_collection(col)
         D._mongodb.drop_collection(col+'.files')
         D._mongodb.drop_collection(col+'.chunks')
-    
+
     D._mongodb.drop_collection('webmodformspace_dimension')
 
 @cached_function
 def dimension_from_db(level,weight,chi=None,group='gamma0'):
     import json
-    try: 
+    try:
         D  = MongoMF(host=host,port=port)
     except pymongo.errors.ConnectionFailure as e:
         raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
@@ -524,26 +524,26 @@ def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
         cchi=r.get('cchi')
         #if cchi==None:
         #    cchi = dirichlet_character_conrey_from_sage_character_number(N,chi)
-        #    DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})        
+        #    DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})
         d=r['newform']
         label = orbit_label(d)
         name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
         D._aps.update({'_id':fid},{"$set":{'hecke_orbit_label':name}})
         D._aps.update({'_id':fid},{"$unset":{'name':""}})
-        
+
 
 def add_hecke_orbits(host='localhost',port=int(37010)):
     import compmf
     from utils import orbit_label
     D  = MongoMF(host=host,port=port)
-    spaces = D._mongodb.webmodformspace.distinct('space_label') 
+    spaces = D._mongodb.webmodformspace.distinct('space_label')
     for label in spaces:
         N,k,i = map(int,label.split("."))
         M = WebModFormSpace_computing(N,k,i)
         if M.hecke_orbits == {}:
             for d in range(M.dimension_new_cusp_forms):
                 flabel = orbit_label(d)
-                F = WebNewForm(N,k,i,flabel) 
+                F = WebNewForm(N,k,i,flabel)
                 M.hecke_orbits[flabel]=F
                 M.save_to_db()
             print "Fixed {0}".format((N,k,i))
@@ -568,7 +568,7 @@ def remove_duplicates(D,label=None):
                     # keep
                     kept  = 1
                     remove = False
-                if i == nl-1 and kept == 0: # at the end we keep at least one... 
+                if i == nl-1 and kept == 0: # at the end we keep at least one...
                     remove = False
                 if remove:
                     col.remove({'_id':r['_id']})
@@ -598,7 +598,7 @@ def fix_galois_orbit_labels(D):
             else:
                 col.update({'_id':fid},{"$set":{'galois_orbit_name':gal_new}})
             print "Want to fix label {0} -> {1}".format(gal_old,gal_new)
-        if space_label_old <> space_label_new: 
+        if space_label_old <> space_label_new:
             print "Want to fix space label {0} -> {1}".format(space_label_old,space_label_new)
             if pymongo.version_tuple[0]>=3:
                 col.update_one({'_id':fid},{"$set":{'space_label':space_label_new}})
@@ -619,7 +619,7 @@ def fix_galois_orbit_labels_files(D,verbose=0):
         label = q['space_label']
         N,k,i = label.split(".")
         N=int(N); k=int(k); i=int(i)
-        
+
         name_new = q.get('galois_orbit_name')
         fid = q['_id']
         fd = loads(fs.get(fid).read())
@@ -627,8 +627,8 @@ def fix_galois_orbit_labels_files(D,verbose=0):
         if name_new <> name_old:
             print "Want to fix label {0} -> {1}".format(name_old,name_new)
             fd['galois_orbit_name']=name_new
-            
-                
+
+
 def remove_gridfs_duplicates(D,label_in=None):
     import gridfs
     fs = gridfs.GridFS(D._mongodb,collection='webmodformspace')
@@ -653,7 +653,7 @@ def remove_gridfs_duplicates(D,label_in=None):
                 i+=1
 #            fsq = fs.find({'hecke_orbit_label':label})
 #            if fsq.count()>1:
-                
+
 
 def recompute_existing(D,ncpus=1,llim=10):
     llim = int(llim)
@@ -666,7 +666,7 @@ def recompute_existing(D,ncpus=1,llim=10):
     if ncpus>=32:
         l = generate_one_webmodform_space32(args,recompute=True)
     elif ncpus>=16:
-        l = generate_one_webmodform_space16(args,recompute=True)        
+        l = generate_one_webmodform_space16(args,recompute=True)
     elif ncpus>=8:
         l = generate_one_webmodform_space8(args,recompute=True)
     elif ncpus>=4:
@@ -692,8 +692,8 @@ def remove_newform_with_label(D,hecke_orbit_label):
     fid = r['_id']
     fs = gridfs.GridFS(D._mongodb,'webnewforms')
     fs.delete(fid)
-                
-    
+
+
 def recompute_newforms(D):
     q = D._mongodb['webnewforms'].find({"$where": "this.q_expansion.length < 10"}).distinct('hecke_orbit_label')
     for label in q:
@@ -757,7 +757,7 @@ def add_zetas(D):
     #    M.get_zetas()
     #    M.save_to_db()
 @parallel(ncpus=32)
-def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):    
+def add_zeta_parallel(level,weight,cchi,host='localhost',port=int(37010)):
     r"""
     Generates one modform space.
 
@@ -809,7 +809,7 @@ def fix_orbit_labels_ap(D):
         label = r.get('hecke_orbit_label')
         wmf_logger.debug("{0}".format(label))
 
-        
+
 def fix_spaces(D):
     for r in D._mongodb['webmodformspace'].find():
         label = r['space_orbit_label']
@@ -851,13 +851,13 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                     elif n <= 2:
                         d_new = G.dimension_new_cusp_forms(k)
                         d_mod = G.dimension_modular_forms(k)
-                        d_eisen = G.dimension_eis(k)                    
+                        d_eisen = G.dimension_eis(k)
                         d_cusp = G.dimension_cusp_forms(k)
                     else:
                         d_new = G.dimension_new_cusp_forms(k,eps=xc)
                         d_mod = G.dimension_modular_forms(k,eps=xc)
-                        d_eisen = G.dimension_eis(k,eps=xc)                    
-                        d_cusp = G.dimension_cusp_forms(k,eps=xc)                    
+                        d_eisen = G.dimension_eis(k,eps=xc)
+                        d_cusp = G.dimension_cusp_forms(k,eps=xc)
                     cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
                     cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
                     r = {'space_orbit_label':space_orbit_label,
@@ -884,7 +884,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
             if r is None:
                 d_new = G.dimension_new_cusp_forms(k)
                 d_mod = G.dimension_modular_forms(k)
-                d_eisen = G.dimension_eis(k)                    
+                d_eisen = G.dimension_eis(k)
                 d_cusp = G.dimension_cusp_forms(k)
             else:
                 d_mod = r['d_mod']
@@ -893,7 +893,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                 d_eisen = r['d_eis']
                 fid = r['_id']
             num_in_db = len(D._mongodb['webmodformspace'].find({'level':int(n),'k':int(k)}).distinct('character'))
-                
+
             r = {'gamma1_label':label,
                  'level':int(n),
                  'weight':int(k),
@@ -902,16 +902,16 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                  'd_newf':int(d_new),
                  'd_eis':int(d_eisen),
                  'all_in_db': int(num_in_db) >= (num_orbits)
-            }
+                 }
             if fid is None:
                 C.insert(r)
             else:
                 C.update({'_id':fid},{"$set":r})
-                
+
     print "Updated table!"
 
 
-    
+
 def check_all_in_db(D):
     C = D._mongodb['dimension_table']
     for r in C.find({'gamma1_label':{"$exists":True}}):
@@ -930,7 +930,7 @@ def check_all_in_db(D):
             indb = r1['in_wdb']
             if indb == 1:
                 C.update({'_id':fid},{"$set":{'one_in_wdb':int(1)}}) ## This simply means that at least one is in the db
-                
+
 def add_character(D):
     C = D._mongodb['dimension_table']
     for r in C.find({'space_label':{"$exists":True}}):
@@ -942,7 +942,7 @@ def add_character(D):
 def fixing_spaces(D,N,k,i):
     r"""
     Check the space with this label and make sure that the coefficients are associated with the same space...
-    PROBLEM: Data in files are sometimes at wrong place... 
+    PROBLEM: Data in files are sometimes at wrong place...
     """
     if isinstance(N,basestring):
         N,k,i=N.split(".")
@@ -956,7 +956,7 @@ def fixing_spaces(D,N,k,i):
     for F in factors:
         wmf_logger.debug("Checking {0}".format(F))
         if not F.is_submodule(M):
-            wmf_logger.debug("Newform {0} is not a subspace of ambient space!".format(F))  
+            wmf_logger.debug("Newform {0} is not a subspace of ambient space!".format(F))
             return False
         if not F.is_new() or not F.is_cuspidal():
             wmf_logger.debug("Newform {0} is not new or not cuspidal!".format(F))
@@ -1018,7 +1018,7 @@ def check_files_of_coefficients(D,s="",ncpus=32):
         if maxn == 0 or nd==0:
             continue
         for d in range(nd):
-            s = {'N':N,'k':k,'ci':ci,'d':int(d),'maxn':maxn,'checked':False}        
+            s = {'N':N,'k':k,'ci':ci,'d':int(d),'maxn':maxn,'checked':False}
             if C.find(s).count()==0:
                 continue
             args.append((N,k,ci,d,maxn))
@@ -1028,7 +1028,7 @@ def check_files_of_coefficients(D,s="",ncpus=32):
     elif ncpus >= 16:
         l = check_coefficients_16_record(args)
     elif ncpus >= 8:
-        l = check_coefficients_8_record(args)        
+        l = check_coefficients_8_record(args)
     else:
         l = []
         for r in args:
@@ -1050,7 +1050,7 @@ def check_coefficients_32_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mod
 def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/modforms-db/',host='localhost',port=int(37010),dryrun=False):
     r"""
     Check coefficients in the file for one record
-    
+
     """
     D = CompMF(datadir=datadir,host=host,port=port)
     C = D._mongodb['file_checked']
@@ -1058,7 +1058,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
     pprecs = deepcopy(a.keys())
     if pprecs == []:
         C.update({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn)},{"$set":{'checked':True,'pprec':[]}})
-        return 
+        return
     for pprec in pprecs:
         if C.find({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True}).count()>0:
             continue
@@ -1113,7 +1113,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         else:
             C.insert({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])],'checked':True})
             #D._db.delete_file(apfile)
-            
+
 
 
 def fix_pprec_to_nmax(D,nmax=10,ncpus=1,verbose=0):
@@ -1181,7 +1181,7 @@ def fix_pprec_parallel_one(fid,verbose=0):
         if not 'out of memory' in str(e):
             D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v for {0}. Error:{1}".format(r['hecke_orbit_label'],e)
-    
+
     # first check that it satisfies Ramanujan...
     pprec = r['prec']
     if c[0].parent() is QQ:
@@ -1205,10 +1205,10 @@ def change_base_ring(D,nmax=None,nmin=0,nlimit=None,ncpus=1,verbose=0):
     from sage.all import Integer
     args = []
     C = D._mongodb['converted_E']
-    C1 = D._mongodb['not_converted_E']    
+    C1 = D._mongodb['not_converted_E']
     s = {}
     if isinstance(nmax,(int,Integer)):
-        s['N']={"$lt":int(nmax),"$gt":int(nmin)}        
+        s['N']={"$lt":int(nmax),"$gt":int(nmin)}
     if nlimit is None:
         q = D._aps.find(s).sort([('N',int(1)),('k',int(1))])
     else:
@@ -1228,7 +1228,7 @@ def change_base_ring(D,nmax=None,nmin=0,nlimit=None,ncpus=1,verbose=0):
     elif ncpus>=16:
         return list(change_base_ring_16(args))
     elif ncpus>=8:
-        return list(change_base_ring_8(args))    
+        return list(change_base_ring_8(args))
     else:
         l = []
         for fid in args:
@@ -1275,16 +1275,16 @@ def change_base_ring_one(fid):
             rr = deepcopy(r)
             rr.pop('_id')
             t = fs_ap.put(dumps( (EE,v)),**rr)
-                          # N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
-                          # character_galois_orbit=r['character_galois_orbit'],
-                          # conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
-                          # newform=r['newform'],
-                          # hecke_orbit_label=r['hecke_orbit_label'],
-                          
-                          # nmin=r['nmin'],nmax=r['nmax'],
-                          # cputime = r['cputime'],
-                          # sage_version = r['sage_version'],
-                          # ambient_id = r['ambient_id'])
+            # N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
+            # character_galois_orbit=r['character_galois_orbit'],
+            # conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
+            # newform=r['newform'],
+            # hecke_orbit_label=r['hecke_orbit_label'],
+
+            # nmin=r['nmin'],nmax=r['nmax'],
+            # cputime = r['cputime'],
+            # sage_version = r['sage_version'],
+            # ambient_id = r['ambient_id'])
             if t is not None:
                 # delete old record
                 D.delete_from_mongo('ap',r['_id'])
@@ -1301,11 +1301,19 @@ def change_base_ring_one(fid):
     return r['hecke_orbit_label']
 
 def clear_checked(D):
-    for r in D._mongodb['file_checked'].find({'checked':True}):
-        N = int(r['N']); k= int(r['k']); ci=int(r['ci']); d=int(r['d'])
-        maxn=int(r['maxn']); pprec=r['pprec']
-        s = deepcopy(r)
-        s.pop('_id');
-        s['checked']=False
-        D._mongodb['file_checked'].remove(s)
-        
+    for r in D._mongodb['file_checked'].find({'checked':False}):
+        s = " N={0} AND k={1} AND i={2} and maxp={3}".format(r['N'],r['k'],r['ci'],r['maxn'])
+        q = D._db.known(s)
+        if len(list(q)) == 0:
+            fid = r['_id']
+            D._mongodb['file_checked'].remove({'_id':fid})
+    # for N,k,ci,nd,maxn in D._db.known(s):
+    #     l.append((N,k,ci,nd,maxn))
+    # for r in D._mongodb['file_checked'].find({'checked':True}):
+    #     N = int(r['N']); k= int(r['k']); ci=int(r['ci']); d=int(r['d'])
+    #     maxn=int(r['maxn']); pprec=r['pprec']
+    #     s = deepcopy(r)
+    #     s.pop('_id');
+    #     s['checked']=False
+    #     D._mongodb['file_checked'].remove(s)
+
