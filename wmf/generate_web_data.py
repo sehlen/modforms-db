@@ -999,7 +999,7 @@ def add_name_to_AL(D):
         C.update({'_id':fid},{"$set":{'cchi':int(i)}})
 
 
-def check_files_of_coefficients(D,s=""):
+def check_files_of_coefficients(D,s="",ncpus=32):
     args=[]
     C = D._mongodb['file_checked']
     l = []
@@ -1023,10 +1023,23 @@ def check_files_of_coefficients(D,s=""):
                 continue
             args.append((N,k,ci,d,maxn))
     wmf_logger.debug("Will check {0} records!".format(len(args)))
-    l = check_coefficients_one_record(args)
+    if ncpus >= 32:
+        l = check_coefficients_32_record(args)
+    elif ncpus >= 16:
+        l = check_coefficients_32_record(args)
+    else:
+        l = []
+        for r in args:
+            l.append(check_coefficients_one_record(**r)
     return list(l)
 
+@parallel(ncpus=16)
+def check_coefficients_16_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/modforms-db/',host='localhost',port=int(37010),dryrun=False):
+    return check_coefficients_one_record(N,k,ci,d,maxn,datadir=datadir,host=host,port=port,dryrun=dryrun)
 @parallel(ncpus=32)
+def check_coefficients_32_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/modforms-db/',host='localhost',port=int(37010),dryrun=False):
+    return check_coefficients_one_record(N,k,ci,d,maxn,datadir=datadir,host=host,port=port,dryrun=dryrun)
+
 def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/modforms-db/',host='localhost',port=int(37010),dryrun=False):
     r"""
     Check coefficients in the file for one record
