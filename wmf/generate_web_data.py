@@ -1077,8 +1077,18 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 C.remove({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
                 continue
         #wmf_logger.debug("E= {0}, v={1}".format(E,v))
-        c = multiply_mat_vec(E,v)
-        ok = True
+        try:
+            c = multiply_mat_vec(E,v)
+            ok = True            
+        except TypeError:
+            # in this case we might have problems with MongoDB as well
+            s = {'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'prec':int(maxn)}
+            r = D._aps.find_one(s)
+            if not r is None:
+                D._mongodb['mongo_problem'].insert(s)
+                D.delete_from_mongo('ap',fid)
+                wmf_logger.debug("Removed record {0} from mongo!".format(r))
+            ok = False
         if len(c) <> prime_pi(pprec[1])-prime_pi(pprec[0]):
             ok = False
         if ok:
