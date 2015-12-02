@@ -1084,7 +1084,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             for x in D._aps.find(s):
                 E,v = D.load_from_mongo('ap',x['_id'])
                 if len(v)<>dim or E.ncols()<> dim or len(v)<>E.ncols():
-                    D.delete_from_mongo(x['_id'])
+                    D.delete_from_mongo('ap',x['_id'])
                     wmf_logger.debug("Remove {0}".format(s))
         try:
             c = multiply_mat_vec(E,v)
