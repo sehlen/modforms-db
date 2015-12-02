@@ -1352,6 +1352,6 @@ def check_aps_in_mongo(D):
         dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         E,v=D.load_from_mongo('ap',fid)
         if E.ncols() <> len(v) or dim <> len(v):
-            D.delete_from_mongo('ap',fid)
+            #D.delete_from_mongo('ap',fid)
             wmf_logger.debug("Removing record for {0}".format(q['hecke_orbit_label']))
 
