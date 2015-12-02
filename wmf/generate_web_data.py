@@ -1347,7 +1347,7 @@ def clear_checked(D):
 
 
 def check_aps_in_mongo(D):
-    for q in D._aps.find().sort([('N',int(1)),('k',int(1))])
+    for q in D._aps.find().sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         E,v=D.load_from_mongo('ap',fid)
