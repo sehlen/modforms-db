@@ -1367,10 +1367,13 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
                 ok = False
             elif not (K1==QQ and K == QQ):
                 if K1 == QQ and K != QQ:
+                    wmf_logger.debug("K1=Q, K<>Q")
                     ok = False
                 elif K1 != QQ and K == QQ:
+                    wmf_logger.debug("K1<>Q, K==Q")                    
                     ok = False
                 elif not K1.is_isomorphic(K):
+                    wmf_logger.debug("K1 !~ K2")
                     ok = False
                 if not ok:
                     wmf_logger.debug("parents of v are different! need to remove!")
