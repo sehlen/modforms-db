@@ -1381,11 +1381,16 @@ class CompMF(MongoMF):
                     res.append(vname)
             return res
         # See if we have the coefficients in a file or not
-        q = self._db.known("N={0} and k={1} and i={2}".format(N,k,ci))
-        for r in q:
-            if r[4]>=pprec:
-                aps_in_file = 1
-                break
+        #q = self._db.known("N={0} and k={1} and i={2}".format(N,k,ci))
+        #for r in q:
+        #    if r[4]>=pprec:
+        #        aps_in_file = 1
+        #        # check if really there:
+        try:
+            aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
+            aps_in_file=len(aps)
+        except:
+            aps_in_file=0
         clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
 
         # If we have coefficients both in mongo and files we don't do anything.
