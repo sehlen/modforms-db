@@ -1352,6 +1352,8 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']
         M = D.load_from_mongo('Modular_symbols',ambient_id)
+        if M is None:
+            M = D.get_ambient(N,k,ci,sources=['mongo'])
         ok = False
         if not M is None:
             E,v=D.load_from_mongo('ap',fid)
