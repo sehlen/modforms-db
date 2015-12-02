@@ -1071,6 +1071,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
         E,v = a[pprec][0:2]
         dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         if E.ncols() <> len(v) or dim <> len(v):
+            wmf_logger.debug("E.ncols={0} len(v)={1} dim={2}".format(E.ncols(),len(v),dim))
             if pprec[0]>0:
                 fname = D._db.factor_aplist(N,k,ci,d,False,pprec[0],pprec[1])
                 wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
