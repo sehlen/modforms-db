@@ -1348,7 +1348,7 @@ def clear_checked(D):
 
 def check_aps_in_mongo(D,nmax=10,nlim=10):
     i = 0
-    for q in D._aps.find({'N':{"$lt":int(nmax)+1}}).sort([('N',int(1)),('k',int(1))]):
+    for q in D._aps.find({'N':{"$lt":int(nmax)+1},{"$gt":int(1)}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']
         M = D.load_from_mongo('Modular_symbols',ambient_id)
@@ -1376,6 +1376,8 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
             else:
                 if map(lambda x:x.norm(),v)==map(lambda x:x.norm(),v1):
                     ok = True
+        else:
+            wmf_logger.debug("No ambient space for coefficients with {0}".format(q['hecke_orbit_label']))
         if not ok:
             #D.delete_from_mongo('ap',fid)
             wmf_logger.debug("Removing record for {0}".format(q['hecke_orbit_label']))
