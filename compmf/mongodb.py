@@ -682,7 +682,7 @@ class MongoMF(object):
                 ## Fetch the record in the database corresponding to the Galois orbit of
                 ## chi_N,i  (in Conrey's character naming scheme)
                 s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(ci)]}}
-            if not d is None:
+            if not d is None and not isinstance(d,basestring):
                 s['newform']=int(d)
             clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
 

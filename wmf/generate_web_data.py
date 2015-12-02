@@ -1350,11 +1350,28 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
     i = 0
     for q in D._aps.find({'N':{"$lt":int(nmax)+1}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
-        dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
-        E,v=D.load_from_mongo('ap',fid)
-        if E.ncols() <> len(v) or dim <> len(v):
+        ambient_id = q['ambient_id']
+        M = D.load_from_mongo('Modular_symbols',ambient_id)
+        ok = False
+        if not M is None:
+            E,v=D.load_from_mongo('ap',fid)
+            c = E*v
+            K=v.base_ring()
+            S = M.new_subspace().cuspidal_subspace().decomposition()[q['newform']]
+            E1,v1=S.compact_system_of_eigenvalues([2])
+            K = v1.base_ring()
+            if len(v)<>len(v1):
+                wmf_logger.debug("length are different! Need to remove!")
+                ok = False
+            elif not K1.is_isomorphic(K):
+                wmf_logger.debug("parents of v are different! need to remove!")
+                ok = False
+            else:
+                if map(lambda x:x.norm(),v)==map(lambda x:x.norm(),v1):
+                    ok = True
+        if not ok:
             #D.delete_from_mongo('ap',fid)
             wmf_logger.debug("Removing record for {0}".format(q['hecke_orbit_label']))
             i+=1
-            if i > nlim:
+            if i > nlim and nlim > 0:
                 return 
