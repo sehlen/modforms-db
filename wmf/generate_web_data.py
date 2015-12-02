@@ -1364,10 +1364,10 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             DEC = M.new_subspace().cuspidal_subspace().decomposition()
             d = q.get('newform',-1)
             if d <0 or len(DEC)>d:
-                wmf_logger.critical("Incorrect newform number for {0}. d={1} and len(decomp)={2}".format(label,d,len(DEC)))
+                wmf_logger.critical("Incorrect newform number for {0}. d={1} and len(decomp)={2}\n DEC={3}".format(label,d,len(DEC),DEC))
                 S = None
             else:
-                S = M.new_subspace().cuspidal_subspace().decomposition()[q['newform']]
+                S = DEC[d]
                 E1,v1=S.compact_system_of_eigenvalues([2])
                 K1 = v1.base_ring()
             if S is None:
