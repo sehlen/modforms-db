@@ -1080,11 +1080,12 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 C.remove({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
                 continue
             # better check MongoDB as well:
-            for x in D._aps.find({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}):
+            s = {'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}
+            for x in D._aps.find(s):
                 E,v = D.load_from_mongo('ap',x['_id'])
-                if len(v)<>dim or E.ncols()<> dim: or len(v)<>E.ncols():
+                if len(v)<>dim or E.ncols()<> dim or len(v)<>E.ncols():
                     D.delete_from_mongo(x['_id'])
-        #wmf_logger.debug("E= {0}, v={1}".format(E,v))
+                    wmf_logger.debug("Remove {0}".format(s))
         try:
             c = multiply_mat_vec(E,v)
             ok = True            
