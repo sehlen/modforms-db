@@ -1348,10 +1348,11 @@ def clear_checked(D):
 
 def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
     i = 0
+    C=D._mongodb['aps_mongo_checked']
     for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin)}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
-        ambient_id = q['ambient_id']
-        wmf_logger.debug("Checking:{0}".format(q['hecke_orbit_label']))
+        ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
+        wmf_logger.debug("Checking:{0}".format(label))
         M = D.load_from_mongo('Modular_symbols',ambient_id)
         if M is None:
             M = D.get_ambient(N,k,ci,sources=['mongo'])
@@ -1360,10 +1361,18 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             E,v=D.load_from_mongo('ap',fid)
             c = E*v
             K=v.base_ring()
-            S = M.new_subspace().cuspidal_subspace().decomposition()[q['newform']]
-            E1,v1=S.compact_system_of_eigenvalues([2])
-            K1 = v1.base_ring()
-            if len(v)<>len(v1):
+            DEC = M.new_subspace().cuspidal_subspace().decomposition()
+            d = q.get('newform',-1)
+            if d <0 or len(DEC)>d:
+                wmf_logger.critical("Incorrect newform number for {0}. d={1} and len(decomp)={2}".format(label,d,len(DEC)))
+                S = None
+            else:
+                S = M.new_subspace().cuspidal_subspace().decomposition()[q['newform']]
+                E1,v1=S.compact_system_of_eigenvalues([2])
+                K1 = v1.base_ring()
+            if S is None:
+                ok = False
+            elif len(v)<>len(v1):
                 wmf_logger.critical("length are different! Need to remove!")
                 ok = False
             elif not (K1==QQ and K == QQ):
