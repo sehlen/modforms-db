@@ -1387,7 +1387,7 @@ class CompMF(MongoMF):
         #        aps_in_file = 1
         #        # check if really there:
         try:
-            aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
+            aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec])
             aps_in_file=len(aps)
         except:
             aps_in_file=0
@@ -1403,7 +1403,9 @@ class CompMF(MongoMF):
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
-                aps = self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
+                for d in range(num_factors):
+                    aps = self._computedb.compute_aplists(N,k,ci,d,pprec,ambient=ambient,save=self._save_to_file)
+                    insert_aps_into_mongodb(aps)
             if aps is None or aps == {}:
                 for d in range(num_factors):
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
