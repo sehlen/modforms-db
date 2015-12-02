@@ -1363,9 +1363,16 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
             if len(v)<>len(v1):
                 wmf_logger.debug("length are different! Need to remove!")
                 ok = False
-            elif not K1.is_isomorphic(K):
-                wmf_logger.debug("parents of v are different! need to remove!")
-                ok = False
+            elif not (K1==QQ and K == QQ):
+                if K1 == QQ and K != QQ:
+                    ok = False
+                elif K1 != QQ and K == QQ:
+                    ok = False
+                elif not K1.is_isomorphic(K):
+                    ok = False
+                if not ok:
+                    wmf_logger.debug("parents of v are different! need to remove!")
+
             else:
                 if map(lambda x:x.norm(),v)==map(lambda x:x.norm(),v1):
                     ok = True
