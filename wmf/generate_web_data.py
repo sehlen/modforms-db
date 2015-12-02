@@ -1346,8 +1346,8 @@ def clear_checked(D):
     #     D._mongodb['file_checked'].remove(s)
 
 
-def check_aps_in_mongo(D):
-    for q in D._aps.find().sort([('N',int(1)),('k',int(1))]):
+def check_aps_in_mongo(D,nmax=10,nlim=10):
+    for q in D._aps.find({'N':{"$lt":int(nmax)+1}}).sort([('N',int(1)),('k',int(1))]).limit(nlim):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         E,v=D.load_from_mongo('ap',fid)
