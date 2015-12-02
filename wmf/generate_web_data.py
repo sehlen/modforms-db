@@ -1069,7 +1069,8 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             continue
         wmf_logger.debug("Checking {0}".format((N,k,ci,d,pprec)))
         E,v = a[pprec][0:2]
-        if E.ncols() <> len(v):
+        dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci),k)
+        if E.ncols() <> len(v) or dim <> len(v):
             if pprec[0]>0:
                 fname = D._db.factor_aplist(N,k,ci,d,False,pprec[0],pprec[1])
                 wmf_logger.critical("Removing file for {0} : {1}".format((N,k,ci,d,pprec),fname))
@@ -1078,6 +1079,11 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
                 D._db.delete_file(fname)
                 C.remove({'N':int(N),'k':int(k),'ci':int(ci),'d':int(d),'maxn':int(maxn),'pprec':[int(pprec[0]),int(pprec[1])]})
                 continue
+            # better check MongoDB as well:
+            for x in D._aps.find({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}):
+                E,v = D.load_from_mongo('ap',x['_id'])
+                if len(v)<>dim or E.ncols()<> dim: or len(v)<>E.ncols():
+                    D.delete_from_mongo(x['_id'])
         #wmf_logger.debug("E= {0}, v={1}".format(E,v))
         try:
             c = multiply_mat_vec(E,v)
@@ -1088,7 +1094,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             r = D._aps.find_one(s)
             if not r is None:
                 D._mongodb['mongo_problem'].insert(s)
-                D.delete_from_mongo('ap',fid)
+                D.delete_from_mongo('ap',r['_id'])
                 wmf_logger.debug("Removed record {0} from mongo!".format(r))
             ok = False
             c = []
@@ -1337,3 +1343,5 @@ def clear_checked(D):
     #     s['checked']=False
     #     D._mongodb['file_checked'].remove(s)
 
+
+#def check_aps_in_mongo(D):
