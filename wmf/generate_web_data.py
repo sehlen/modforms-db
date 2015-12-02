@@ -1347,11 +1347,14 @@ def clear_checked(D):
 
 
 def check_aps_in_mongo(D,nmax=10,nlim=10):
-    for q in D._aps.find({'N':{"$lt":int(nmax)+1}}).sort([('N',int(1)),('k',int(1))]).limit(nlim):
+    i = 0
+    for q in D._aps.find({'N':{"$lt":int(nmax)+1}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         E,v=D.load_from_mongo('ap',fid)
         if E.ncols() <> len(v) or dim <> len(v):
             #D.delete_from_mongo('ap',fid)
             wmf_logger.debug("Removing record for {0}".format(q['hecke_orbit_label']))
-
+            i+=1
+            if i > nlim:
+                return 
