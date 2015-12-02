@@ -1069,7 +1069,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
             continue
         wmf_logger.debug("Checking {0}".format((N,k,ci,d,pprec)))
         E,v = a[pprec][0:2]
-        dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci),k)
+        dim = dimension_new_cusp_forms(conrey_character_from_number(N,ci).sage_character(),k)
         if E.ncols() <> len(v) or dim <> len(v):
             if pprec[0]>0:
                 fname = D._db.factor_aplist(N,k,ci,d,False,pprec[0],pprec[1])
