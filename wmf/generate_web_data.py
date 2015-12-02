@@ -1351,6 +1351,7 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
     for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(1)}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']
+        wmf_logger.debug("Checking:{0}".format(q['hecke_orbit_label']))
         M = D.load_from_mongo('Modular_symbols',ambient_id)
         if M is None:
             M = D.get_ambient(N,k,ci,sources=['mongo'])
@@ -1363,30 +1364,30 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
             E1,v1=S.compact_system_of_eigenvalues([2])
             K1 = v1.base_ring()
             if len(v)<>len(v1):
-                wmf_logger.debug("length are different! Need to remove!")
+                wmf_logger.critical("length are different! Need to remove!")
                 ok = False
             elif not (K1==QQ and K == QQ):
                 if K1 == QQ and K != QQ:
-                    wmf_logger.debug("K1=Q, K<>Q")
+                    wmf_logger.critical("K1=Q, K<>Q")
                     ok = False
                 elif K1 != QQ and K == QQ:
-                    wmf_logger.debug("K1<>Q, K==Q")                    
+                    wmf_logger.critical("K1<>Q, K==Q")                    
                     ok = False
                 elif not K1.is_isomorphic(K):
-                    wmf_logger.debug("K1 !~ K2")
+                    wmf_logger.critical("K1 !~ K2")
                     ok = False
                 else:
                     ok = True
                 if not ok:
-                    wmf_logger.debug("parents of v are different! need to remove!")
+                    wmf_logger.critical("parents of v are different! need to remove!")
             else:
                 if map(lambda x:x.norm(),v)==map(lambda x:x.norm(),v1):
                     ok = True
         else:
-            wmf_logger.debug("No ambient space for coefficients with {0}".format(q['hecke_orbit_label']))
+            wmf_logger.critical("No ambient space for coefficients with {0}".format(q['hecke_orbit_label']))
         if not ok:
             #D.delete_from_mongo('ap',fid)
-            wmf_logger.debug("Removing record for {0}".format(q['hecke_orbit_label']))
+            wmf_logger.critical("Removing record for {0}".format(q['hecke_orbit_label']))
             i+=1
             if i > nlim and nlim > 0:
                 return 
