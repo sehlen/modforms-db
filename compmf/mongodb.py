@@ -690,7 +690,10 @@ class MongoMF(object):
                 if res is None:
                     res = {}
                 fid=r['_id']; newform = r['newform'];
-                nmin = r['nmin']; nmax = r['nmax']
+                prec=r.get('prec',0)
+                nmin = r.get('nmin',0); nmax = r.get('nmax')
+                if nmax is None:
+                    nmax = prec
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 try:
                     E,v = self.load_from_mongo('ap',fid)
