@@ -1359,7 +1359,7 @@ def check_aps_in_mongo(D,nmax=10,nlim=10):
             K=v.base_ring()
             S = M.new_subspace().cuspidal_subspace().decomposition()[q['newform']]
             E1,v1=S.compact_system_of_eigenvalues([2])
-            K = v1.base_ring()
+            K1 = v1.base_ring()
             if len(v)<>len(v1):
                 wmf_logger.debug("length are different! Need to remove!")
                 ok = False
