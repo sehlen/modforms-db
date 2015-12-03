@@ -1349,7 +1349,7 @@ def clear_checked(D):
 def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
     i = 0
     C=D._mongodb['aps_mongo_checked']
-    for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
+    for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         if C.find({'record_id':fid}).count()>0:
             continue
