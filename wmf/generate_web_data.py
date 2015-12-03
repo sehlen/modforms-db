@@ -1439,6 +1439,7 @@ def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
     args = []
     C=D._mongodb['ambient_mongo_checked']
     for q in D._modular_symbols.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
+        fid=q['_id']
         if C.find({'record_id':fid}).count()>0:
             continue
         args.append(fid)
