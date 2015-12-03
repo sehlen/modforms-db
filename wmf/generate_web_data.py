@@ -1439,15 +1439,20 @@ def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
     C=D._mongodb['ambient_mongo_checked']
     for q in D._modular_symbols.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+        if C.find({'record_id':fid}).count()>0:
+            return
         x = conrey_character_from_number(N,ci)
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
         if M <> M1:
-            wmf_logger.critical("M<>M1!: \nM0={0}\nM1={1}".format(M,M1)) 
-        i+=1
-        if i>nlim and nlim >0:
-            return
+            wmf_logger.critical("M<>M1!: \nM0={0}\nM1={1}".format(M,M1))
+            C.update({'record_id':fid},{'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':False},upsert=True)        
+            i+=1
+            if i>nlim and nlim >0:
+                return
+        else:
+            C.update({'record_id':fid},{'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':True},upsert=True)        
   
-
+        
     
