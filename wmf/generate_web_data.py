@@ -1366,6 +1366,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
 
 @parallel(ncpus=16)
 def check_aps_in_mongo32(fid):
+    import sage
     i = 0
     D = MongoMF(host='localhost',port=int(37010))
     C=D._mongodb['aps_mongo_checked']
@@ -1434,12 +1435,14 @@ def check_aps_in_mongo32(fid):
             C.update({'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':True},upsert=True)
         
 def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
+    import sage
     from sage.all import ModularSymbols
     i = 0
     C=D._mongodb['ambient_mongo_checked']
     for q in D._modular_symbols.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         x = conrey_character_from_number(N,ci)
+        sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
         if M <> M1:
