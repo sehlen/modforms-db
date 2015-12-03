@@ -1367,6 +1367,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
 @parallel(ncpus=16)
 def check_aps_in_mongo32(fid):
     i = 0
+    D = MongoMF(host='localhost',port=int(37010))
     C=D._mongodb['aps_mongo_checked']
     if C.find({'record_id':fid}).count()>0:
         return
