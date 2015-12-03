@@ -1401,6 +1401,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             wmf_logger.critical("No ambient space for coefficients with {0}".format(q['hecke_orbit_label']))
         if not ok:
             #D.delete_from_mongo('ap',fid)
+            C.update({'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':False},upsert=True)            
             wmf_logger.critical("Removing record for {0}".format(q['hecke_orbit_label']))
             i+=1
             if i > nlim and nlim > 0:
@@ -1409,7 +1410,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             prec = q.get('prec',int(0))
             if prec == 0:
                 wmf_logger.critical("Record without prec: {0}".format(label))
-            C.insert({'hecke_orbit_label':label,'prec':prec,'record_id':fid})
+            C.update({'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':True},upsert=True)
         
 def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
     from sage.all import ModularSymbols
