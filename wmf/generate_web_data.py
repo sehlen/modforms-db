@@ -1349,8 +1349,10 @@ def clear_checked(D):
 def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
     i = 0
     C=D._mongodb['aps_mongo_checked']
-    for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin)}}).sort([('N',int(1)),('k',int(1))]):
+    for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+        if C.find({'record_id':fid}).count()>0:
+            continue
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
         wmf_logger.debug("Checking:{0}".format(label))
         M = D.load_from_mongo('Modular_symbols',ambient_id)
@@ -1364,7 +1366,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             DEC = M.new_subspace().cuspidal_subspace().decomposition()
             d = q.get('newform',-1)
             S = None
-            if d <0 or len(DEC)<d:
+            if d <0 or len(DEC)<=d:
                 wmf_logger.critical("Incorrect newform number for {0}. d={1} and len(decomp)={2}\n DEC={3}".format(label,d,len(DEC),DEC))
             else:
                 try:
@@ -1376,7 +1378,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             if S is None:
                 ok = False
             elif len(v)<>len(v1):
-                wmf_logger.critical("length are different! Need to remove!")
+                wmf_logger.critical("length are different! len(v(mongo))={0}, len(v(dec))={1}. Need to remove!".format(len(v),len(v1)))
                 ok = False
             elif not (K1==QQ and K == QQ):
                 if K1 == QQ and K != QQ:
@@ -1402,4 +1404,27 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             wmf_logger.critical("Removing record for {0}".format(q['hecke_orbit_label']))
             i+=1
             if i > nlim and nlim > 0:
-                return 
+                return
+        else:
+            prec = q.get('prec',int(0))
+            if prec == 0:
+                wmf_logger.critical("Record without prec: {0}".format(label))
+            C.insert({'hecke_orbit_label':label,'prec':prec,'record_id':fid})
+        
+def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
+    from sage.all import ModularSymbols
+    i = 0
+    C=D._mongodb['ambient_mongo_checked']
+    for q in D._modular_symbols.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('cchi',int(1)),('k',int(1))]):
+        N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+        x = conrey_character_from_number(N,ci)
+        M = ModularSymbols(x.sage_character(),k,sign=1)
+        M1 = D.load_from_mongo('Modular_symbols',fid)
+        if M <> M1:
+            wmf_logger.critical("M<>M1!: \nM0={0}\nM1={1}".format(M,M1)) 
+        i+=1
+        if i>nlim:
+            return
+  
+
+    
