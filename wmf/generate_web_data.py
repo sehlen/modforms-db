@@ -1364,12 +1364,13 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             args.append(fid)
     check_aps_on_mongo32(args)
 
-@parallel(ncpus=32)
+@parallel(ncpus=16)
 def check_aps_in_mongo32(fid):
     i = 0
     C=D._mongodb['aps_mongo_checked']
     if C.find({'record_id':fid}).count()>0:
-        return 
+        return
+    sage.modular.modsym.modsym.ModularSymbols_clear_cache()
     for q in D._aps.find({'_id':fid})
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
@@ -1443,7 +1444,7 @@ def check_ambient_in_mongo(D,nmin=1,nmax=10,nlim=10):
         if M <> M1:
             wmf_logger.critical("M<>M1!: \nM0={0}\nM1={1}".format(M,M1)) 
         i+=1
-        if i>nlim:
+        if i>nlim and nlim >0:
             return
   
 
