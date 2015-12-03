@@ -1349,10 +1349,29 @@ def clear_checked(D):
 def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
     i = 0
     C=D._mongodb['aps_mongo_checked']
-    for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('k',int(1))]):
+    args = []
+    if nlim > 0:
+        for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('k',int(1))]).limit(nlim):
+            N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+            if C.find({'record_id':fid}).count()>0:
+                continue
+            args.append(fid)
+    else:
+        for q in D._aps.find({'N':{"$lt":int(nmax)+1,"$gt":int(nmin-1)}}).sort([('N',int(1)),('k',int(1))]):
+            N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+            if C.find({'record_id':fid}).count()>0:
+                continue
+            args.append(fid)
+    check_aps_on_mongo32(args)
+
+@parallel(ncpus=32)
+def check_aps_in_mongo32(fid):
+    i = 0
+    C=D._mongodb['aps_mongo_checked']
+    if C.find({'record_id':fid}).count()>0:
+        return 
+    for q in D._aps.find({'_id':fid})
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
-        if C.find({'record_id':fid}).count()>0:
-            continue
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
         wmf_logger.debug("Checking:{0}".format(label))
         M = D.load_from_mongo('Modular_symbols',ambient_id)
