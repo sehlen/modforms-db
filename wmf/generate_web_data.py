@@ -1371,7 +1371,7 @@ def check_aps_in_mongo32(fid):
     if C.find({'record_id':fid}).count()>0:
         return
     sage.modular.modsym.modsym.ModularSymbols_clear_cache()
-    for q in D._aps.find({'_id':fid})
+    for q in D._aps.find({'_id':fid}):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
         wmf_logger.debug("Checking:{0}".format(label))
