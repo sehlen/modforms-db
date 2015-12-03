@@ -1423,7 +1423,7 @@ def check_aps_in_mongo32(fid):
             wmf_logger.critical("No ambient space for coefficients with {0}".format(q['hecke_orbit_label']))
         if not ok:
             #D.delete_from_mongo('ap',fid)
-            C.update(({'record_id':fid},{'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':False},upsert=True)            
+            C.update({'record_id':fid},{'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':False},upsert=True)            
             wmf_logger.critical("Removing record for {0}".format(q['hecke_orbit_label']))
             i+=1
             if i > nlim and nlim > 0:
