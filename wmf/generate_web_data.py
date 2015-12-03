@@ -1426,9 +1426,6 @@ def check_aps_in_mongo32(fid):
             #D.delete_from_mongo('ap',fid)
             C.update({'record_id':fid},{'hecke_orbit_label':label,'prec':prec,'record_id':fid,'ok':False},upsert=True)            
             wmf_logger.critical("Removing record for {0}".format(q['hecke_orbit_label']))
-            i+=1
-            if i > nlim and nlim > 0:
-                return
         else:
             prec = q.get('prec',int(0))
             if prec == 0:
