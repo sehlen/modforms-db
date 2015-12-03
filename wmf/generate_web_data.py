@@ -1362,7 +1362,7 @@ def check_aps_in_mongo(D,nmin=1,nmax=10,nlim=10):
             if C.find({'record_id':fid}).count()>0:
                 continue
             args.append(fid)
-    check_aps_in_mongo32(args)
+    return list(check_aps_in_mongo32(args))
 
 @parallel(ncpus=16)
 def check_aps_in_mongo32(fid):
