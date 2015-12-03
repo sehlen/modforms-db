@@ -1461,10 +1461,22 @@ def check_ambient_in_mongo16(fid):
         M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
         if M <> M1:
-            wmf_logger.critical("M<>M1!: \nM0={0}\nM1={1}".format(M,M1))
-            C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)        
-        else:
+            wmf_logger.critical("M1<>M!: {0} \nM={1}\nM1={2}".format(label,M,M1))
+            C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
+            # check if this space is not the representative
+            if ci <> min(q['character_galois_orbit']):
+                wmf_logger.debug("Character not orbit representative!")
+            s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
+            if D._modular_symbols.find(s).count()>0:
+                wmf_logger.debug("Space with orbit representative exists! Deleting this wrong instance!")
+                #D.delete_from_mongo('Modular_symbols',fid)
+                M2 = D._db.load_ambient_space(N,k,ci)
+                if M2 <> M:
+                     wmf_logger.critical("M2<>M!: {0} \nM={1}\nM2={2}".format(label,M,M2))
+                else:
             C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
   
-        
+
+def check_duplicates_in_orbits(fid):
+    
     
