@@ -1471,12 +1471,14 @@ def check_ambient_in_mongo16(fid):
                 wmf_logger.debug("Space with orbit representative exists! Deleting this wrong instance!")
                 #D.delete_from_mongo('Modular_symbols',fid)
                 M2 = D._db.load_ambient_space(N,k,ci)
+                
                 if M2 <> M:
                      wmf_logger.critical("M2<>M!: {0} \nM={1}\nM2={2}".format(label,M,M2))
                 else:
-            C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
+                    pass
+            t = C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
   
 
-def check_duplicates_in_orbits(fid):
+#def check_duplicates_in_orbits(fid):
     
     
