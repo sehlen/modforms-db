@@ -1376,6 +1376,7 @@ def check_aps_in_mongo32(fid):
     for q in D._aps.find({'_id':fid}):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
+        prec = q.get('prec',int(0))
         wmf_logger.debug("Checking:{0}".format(label))
         M = D.load_from_mongo('Modular_symbols',ambient_id)
         if M is None:
