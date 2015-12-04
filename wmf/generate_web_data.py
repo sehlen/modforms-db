@@ -1451,34 +1451,63 @@ def check_ambient_in_mongo16(fid):
     from sage.all import ModularSymbols
     D = MongoMF(host='localhost',port=int(37010))
     C=D._mongodb['ambient_mongo_checked']
-    if C.find({'record_id':fid}).count()>0:
+    if C.find({'record_id':fid,'ok':True}).count()>0:
         return 
     for q in D._modular_symbols.find({'_id':fid}):
         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
         label = q['space_label']
         x = conrey_character_from_number(N,ci)
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
-        M = ModularSymbols(x.sage_character(),k,sign=1)
+        #M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
-        if M <> M1:
-            wmf_logger.critical("M1<>M!: {0} \nM={1}\nM1={2}".format(label,M,M1))
-            C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
+        if M1.character() <> x.sage_character():
+            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,M,M1))            
+            #C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
             # check if this space is not the representative
             if ci <> min(q['character_galois_orbit']):
                 wmf_logger.debug("Character not orbit representative!")
             s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
             if D._modular_symbols.find(s).count()>0:
                 wmf_logger.debug("Space with orbit representative exists! Deleting this wrong instance!")
-                #D.delete_from_mongo('Modular_symbols',fid)
-                M2 = D._db.load_ambient_space(N,k,ci)
-                
-                if M2 <> M:
-                     wmf_logger.critical("M2<>M!: {0} \nM={1}\nM2={2}".format(label,M,M2))
-                else:
-                    pass
+                D.delete_from_mongo('Modular_symbols',fid)
+                C.remove({'record_id':fid})
+        else:
             t = C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
   
-
+# @parallel(ncpus=16)
+# def check_ambient_in_mongo16(fid):
+#     import sage
+#     from sage.all import ModularSymbols
+#     D = MongoMF(host='localhost',port=int(37010))
+#     C=D._mongodb['ambient_mongo_checked']
+#     if C.find({'record_id':fid}).count()>0:
+#         return 
+#     for q in D._modular_symbols.find({'_id':fid}):
+#         N=q['N']; k=q['k']; ci=q['cchi']; fid=q['_id']
+#         label = q['space_label']
+#         x = conrey_character_from_number(N,ci)
+#         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+#         #M = ModularSymbols(x.sage_character(),k,sign=1)
+#         M1 = D.load_from_mongo('Modular_symbols',fid)
+#         if M1.character() <> x.sage_character():
+#             #wmf_logger.critical("M1<>M!: {0} \nM={1}\nM1={2}".format(label,M,M1))
+#             wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,M,M1))            
+#             C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
+#             # check if this space is not the representative
+#             if ci <> min(q['character_galois_orbit']):
+#                 wmf_logger.debug("Character not orbit representative!")
+#             s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
+#             if D._modular_symbols.find(s).count()>0:
+#                 wmf_logger.debug("Space with orbit representative exists! Deleting this wrong instance!")
+#                 #D.delete_from_mongo('Modular_symbols',fid)
+#                 M2 = D._db.load_ambient_space(N,k,ci)
+                
+#                 if M2 <> M:
+#                      wmf_logger.critical("M2<>M!: {0} \nM={1}\nM2={2}".format(label,M,M2))
+#                 else:
+#                     pass
+#             t = C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
+  
 #def check_duplicates_in_orbits(fid):
     
     
