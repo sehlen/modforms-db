@@ -1082,6 +1082,11 @@ class CompMF(MongoMF):
         # Next see if we have it in the files database. If not we will compute it.
         try:
             ambient = self._db.load_ambient_space(N,k,ci)
+            ### We now have ot see if we have the same character number or something else in the same orbit!
+            ci_new = sage_character_to_conrey_character(ambient.character()).number()
+            if ci_new <> ci:
+                clogger.debug("Character is different!")
+            ci = ci_new
             clogger.debug("Loaded ambient={0}".format(ambient))
             ambient_in_file = 1
         except ValueError:
@@ -1111,6 +1116,11 @@ class CompMF(MongoMF):
             ## Note that we have to update the number of orbits.
             if ambient is None:
                 ambient = self._db.load_ambient_space(N,k,ci)
+                ### We now have ot see if we have the same character number or something else in the same orbit!
+                ci_new = sage_character_to_conrey_character(ambient.character()).number()
+                if ci_new <> ci:
+                    clogger.debug("Character is different!")
+                ci = ci_new
             dima = int(ambient.dimension())
             dimc = int(ambient.cuspidal_submodule().dimension())
             dimn = int(ambient.cuspidal_submodule().new_submodule().dimension())
@@ -1199,6 +1209,11 @@ class CompMF(MongoMF):
             for d in range(num_factors_in_file):
                 try:
                     factor = self._db.load_factor(N,k,ci,d,M=ambient)
+                    ### We now have ot see if we have the same character number or something else in the same orbit!
+                    ci_new = sage_character_to_conrey_character(factor.character()).number()
+                    if ci_new <> ci:
+                        clogger.debug("Character is different!")
+                    ci = ci_new
                 except RuntimeError:
                     ## We probably need to recompute the factors
                     clogger.debug("The factors from file was corrupt / empty. Need to compute them anew!")
@@ -1206,6 +1221,11 @@ class CompMF(MongoMF):
                     factors_in_file = self._computedb.compute_decompositions(N,k,ci)
                     try:
                         factor = self._db.load_factor(N,k,ci,d,M=ambient)
+                        ### We now have ot see if we have the same character number or something else in the same orbit!
+                        ci_new = sage_character_to_conrey_character(factor.character()).number()
+                        if ci_new <> ci:
+                            clogger.debug("Character is different!")
+                        ci = ci_new                        
                     except RuntimeError:
                         raise ArithmeticError,"Could not get factors for {0}".format((N,k,ci))
                 metaname = self._db.space(N,k,ci,False)+"/decomp-meta.sobj"
@@ -1272,6 +1292,11 @@ class CompMF(MongoMF):
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
             kwds['ambient_id']=ambient_id
         ambient = self.get_ambient(N,k,ci,ambient_id=ambient_id,verbose=0)
+        ### We now have to see if we have the same character number or something else in the same orbit!
+        ci_new = sage_character_to_conrey_character(ambient.character()).number()
+        if ci_new <> ci:
+            clogger.debug("Character is different!")
+        ci = ci_new
         num_factors = len(kwds.get('factors_ids',self.compute_factors(N,k,ci,**kwds)))
 
         compute = kwds.get('compute',self._do_computations)
