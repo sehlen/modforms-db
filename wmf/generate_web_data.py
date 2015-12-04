@@ -1461,7 +1461,7 @@ def check_ambient_in_mongo16(fid):
         #M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
         if M1.character() <> x.sage_character():
-            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,M,M1))            
+            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,x.sage_character(),M1.character()))            
             #C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
             # check if this space is not the representative
             if ci <> min(q['character_galois_orbit']):
