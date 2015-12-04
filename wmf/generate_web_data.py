@@ -1469,8 +1469,8 @@ def check_ambient_in_mongo16(fid):
             s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
             if D._modular_symbols.find(s).count()>0:
                 wmf_logger.debug("Space with orbit representative exists! Deleting this wrong instance!")
-                D.delete_from_mongo('Modular_symbols',fid)
-                C.remove({'record_id':fid})
+                #D.delete_from_mongo('Modular_symbols',fid)
+                #C.remove({'record_id':fid})
         else:
             t = C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
   
