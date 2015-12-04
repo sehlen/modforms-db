@@ -193,7 +193,7 @@ def create_index(host='localhost',port=int(37010),only=None):
 
 from sage.all import dimension_new_cusp_forms
 from compmf import character_conversions
-from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers,dirichlet_character_sage_from_conrey_character_number
+from compmf.character_conversions import  dirichlet_group_conrey_galois_orbits,conrey_character_from_number,dirichlet_group_conrey_galois_orbits_numbers,dirichlet_character_sage_from_conrey_character_number,sage_character_to_conrey_character
 import json
 #import bson
 
@@ -1460,18 +1460,36 @@ def check_ambient_in_mongo16(fid):
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         #M = ModularSymbols(x.sage_character(),k,sign=1)
         M1 = D.load_from_mongo('Modular_symbols',fid)
-        if M1.character() <> x.sage_character():
-            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,x.sage_character(),M1.character()))            
+        ci_true = sage_character_to_conrey_character(M1.character())
+        if ci <> ci_true:
+            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,x.sage_character(),M1.character()))
+            # change the space label to the correct one...
+            D._modular_symbols.update({'_id':fid},{"$set":'space_label':'{0}.{1}.{2}'.format(N,k,ci_true)})
+            ## files are ok
+            for r in D._newform_factors.find({'N':N,'k':k,'cchi':ci}):
+                F = D.load_from_mongo('Newform_factors',r['_id'])
+                cii_true = int(sage_character_to_conrey_character(F.character()).number())
+                if cii_true <> ci:
+                    nn,kk,lab = r['hecke_orbit_label'].split('.')
+                    lab = lab.replace(str(ci),str(cii_true))
+                    wmf_logger.critical("Updating character nr. in newform from {0} to {1}".format(r['hecke_orbit_label'],lab))
+                    
+                    D._newform_factors.update({'_id':r['_id']},{"$set":{'cchi':cii_true,'hecke_orbit_label':'{0}.{1}.{2}'.format(N,k,lab)}})
+                    for ap_r in D._aps.find({'N':N,'k':k,'cchi':ci,'newform':int(r['newform'])}):
+                        wmf_logger.critical("ALso updating ap's")
+                        D._newform_factors.update({'_id':ap_r['_id']},{"$set":{'cchi':cii_true,'hecke_orbit_label':'{0}.{1}.{2}'.format(N,k,lab)}})
+                
             #C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':False},upsert=True)
             # check if this space is not the representative
-            if ci <> min(q['character_galois_orbit']):
-                wmf_logger.debug("Character not orbit representative!")
-            s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
-            r = D._modular_symbols.find_one(s)
-            if not r is None:
-                wmf_logger.debug("Space with orbit representative exists Label={0}! Deleting this record! {1} orbit={2}".format(r['space_label'],q['space_label'],q['character_galois_orbit']))
-                #D.delete_from_mongo('Modular_symbols',fid)
-                #C.remove({'record_id':fid})
+            #
+            #if ci <> min(q['character_galois_orbit']):
+            #    wmf_logger.debug("Character not orbit representative!")
+            #s = {'cchi':min(q['character_galois_orbit']),'N':N,'k':k}
+            #r = D._modular_symbols.find_one(s)
+            #if not r is None:
+            #    wmf_logger.debug("Space with orbit representative exists Label={0}! Deleting this record! {1} orbit={2}".format(r['space_label'],q['space_label'],q['character_galois_orbit']))
+            #    #D.delete_from_mongo('Modular_symbols',fid)
+            #    #C.remove({'record_id':fid})
         else:
             t = C.update({'record_id':fid},{'space_label':label,'record_id':fid,'ok':True},upsert=True)        
   
