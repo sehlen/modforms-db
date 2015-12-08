@@ -1464,7 +1464,7 @@ def check_ambient_in_mongo16(fid):
         if ci <> ci_true:
             wmf_logger.critical("x1<>x!: {0} \n x={1}\n x1={2}".format(label,x.sage_character(),M1.character()))
             # change the space label to the correct one...
-            true_label = '{0}.{1}.{2}'.format(N,k,ci_true)}
+            true_label = '{0}.{1}.{2}'.format(N,k,ci_true)
             wmf_logger.debug("changing labels from {0} to {1}".format(label,true_label))
             D._modular_symbols.update({'_id':fid},{"$set":{'space_label':true_label}})
             ## files are ok
