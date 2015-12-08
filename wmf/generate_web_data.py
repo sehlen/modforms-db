@@ -1462,9 +1462,11 @@ def check_ambient_in_mongo16(fid):
         M1 = D.load_from_mongo('Modular_symbols',fid)
         ci_true = sage_character_to_conrey_character(M1.character())
         if ci <> ci_true:
-            wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,x.sage_character(),M1.character()))
+            wmf_logger.critical("x1<>x!: {0} \n x={1}\n x1={2}".format(label,x.sage_character(),M1.character()))
             # change the space label to the correct one...
-            D._modular_symbols.update({'_id':fid},{"$set":{'space_label':'{0}.{1}.{2}'.format(N,k,ci_true)}})
+            true_label = '{0}.{1}.{2}'.format(N,k,ci_true)}
+            wmf_logger.debug("changing labels from {0} to {1}".format(label,true_label))
+            D._modular_symbols.update({'_id':fid},{"$set":{'space_label':true_label}})
             ## files are ok
             for r in D._newform_factors.find({'N':N,'k':k,'cchi':ci}):
                 F = D.load_from_mongo('Newform_factors',r['_id'])
