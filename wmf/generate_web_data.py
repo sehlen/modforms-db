@@ -1461,7 +1461,7 @@ def check_ambient_in_mongo16(fid):
         #M = ModularSymbols(x.sage_character(),k,sign=1)
         try:
             M1 = D.load_from_mongo('Modular_symbols',fid)
-        except ImportError as e:
+        except Exception as e:
             wmf_logger.critical("Error with import for {0}. Probably incompatible Sage versions! ERROR:{1}".format(label,e))
             return 
         ci_true = sage_character_to_conrey_character(M1.character()).number()
