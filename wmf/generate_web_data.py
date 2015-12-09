@@ -1459,7 +1459,11 @@ def check_ambient_in_mongo16(fid):
         x = conrey_character_from_number(N,ci)
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         #M = ModularSymbols(x.sage_character(),k,sign=1)
-        M1 = D.load_from_mongo('Modular_symbols',fid)
+        try:
+            M1 = D.load_from_mongo('Modular_symbols',fid)
+        except ImportError as e:
+            wmf_logger.critical("Error with import. Probably incompatible Sage versions! ERROR:{0}".format(e))
+            return 
         ci_true = sage_character_to_conrey_character(M1.character())
         if ci <> ci_true:
             wmf_logger.critical("x1<>x!: {0} \n x={1}\nM1={2}".format(label,x.sage_character(),M1.character()))
