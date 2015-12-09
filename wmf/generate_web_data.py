@@ -1378,7 +1378,11 @@ def check_aps_in_mongo32(fid):
         ambient_id = q['ambient_id']; label = q['hecke_orbit_label']
         prec = q.get('prec',int(0))
         wmf_logger.debug("Checking:{0}".format(label))
-        M = D.load_from_mongo('Modular_symbols',ambient_id)
+        try: 
+            M = D.load_from_mongo('Modular_symbols',ambient_id)
+        except Exception as e:
+            wmf_logger.critical("Error with import for {0}. Probably incompatible Sage versions! ERROR:{1}".format(label,e))
+            continue
         if M is None:
             M = D.get_ambient(N,k,ci,sources=['mongo'])
         ok = False
@@ -1463,7 +1467,7 @@ def check_ambient_in_mongo16(fid):
             M1 = D.load_from_mongo('Modular_symbols',fid)
         except Exception as e:
             wmf_logger.critical("Error with import for {0}. Probably incompatible Sage versions! ERROR:{1}".format(label,e))
-            return 
+            continue
         ci_true = sage_character_to_conrey_character(M1.character()).number()
         if ci <> ci_true:
             wmf_logger.critical("x1<>x!: {0} \n x={1}\n x1={2}".format(label,x.sage_character(),M1.character()))
