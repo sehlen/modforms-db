@@ -1380,11 +1380,11 @@ def check_aps_in_mongo32(fid):
         wmf_logger.debug("Checking:{0}".format(label))
         try: 
             M = D.load_from_mongo('Modular_symbols',ambient_id)
+            if M is None:
+                M = D.get_ambient(N,k,ci,sources=['mongo'])            
         except Exception as e:
             wmf_logger.critical("Error with import for {0}. Probably incompatible Sage versions! ERROR:{1}".format(label,e))
             continue
-        if M is None:
-            M = D.get_ambient(N,k,ci,sources=['mongo'])
         ok = False
         if not M is None:
             E,v=D.load_from_mongo('ap',fid)
