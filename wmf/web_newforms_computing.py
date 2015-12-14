@@ -48,7 +48,7 @@ from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebN
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label,parse_newform_label
 
 from wmf import wmf_logger
-from compmf import MongoMF
+from compmf import MongoMF,CompMF
 wmf_logger.setLevel(10)
 emf_logger.setLevel(10)
 
@@ -506,6 +506,7 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("Checking level {0}, CHARACTER {1}".format(M,xi))
             MF = WebModFormSpace_computing(M,k,xi)
             if MF.dimension == 0:
+                wmf_logger.debug("space is empty!")
                 continue
             y = conrey_character_from_number(d,yi).sage_character()
             for label in MF.hecke_orbits:

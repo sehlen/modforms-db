@@ -554,6 +554,8 @@ class MongoMF(object):
         Get factor nr. d of the space M(N,k,i)
         ci should be in the conrey naming scheme. Any conversions should take place before calling this function. 
         """
+        if not hasattr(self,'_db'):
+            sources = ['mongo']
         from utils import orbit_index_from_label,param_from_label
         if d == 'all':
             res = []
@@ -615,6 +617,8 @@ class MongoMF(object):
         """
         from utils import orbit_index_from_label,param_from_label
         from sage.all import prime_divisors
+        if not hasattr(self,'_db'):
+            sources = ['mongo']
         if d == 'all':
             res = []
             for d in range(self.number_of_factors(N,k,ci)):
@@ -649,7 +653,7 @@ class MongoMF(object):
         elif sources == ['files']:
             # The files are named according to Galois orbits.
             #on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
-            return fopen(self._db.factor_atkin_lehner(N,k,ci,d,False)).readline()
+            return open(self._db.factor_atkin_lehner(N,k,ci,d,False)).readline()
         elif len(sources)>1:
             for ss in sources:
                 res = self.get_atkin_lehner(N,k,ci,d,sources=[ss])
@@ -673,7 +677,8 @@ class MongoMF(object):
 
 
         """
-
+        if not hasattr(self,'_db'):
+            sources = ['mongo']
         clogger.debug("find aps with N,k,ci,d={0} from sources:{1}".format((N,k,ci,d),sources))
         res = None
         if sources == ['mongo']:
@@ -838,6 +843,9 @@ class CompMF(MongoMF):
         return (type(self),(self._datadir,self._host,self._port,self._db_name,self._user,self._password,self._verbose))
     
 
+#    def get_atkin_lehner(self,N,k,ci,d='all',sources=['mongo','files']):
+#        return 
+    
     def show_existing_files(self):
         r"""
         Display an overview of the existing records in the files database.

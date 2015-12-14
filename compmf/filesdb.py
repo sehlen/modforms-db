@@ -804,7 +804,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         """
         from sage.all import prime_divisors
         try: 
-            fp  = fopen(self.factor_atkin_lehner(M,k,i,d,False))
+            fp  = open(self.factor_atkin_lehner(M,k,i,d,False))
         except IOError:
             return None
         l = fp.readline().split(' ')
