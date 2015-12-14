@@ -214,11 +214,15 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.critical("precs={0}".format(precs))
         for prec in precs:
             wmf_logger.debug("Now getting prec@{0}".format(prec))
+            if isinstance(prec,tuple):
+                pprec = prec[1]
+            else:
+                pprec = prec
             E,v,meta = aps[prec]
-            if E.nrows() <> prime_pi(prec):
+            if E.nrows() <> prime_pi(pprec):
                 raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
-            self._available_precisions.append(prec)
-            evs = WebEigenvalues(self.hecke_orbit_label,prec)
+            self._available_precisions.append(pprec)
+            evs = WebEigenvalues(self.hecke_orbit_label,pprec)
             evs.E = E
             wmf_logger.critical("E = {0}".format(E))
             evs.v = v
@@ -228,7 +232,7 @@ class WebNewForm_computing(WebNewForm):
             t = evs.save_to_db(update=True)
             if not t is True:
                 wmf_logger.critical("Could not update webeigenvalues!")
-            if prec >= self.prec and ev_set == 0:
+            if pprec >= self.prec and ev_set == 0:
                 self.eigenvalues = evs
                 ev_set = 1
             wmf_logger.debug("Got ap's with prec={0}".format(self.eigenvalues.prec))
