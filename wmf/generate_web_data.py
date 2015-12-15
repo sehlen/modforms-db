@@ -115,6 +115,52 @@ def generate_one_webmodform_space1(level,weight,cchi,host='localhost',port=int(3
     M.save_to_db()
     D.register_computation_closed(cid)
 
+
+def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
+    r"""
+    Compute and insert objects of type WebModFormSpace with levels in the given range.
+
+    NOTE: We only compute forms which have an entry in the mongodb so you need to use the MongoMF class first to generate these.
+
+    """
+    try:
+        D  = MongoMF(host=host,port=port,user=user,password=password)
+    except pymongo.errors.ConnectionFailure as e:
+        raise ConnectionFailure,"Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message)
+    args = []; s={}
+    if level_range <> []:
+        if len(level_range)==1:
+            s['N']=int(level_range[0])
+        else:
+            s['N']={"$gt":int(level_range[0]-1),"$lt":int(level_range[-1]+1)}
+    if weight_range <> []:
+        if len(weight_range)==1:
+            s['k']=int(weight_range[0])
+        else:
+            s['k']={"$gt":int(weight_range[0]-1),"$lt":int(weight_range[-1]+1)}
+    if chi_range <>[]:
+        if len(chi_range)==1:
+            s['cchi']=int(chi_range[0])
+        else:
+            s['cchi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
+    for r in self._aps.find(s):
+        label = r['hecke_orbit_label']
+        prec = r['prec']
+        if D._mongodb['webeigenvalues.files'].find({'hecke_orbit_label':label,'prec':prec}):
+            continue
+        args.append((label,prec))
+    print "s=",s
+    print "args=",args
+    print "ncpus=",ncpus
+    if ncpus>=32:
+        l = generate_one_webeigenvalue32(args)
+    return list(l)
+
+@parallel(32)
+def generate_one_webeigenvalue32(label,prec):
+    E = WebEigenvalues(label,prec=prec)
+    return E.save_to_db()
+    
 def web_modformspace_collection(host='localhost',port=int(37010)):
     try:
         D = MongoMF(host=host,port=port)

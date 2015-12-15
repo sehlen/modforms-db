@@ -190,12 +190,15 @@ class WebNewForm_computing(WebNewForm):
                     self.dimension = int(0)
                 else:
                     raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
-    def set_aps(self,reload_from_db=False):
+    def set_aps(self,reload_from_db=False,want_prec=None):
         r"""
         We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
         
         """
         from sage.all import previous_prime,prime_pi
+        if want_prec is None:
+            want_prec = 0
+        want_prec = max(self.prec_needed_for_lfunctions(),want_prec)
         wmf_logger.debug("Setting aps!")
         wmf_logger.debug("self.prec={0}".format(self.prec))
         wmf_logger.debug("Eigenvalues prec={0}".format(self.eigenvalues.prec))        
@@ -215,7 +218,7 @@ class WebNewForm_computing(WebNewForm):
             precs = aps.keys()
         wmf_logger.critical("precs={0}".format(precs))
         for prec in precs:
-            wmf_logger.debug("Now getting prec@{0}".format(prec))
+            wmf_logger.debug("Now getting prec {0}".format(prec))
             if isinstance(prec,tuple):
                 pprec = prec[1]
             else:
@@ -238,11 +241,11 @@ class WebNewForm_computing(WebNewForm):
                 self.eigenvalues = evs
                 ev_set = 1
             wmf_logger.debug("Got ap's with prec={0}".format(self.eigenvalues.prec))
-            if self.eigenvalues.prec >= self.prec_needed_for_lfunctions():
+            if self.eigenvalues.prec >= want_prec: 
                 ## We got as many as we wanted.
                 break
-        if self.eigenvalues.prec < self.prec_needed_for_lfunctions():
-            wmf_logger.critical("Could not find coefficients with prec:{0} Only got:{1}".format(self.prec_needed_for_lfunctions(),self.eigenvalues.prec))
+        if self.eigenvalues.prec < want_prec:
+            wmf_logger.critical("Could not find coefficients with prec:{0} Only got:{1}".format(want_prec,self.eigenvalues.prec))
         #except Exception as e:
         #wmf_logger.critical("Could not get ap's. Error:{0}".format(e.message))
 

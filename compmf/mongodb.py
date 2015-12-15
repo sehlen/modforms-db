@@ -722,8 +722,9 @@ class MongoMF(object):
                 else:
                     if prec >= prec_needed and coeffs:
                         res[newform][(nmin,nmax)] = multiply_mat_vec(E,v)
-                if not d is None:
-                    res = res[newform]
+            if isinstance(d,(int,Integer)):
+                res = res[d]
+
         elif sources == ['files']:
             # The files are named according to Galois orbits but here we simply request
             # the character (even though we might get another character in the same orbit)
