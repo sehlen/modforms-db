@@ -1591,7 +1591,10 @@ def check_twist_info(D,nmax=10,nmin=1):
     res = []
     from lmfdb.modular_forms.elliptic_modular_forms import emf_logger
     emf_logger.setLevel(100)
-    for r in D._mongodb['webnewforms.files'].find({'level':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}):
+    for r in D._mongodb['webnewforms.files'].find():
+        level = int(r['hecke_orbit_label'].split(".")[0])
+        if level < nmin or level > nmax:
+            continue
         fid = r['_id']
         f = D.load_from_mongo('webnewforms',fid)
         if f is None:
