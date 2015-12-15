@@ -143,7 +143,7 @@ def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1
             s['cchi']=int(chi_range[0])
         else:
             s['cchi']={"$gt":int(chi_range[0]-1),"$lt":int(chi_range[-1]+1)}
-    for r in self._aps.find(s):
+    for r in D._aps.find(s):
         label = r['hecke_orbit_label']
         prec = r['prec']
         if D._mongodb['webeigenvalues.files'].find({'hecke_orbit_label':label,'prec':prec}):
