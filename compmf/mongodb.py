@@ -462,7 +462,7 @@ class MongoMF(object):
         fs = gridfs.GridFS(self._mongodb,col)
         try:
             return loads(fs.get(fid).read())
-        except Excepion as e:
+        except Exception as e:
             if "Cyclotomic" in str(e):
                 r = self._mongodb[col].find_one({'_id':fid})
                 clogger.critical("Problems with cyclotomic field for r={2}".format(r))
