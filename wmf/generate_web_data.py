@@ -1540,3 +1540,26 @@ def check_ambient_in_mongo16(fid):
 #def check_duplicates_in_orbits(fid):
     
     
+
+
+def check_twist_info(D):
+    res = []
+    for r in D._mongodb['webnewforms.files'].find():
+        fid = r['_id']
+        f = D.load_from_mongo('webnewforms',fid)
+        t = f.get('twist_info',None)
+        if t is not None:
+            try:
+                if  len(t)==2:
+                    if not isinstance(t[1][0],str):
+                        print type(t[1][0])
+                        res.append(r['hecke_orbit_label'])
+            except:
+                res.append(r['hecke_orbit_label'])
+    return res
+
+
+@parallel(ncpus=32)
+def recompute_one(label):
+    F=WebNewForm_computing(label,recompute=True)
+    return True

@@ -105,6 +105,7 @@ class WebNewForm_computing(WebNewForm):
         else:
             self._coefficients={}
             self.compute_additional_properties()
+            
         # update the version to current one 
         self.version = emf_version    
         #for p in self._db_properties:
@@ -166,6 +167,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
+        self.set_twist_info()
         self.creation_date=datetime.datetime.utcnow()
 ##  Internal functions
 ##
