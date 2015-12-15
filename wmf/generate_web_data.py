@@ -1587,9 +1587,11 @@ def check_ambient_in_mongo16(fid):
     
 
 
-def check_twist_info(D):
+def check_twist_info(D,nmax=10,nmin=1):
     res = []
-    for r in D._mongodb['webnewforms.files'].find():
+    from lmfdb.modular_forms.elliptic_modular_forms import emf_logger
+    emf_logger.setLevel(100)
+    for r in D._mongodb['webnewforms.files'].find({'level':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}):
         fid = r['_id']
         f = D.load_from_mongo('webnewforms',fid)
         if f is None:
@@ -1604,10 +1606,11 @@ def check_twist_info(D):
                         res.append(r['hecke_orbit_label'])
             except:
                 res.append(r['hecke_orbit_label'])
-    return res
+    wmf_loger.debug("Redoing {0} newforms!".format(len(res)))
+    return list(recompute_one(res))
 
 
 @parallel(ncpus=32)
 def recompute_one(label):
-    F=WebNewForm_computing(label,recompute=True)
+    F=WebNewForm_computing(label,recompute=False)
     return True
