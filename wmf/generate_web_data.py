@@ -1547,6 +1547,9 @@ def check_twist_info(D):
     for r in D._mongodb['webnewforms.files'].find():
         fid = r['_id']
         f = D.load_from_mongo('webnewforms',fid)
+        if f is None:
+            res.append(r['hecke_orbit_label'])
+            continue
         t = f.get('twist_info',None)
         if t is not None:
             try:
