@@ -1606,7 +1606,7 @@ def check_twist_info(D,nmax=10,nmin=1):
                         res.append(r['hecke_orbit_label'])
             except:
                 res.append(r['hecke_orbit_label'])
-    wmf_loger.debug("Redoing {0} newforms!".format(len(res)))
+    wmf_logger.debug("Redoing {0} newforms!".format(len(res)))
     return list(recompute_one(res))
 
 
