@@ -152,8 +152,7 @@ def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1
     print "s=",s
     print "args=",args
     print "ncpus=",ncpus
-    if ncpus>=32:
-        l = generate_one_webeigenvalue32(args)
+    l = generate_one_webeigenvalue32(args)
     return list(l)
 
 @parallel(32)

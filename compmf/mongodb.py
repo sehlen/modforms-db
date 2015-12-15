@@ -1370,7 +1370,7 @@ class CompMF(MongoMF):
                                      conrey_galois_orbit_number=int(on),
                                      newform=int(d),
                                      hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
-                                     nmin=int(nmin),nmax=int(nmax),
+                                     nmin=int(nmin),nmax=int(nmax),prec=int(nmax)
                                      cputime = meta.get("cputime",""),
                                      sage_version = meta.get("version",""),
                                      ambient_id=ambient_id)
