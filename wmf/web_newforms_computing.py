@@ -584,7 +584,7 @@ class WebNewForm_computing(WebNewForm):
                 # if we are here we have CM with x.
                 self._is_CM = [True, x]
                 self.is_cm = True
-                self.cm_disc = D
+                self.cm_disc = -D
                 return self._is_CM
         self._is_CM = [False, 0]
         self.is_cm = self._is_CM[0]
