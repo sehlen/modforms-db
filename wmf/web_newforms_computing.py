@@ -169,10 +169,13 @@ class WebNewForm_computing(WebNewForm):
             self.set_atkin_lehner()
         except ZeroDivisionError:
             wmf_logger.critical("Computing Atkin-Lehner failed!")
+        wmf_logger.debug("We set Atkin-lehner!")
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
+        wmf_logger.debug("Will set twise")
         self.set_twist_info()
+        wmf_logger.debug("Have set twist")
         self.creation_date=datetime.datetime.utcnow()
 ##  Internal functions
 ##
@@ -904,7 +907,7 @@ class WebNewForm_computing(WebNewForm):
                 s = latex(self._satake['thetas'][j][p])
                 self._satake['thetas_latex'][j][p] = s
 
-        wmf_logger.debug("satake=".format(self._satake))
+                wmf_logger.debug("satake={0}".format(self._satake))
         self.satake = self._satake
         return self._satake
 
