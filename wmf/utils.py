@@ -124,7 +124,7 @@ def Modf_changevar(f,NF,Bfacto=10^6):
         iso=QQx(str(gp.lift(iso)))
 
     # Finally, apply isomorphism
-    KQ.<a>=NumberField(Q)
+    KQ=NumberField(Q,name='a')
     iso=KQ(iso)
     v=f.eigenvalues.v
     newv=[l.lift()(iso) for l in v]
