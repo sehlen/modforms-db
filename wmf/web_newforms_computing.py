@@ -566,23 +566,20 @@ class WebNewForm_computing(WebNewForm):
             self._is_CM = [False, 0]
             return self._is_CM
         # probaly checking too many
-        for D in range(3, ceil(QQ(max_nump) / QQ(2))):
-            try:
-                for x in DirichletGroup(D):
-                    if(x.order() != 2):
-                        continue
-                    # we know that for CM we need x(p) = -1 => c(p)=0
-                    # (for p not dividing N)
-                    if(x.values().count(-1) > nz):
-                        raise StopIteration()  # do not have CM with this char
-                    for p in prime_range(max_nump + 1):
-                        if(x(p) == -1 and coeffs[p] != 0):
-                            raise StopIteration()  # do not have CM with this char
-                    # if we are here we have CM with x.
-                    self._is_CM = [True, x]
-                    return self._is_CM
-            except StopIteration:
-                pass
+        for D in (d for d in self.level.divisors() if is_fundamental_discriminant(-d)):
+            for x in DirichletGroup(D):
+                if(x.order() != 2):
+                    continue
+                # we know that for CM we need x(p) = -1 => c(p)=0
+                # (for p not dividing N)
+                #if(x.values().count(-1) > nz):
+                #    continue  # do not have CM with this char
+                for p in prime_range(max_nump + 1):
+                    if(x(p) == -1 and coeffs[p] != 0):
+                        continue  # do not have CM with this char
+                # if we are here we have CM with x.
+                self._is_CM = [True, x]
+                return self._is_CM
         self._is_CM = [False, 0]
         self.is_cm = self._is_CM[0]
         return self._is_CM

@@ -80,7 +80,12 @@ class MongoMF(object):
         pw_filename = join(dirname(dirname(__file__)), "password")
 #        if password == '':
         user = 'editor'
-        password = open(pw_filename, "r").readlines()[0].strip()
+        try:
+            password = open(pw_filename, "r").readlines()[0].strip()
+        except:
+            clogger.debug("Fallback to readonly access")
+            user = 'lmfdb'
+            password = 'lmfdb'
         if verbose>0:
             clogger.debug("Trying name:{0} and password:{1}".format(user,password))
         self._user = user
@@ -92,7 +97,7 @@ class MongoMF(object):
             from pymongo.mongo_client import MongoClient
             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
-        self._mongodb.authenticate(user,password)
+        self._mongo_conn['admin'].authenticate(user,password)
         
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
