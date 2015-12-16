@@ -1313,6 +1313,14 @@ class CompMF(MongoMF):
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
             kwds['ambient_id']=ambient_id
         ambient = self.get_ambient(N,k,ci,ambient_id=ambient_id,verbose=0)
+        if ambient is None:
+            ch = conrey_character_from_number(N,ci)
+            if ch.is_even() and k % 2 == 1:
+                clogger.debug("Character {0} is even and k={1}!".format(ch,k))
+            if ch.is_odd() and k % 2 == 0:
+                clogger.debug("Character {0} is odd and  k={1}!".format(ch,k))
+            return 
+#            clogger.debug("No ambient in this database!")
         ### We now have to see if we have the same character number or something else in the same orbit!
         ci_new = sage_character_to_conrey_character(ambient.character()).number()
         if ci_new <> ci:
