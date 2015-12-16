@@ -114,7 +114,7 @@ class WebNewForm_computing(WebNewForm):
         self.version = emf_version    
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
-        id save_to_db:
+        if save_to_db:
             self.save_to_db()
 
     def __repr__(self):
