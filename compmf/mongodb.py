@@ -2407,7 +2407,7 @@ class CheckingDB(CompMF):
                     if self.check_ramanujan_bound_cp(E,v,2,k):
                         c = multiply_mat_vec(E,v)
                         a2 = c[0].abs()/RR(2.0)**(RR(k-1)/RR(2))
-                        clogger.debug("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
+                        clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
                         res['aps'] = False
                         #fs_ap.delete(id)
                     continue
