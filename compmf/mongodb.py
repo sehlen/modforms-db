@@ -1467,6 +1467,8 @@ class CompMF(MongoMF):
                 for d in range(num_factors):
                     aps = self._computedb.compute_aplists(N,k,ci,d,pprec,ambient=ambient,save=self._save_to_file)
                     insert_aps_into_mongodb(aps)
+                aps_in_file = 1 # after this the aps should be in both
+                # file and mongo
             if aps is None or aps == {}:
                 for d in range(num_factors):
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient) #,nrange=[0,pprec])

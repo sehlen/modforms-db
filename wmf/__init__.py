@@ -16,7 +16,7 @@ if len(wmf_logger.handlers)>0:
     wmf_logger.handlers = []
 wmf_logger.handlers.append(stream)
 wmf_logger.propagate=False
-from utils import orbit_label,orbit_index_from_label
+from utils import orbit_label,orbit_index_from_label,Modf_changevar
 
 from web_newforms_computing import WebNewForm_computing
 from web_modform_space_computing import WebModFormSpace_computing
