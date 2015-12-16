@@ -156,6 +156,7 @@ class WebNewForm_computing(WebNewForm):
         if self.dimension == 0:
             return 
         self.set_aps()
+        wmf_logger.debug("We set aps!")
         self.set_q_expansion()
         self.set_q_expansion_embeddings()
         self.set_base_ring()       
