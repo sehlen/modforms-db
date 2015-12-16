@@ -225,6 +225,8 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("Now getting prec {0}".format(prec))
             if isinstance(prec,tuple):
                 pprec = prec[1]
+                if prec[0] != 0:
+                    continue
             else:
                 pprec = prec
             E,v,meta = aps[prec]
