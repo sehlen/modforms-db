@@ -265,7 +265,7 @@ class WebModFormSpace_computing(WebModFormSpace):
     def set_sturm_bound(self):
         r""" Return the Sturm bound of S_k(N,xi), i.e. the number of coefficients necessary to determine a form uniquely in the space.
         """
-        if self.sturm_bound is None:
+        if self.sturm_bound is None or self.sturm_bound == 0:
             self.sturm_bound = sturm_bound(self.level,self.weight)
 
 
