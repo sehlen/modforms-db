@@ -61,7 +61,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False,save_to_db=False):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -114,7 +114,8 @@ class WebNewForm_computing(WebNewForm):
         self.version = emf_version    
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
-        self.save_to_db()
+        id save_to_db:
+            self.save_to_db()
 
     def __repr__(self):
         r"""
@@ -907,7 +908,7 @@ class WebNewForm_computing(WebNewForm):
                 s = latex(self._satake['thetas'][j][p])
                 self._satake['thetas_latex'][j][p] = s
 
-                wmf_logger.debug("satake={0}".format(self._satake))
+                #wmf_logger.debug("satake={0}".format(self._satake))
         self.satake = self._satake
         return self._satake
 
