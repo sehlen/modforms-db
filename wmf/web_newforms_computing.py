@@ -28,7 +28,7 @@ TODO:
 Fix complex characters. I.e. embedddings and galois conjugates in a consistent way.
 
 """
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing, is_fundamental_discriminant
 from sage.rings.power_series_poly import PowerSeries_poly
 from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
 import re
@@ -566,7 +566,7 @@ class WebNewForm_computing(WebNewForm):
             self._is_CM = [False, 0]
             return self._is_CM
         # probaly checking too many
-        for D in (d for d in self.level.divisors() if is_fundamental_discriminant(-d)):
+        for D in (d for d in divisors(self.level) if is_fundamental_discriminant(-d)):
             for x in DirichletGroup(D):
                 if(x.order() != 2):
                     continue
