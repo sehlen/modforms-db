@@ -1342,10 +1342,14 @@ class CompMF(MongoMF):
             aps = {(N,k,i,d) : (E,v,meta) }
             where E*v gives the actual list of ap's and meta is a dictionary with cputime and sage version.
             """
-
+            if isinstance(aps,list):
+                res = []
+                for aps1 in aps:
+                    res.append(insert_aps_into_mongodb(aps1))
+                return res
             if not isinstance(aps,dict):
                 clogger.warning("Trying to insert non-dict aps:{0}".format(aps))
-                return
+                return None
             res = []
             for key,value in aps.iteritems():
                 #N,k,ci,d = key
@@ -1462,6 +1466,7 @@ class CompMF(MongoMF):
                         aps_in_file = 0
                         break
                     else:
+                        clogger.debug("Loading aplist! d={0} with pprec={1}".format(d,pprec))
                         insert_aps_into_mongodb(aps)
             if aps_in_file == 0:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
