@@ -1461,7 +1461,7 @@ class CompMF(MongoMF):
                     insert_aps_into_mongodb(aps)
             if aps is None or aps == {}:
                 for d in range(num_factors):
-                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec])
+                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient) #,nrange=[0,pprec])
                     if aps == {} or aps is None:
                         aps_in_file = 0
                         break
