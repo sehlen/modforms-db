@@ -35,6 +35,10 @@ import re
 import yaml
 from flask import url_for
 import pymongo
+try:
+    from dirichlet_conrey import *
+except:
+    emf_logger.critical("Could not import dirichlet_conrey!")
 ## DB modules
 
 
@@ -579,6 +583,8 @@ class WebNewForm_computing(WebNewForm):
                         continue  # do not have CM with this char
                 # if we are here we have CM with x.
                 self._is_CM = [True, x]
+                self.is_cm = True
+                self.cm_disc = D
                 return self._is_CM
         self._is_CM = [False, 0]
         self.is_cm = self._is_CM[0]
