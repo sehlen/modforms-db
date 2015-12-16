@@ -49,7 +49,8 @@ from compmf.character_conversions import (
     sage_galois_orbit_number_from_conrey_character_number,
     conrey_character_number_to_conrey_galois_orbit_number,
     dirichlet_group_conrey,
-    conrey_character_from_number
+    conrey_character_from_number,
+    sage_character_to_conrey_character
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible,multiply_mat_vec,convert_matrix_to_extension_fld
@@ -77,19 +78,6 @@ class MongoMF(object):
         self._verbose = int(verbose)
         self._db_name = db
         from os.path import dirname, join
-        pw_filename = join(dirname(dirname(__file__)), "password")
-#        if password == '':
-        user = 'editor'
-        try:
-            password = open(pw_filename, "r").readlines()[0].strip()
-        except:
-            clogger.debug("Fallback to readonly access")
-            user = 'lmfdb'
-            password = 'lmfdb'
-        if verbose>0:
-            clogger.debug("Trying name:{0} and password:{1}".format(user,password))
-        self._user = user
-        self._password = password
         if pymongo.version_tuple[0] < 3:
             self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
@@ -97,8 +85,21 @@ class MongoMF(object):
             from pymongo.mongo_client import MongoClient
             self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
-        self._mongo_conn['admin'].authenticate(user,password)
-        
+        pw_filename = join(dirname(dirname(__file__)), "password")
+        user = 'editor'
+        try:
+            password = open(pw_filename, "r").readlines()[0].strip()
+            self._mongodb.authenticate(user,password) # gives write
+            # access to the modforms2 database
+        except:
+            clogger.debug("Fallback to readonly access")
+            user = 'lmfdb'
+            password = 'lmfdb'
+            self._mongo_conn['admin'].authenticate(user,password) # read-only 
+        if verbose>0:
+            clogger.debug("Logged in with name:{0} and password:{1}".format(user,password))
+        self._user = user
+        self._password = password
         ## Our databases
         self._modular_symbols_collection = 'Modular_symbols'
         self._newform_factors_collection = 'Newform_factors'
