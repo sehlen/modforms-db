@@ -131,21 +131,34 @@ def Modf_changevar2(f,NF,Bfacto=10^6):
 
 
 
-def Modf_changevar(f,NF,Bfacto=10^6):
+def Modf_changevar_f(f,NF=None,Bfacto=10^6):
+    try:
+        label = f.coefficiewnt_field.lmfdb_label
+    except:
+        label = ''
+    E = f.eigenvalues.E
+    v = f.eigenvalues.v
+    return Modf_changevar_Ev(E,v,NF,Bfacto=Bfaco,Klabel=label)
+
+
+def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
     r"""
     Usage : f a hecke_orbit, NF=lmfdb.base.getDBConnection()['numberfields']['fields']
     Returns : [v2,E2,Q,emb,label], where v2 and E2 are v and E expressed on a nice model of the coeff field, Q is the absolute defining polynomial of this model, emb is the embeddding of the generator of the cycltomic subfield (for Gamma1), and label is the lmfdb label of the field (or '' if not in the database)
     """
-
+    import lmfdb
+    if NF is None:
+        NF=lmfdb.base.getDBConnection()['numberfields']['fields']
+    coefficient_field = v[0].parent()
     ZZx=ZZ['x']
     QQx=QQ['x']
-    P=f.absolute_polynomial
+    P=coefficient_field.absolute_polynomial
     # If f is rational, nothing to do :)
-    if f.is_rational:
-        return [f.eigenvalues.v,u'1.1.1.1']
+    if coefficient_field.absolute_degree() == 1:
+        return [E,v,QQ,'x',u'1.1.1.1']
     # Is the coefficient field already identified ?
-    Klabel=f.coefficient_field.lmfdb_label
-    if Klabel:
+    #Klabel=f.coefficient_field.lmfdb_label
+    if Klabel != '':
         # It is, let us make the isomorphism explicit
         K=NF.find_one({'label':Klabel})
         Q=ZZx([ZZ(a) for a in K['coeffs'].split(',')])
@@ -211,8 +224,8 @@ def Modf_changevar(f,NF,Bfacto=10^6):
     # Now we have the model we want for the absolute field.
     # We now want the explicit embedding of the cyclotomic field, the
     # relative polynomial for thi new field, and the relative version of the isomorphism
-    E=f.eigenvalues.E
-    v=f.eigenvalues.v
+    #E=f.eigenvalues.E
+    #v=f.eigenvalues.v
     KQ=NumberField(Q,name='a')
     a = KQ.gen()
     Kcyc=v[0].parent().base_ring()
@@ -231,10 +244,11 @@ def Modf_changevar(f,NF,Bfacto=10^6):
         newv=[l.lift()(relIso) for l in v]
         if E.base_ring() != Kcyc:
             E=E.apply_map(lambda x:x[0])
-        return [newv,E,Q,emb,Klabel]
+        return [E,newv,Q,emb,Klabel]
 
     # Trivial cycltomic field case
     KQ = NumberField(Q,name='a')
     iso=KQ(iso)
     newv=[l.lift()(iso) for l in v]
-    return [newv,E,Q,QQx.gen(),Klabel]
+    Enew=E.apply_map(lambda x: x.lift()(iso))
+    return [Enew,newv,Q,QQx.gen(),Klabel]
