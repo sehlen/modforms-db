@@ -79,7 +79,9 @@ class WebNewForm_computing(WebNewForm):
         if isinstance(level,basestring):
             wmf_logger.debug("Calling with newform label:{0}".format(level))
             level,weight,character,label = parse_newform_label(level)
-        
+        # update the version to current one 
+        self.version = emf_version
+        emf_logger.critical("version={0}".format(self.version))
         if self.is_in_modularforms_db(level,weight,character,label) == 0:
             wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
             return None
@@ -106,12 +108,11 @@ class WebNewForm_computing(WebNewForm):
             #self.compute_satake_parameters_numeric()
             #wmf_logger.debug("computed satake parameters!")            
             self.set_twist_info()
-        else:
+        else: # reset the computed (possibly wrong) properties of self
             self._coefficients={}
+            self._embeddings = {}
             self.compute_additional_properties()
             
-        # update the version to current one 
-        self.version = emf_version    
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
         if save_to_db:
@@ -234,11 +235,21 @@ class WebNewForm_computing(WebNewForm):
                     continue
             else:
                 pprec = prec
+            
             E,v,meta = aps[prec]
+            if self.version > 1.3:
+                l = Modf_changevar_Ev(E,v)
+                E=l[0]; v=l[1]
+                nf_label = l[-1]
+                self.coefficient_field = v[0].parent()
+                self.coefficient_field._label = nf_label
+            else:
+                nf_label = ''
             if E.nrows() <> prime_pi(pprec):
                 raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
             self._available_precisions.append(pprec)
             evs = WebEigenvalues(self.hecke_orbit_label,pprec)
+            evs.version = self.version
             evs.E = E
             wmf_logger.critical("E = {0}".format(E))
             evs.v = v
@@ -400,6 +411,10 @@ class WebNewForm_computing(WebNewForm):
             else:
                 embc = [ CF(cn) ] # this is only occuring for Q
             self._embeddings['values'][n]=embc
+        c2 = self._embeddings['values'][2][0]
+        t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+        if abs(t) > 2:
+            raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
         self._embeddings['prec'] = prec+1
         return 1
                       
