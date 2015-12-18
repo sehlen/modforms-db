@@ -1631,4 +1631,4 @@ def get_duplicate_keys(D):
         for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
             print x['_id'],x['uploadDate']
             if x['_id']<>r['_id']:
-                C.delete_one({'_id':x['_id']})
+                C.remove({'_id':x['_id']})
