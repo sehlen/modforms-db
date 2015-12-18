@@ -1238,7 +1238,7 @@ def fix_aps_parallel_one(fid,verbose=0):
         if E.base_ring() <> v.base_ring():
             #l = Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6)
             #E=l[0]; v=l[1]
-            
+            EE = convert_matrix_to_extension_fld(E,v.base_ring())
             gen = str(l[2]); emb=str(l[3]); label=str(l[4])
             a2 = sum(EE[0,x]*v[x] for x in range(len(v)))
             a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))
@@ -1251,7 +1251,7 @@ def fix_aps_parallel_one(fid,verbose=0):
                 nmin = int(0)
                 rr['nmax'] = nmax
                 rr['nmin'] = nmin
-            if E.nrows()<>prime_pi(rr['nmax'])-prime_pi(rr['nmin']) :
+            if EE.nrows()<>prime_pi(rr['nmax'])-prime_pi(rr['nmin']) :
                 clogger.critical("Record {0} does not have correct  number of coefficients".format(r['hecke_orbit_label']))
                 D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
                 return
@@ -1262,7 +1262,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             rr['field_gen']=gen
             rr['field_emb']=emb
             rr['field_label']=label
-            t = fs_ap.put(dumps( (E,v)),**rr)
+            t = fs_ap.put(dumps( (EE,v)),**rr)
             #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
     except Exception as e:
         wmf_logger.critical("Wrongly formatted record!")
