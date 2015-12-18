@@ -1189,34 +1189,38 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
 
 
 
-def fix_pprec_to_nmax(D,nmax=10,ncpus=1,verbose=0):
+def fix_aps_nmax(D,nmax=10,ncpus=1,verbose=0):
     args = []
-    for r in D._aps.find({'pmax':{"$exists":False},'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
+    for r in D._aps.find({'converted':False:,'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
         args.append(r['_id'])
     if ncpus>=32:
-        return list(fix_pprec_parallel_32(args))
+        return list(fix_aps_parallel_32(args))
     elif ncpus>=8:
-        return list(fix_pprec_parallel_8(args))
+        return list(fix_aps_parallel_8(args))
     else:
         l = []
         for fid in args:
-            l.append(fix_pprec_parallel_one(fid),verbose=verbose)
+            l.append(fix_aps_parallel_one(fid),verbose=verbose)
         return list(l)
 
 @parallel(ncpus=8)
-def fix_pprec_parallel_8(fid):
+def fix_aps_parallel_8(fid):
     return fix_pprec_parallel_one(fid)
 
 
 @parallel(ncpus=32)
-def fix_pprec_parallel_32(fid):
+def fix_aps_parallel_32(fid):
     return fix_pprec_parallel_one(fid)
 
-def fix_pprec_parallel_one(fid,verbose=0):
+def fix_aps_parallel_one(fid,verbose=0):
+    r"""
+    Now use the new routines...
+    """
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
     s = {'_id':fid,'pmax':{"$exists":False}}
     r = D._aps.find_one(s)
+    aps_new = D._mongodb['ap2'] 
     if r is None:
         return
     if verbose > 0:
@@ -1224,54 +1228,44 @@ def fix_pprec_parallel_one(fid,verbose=0):
     try:
         E,v = D.load_from_mongo('ap',fid)
         if verbose > 0:
-            wmf_logger.debug("Multiplying E and v")
+            wmf_logger.debug("Multiplying E and v for {0}".format('hecke_orbit_label'))
         if E.base_ring() <> v.base_ring():
-            EE = convert_matrix_to_extension_fld(E,v.base_ring())
-            D.delete_from_mongo('ap',r['_id'])
-            # Insert an updated version of E with changed base ring
+            l = Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6)
+            E=l[0]; v=l[1]
+            gen = str(l[2]); emb=str(l[3]); label=str(l[4])
+            a2 = sum(EE[0,x]*v[x] for x in range(len(v)))
+            a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))
+            if a2 > 2.0:
+                clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
+                D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+                return
+            if not r.has_key('nmax'):
+                nmax = int(nth_prime(n+1)-1)
+                nmin = int(0)
+                rr['nmax'] = nmax
+                rr['nmin'] = nmin
+            if E.nrows()<>prime_pi(rr['nmax'])-prime_pi(rr['nmin']) :
+                clogger.critical("Record {0} does not have correct  number of coefficients".format(r['hecke_orbit_label']))
+                D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+                return
             fs_ap = gridfs.GridFS(D._mongodb, 'ap')
             rr = deepcopy(r)
             rr.pop('_id')
-            t = fs_ap.put(dumps( (EE,v)),**rr)
-            # filename=r['filename'],
-            #               N=r['N'],k=r['k'],chi=r['chi'],cchi=r['cchi'],
-            #               character_galois_orbit=r['character_galois_orbit'],
-            #               conrey_galois_orbit_number=r['conrey_galois_orbit_number'],
-            #               newform=r['newform'],
-            #               hecke_orbit_label=r['hecke_orbit_label'],
-            #               nmin=r['nmin'],nmax=r['nmax'],
-            #               cputime = r['cputime'],
-            #               sage_version = r['sage_version'],
-            #               ambient_id = r['ambient_id'])
-            if t is not None:
-                # delete old record
-                D.delete_from_mongo('ap',r['_id'])
-            c = EE*v
-        else:
-            c = E*v
+            rr['is_converted']=True
+            rr['field_gen']=gen
+            rr['field_emb']=emb
+            rr['field_label']=label
+            t = fs_ap.put(dumps( (E,v)),**rr)
+            #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
     except Exception as e:
-        wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
-        if not 'out of memory' in str(e):
-            D.delete_from_mongo('ap',r['_id'])
+        wmf_logger.critical("Wrongly formatted record!")
+        D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+        #wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
+        #if not 'out of memory' in str(e):
+        #    D.delete_from_mongo('ap',r['_id'])
         raise ValueError,"Could not load E,v for {0}. Error:{1}".format(r['hecke_orbit_label'],e)
 
-    # first check that it satisfies Ramanujan...
-    pprec = r['prec']
-    if c[0].parent() is QQ:
-        a2 = abs(c[0])/2.0**(RR(r['k']-1)/RR(2))
-    else:
-        a2 = abs(c[0].complex_embedding())/2.0**(RR(r['k']-1)/RR(2))
-    if abs(a2) > 2:
-        wmf_logger.debug("Removing record {0} that does not satisfy Ramanujan! a2={1}".format(r['hecke_orbit_label'],a2))
-        return D.delete_from_mongo('ap',r['_id'])
-    n = len(c)
-    nmax = int(nth_prime(n+1)-1)
-    nmin = int(0)
-    nn =nth_prime(n)
-    wmf_logger.debug("Updating r={0} with id={4} from pprec:{1} to nmin:{2} and nmax={3}".format(r['hecke_orbit_label'],pprec,nmin,nmax,r['_id']))
-    res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})
-    #,"$unset":{'prec':''}})
-    #wmf_logger.debug("updated: {0}".format(res))
+
 
 
 def change_base_ring(D,nmax=None,nmin=0,nlimit=None,ncpus=1,verbose=0):

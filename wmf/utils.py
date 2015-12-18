@@ -5,7 +5,8 @@ Utilities for modform computing classes.
 """
 
 from sage.all import cached_function,AlphabeticStrings
-       
+from wmf import wmf_logger
+
 @cached_function
 def orbit_label(j):
     x = AlphabeticStrings().gens()
@@ -44,7 +45,7 @@ import pymongo
 import lmfdb
 from lmfdb.modular_forms.elliptic_modular_forms import *
 from lmfdb.number_fields.number_field import make_disc_key
-from sage.all import ZZ,QQ,is_prime,gp,Mod,NumberField
+from sage.all import ZZ,QQ,is_prime,gp,Mod,NumberField,vector
 
 def Modf_changevar2(f,NF,Bfacto=10^6):
     r"""
@@ -153,10 +154,10 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
     # If f is rational, nothing to do :)
     if coefficient_field.absolute_degree() == 1:
         return [E,v,QQ,'x',-1,u'1.1.1.1']
-    P=coefficient_field.absolute_polynomial
+    P=coefficient_field.absolute_polynomial()
     ZZx=ZZ['x']
     QQx=QQ['x']
-
+    wmf_logger.debug("P={0}".format(P))
     # Is the coefficient field already identified ?
     #Klabel=coefficient_field.lmfdb_label
     if Klabel != '':
@@ -250,6 +251,6 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
     # Trivial cycltomic field case
     KQ = NumberField(Q,name='a')
     iso=KQ(iso)
-    newv=[l.lift()(iso) for l in v]
+    newv=vector([l.lift()(iso) for l in v])
     Enew=E.apply_map(lambda x: x.lift()(iso))
     return [Enew,newv,Q,-1,Klabel]
