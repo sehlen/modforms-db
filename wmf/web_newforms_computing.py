@@ -82,7 +82,7 @@ class WebNewForm_computing(WebNewForm):
             level,weight,character,label = parse_newform_label(level)
         # update the version to current one 
         self.version = emf_version
-        emf_logger.critical("version={0}".format(self.version))
+        emf_logger.critical("version={0} kwds={1}".format(self.version,kwds))
         super(WebNewForm_computing,self).__init__(level,weight,character,label,parent,**kwds)
         if not self.is_in_modularforms_db():
             wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
