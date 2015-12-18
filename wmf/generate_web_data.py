@@ -1268,7 +1268,7 @@ def fix_aps_parallel_one(fid,verbose=0):
         #rr['field_gen']=gen
         #rr['field_emb']=emb
         #rr['field_label']=label
-        rold = D._aps.find_one({'hecke_orbit_label':r['hecke_orbit_label'],'version':emf_version})
+        rold = D._aps.find_one({'hecke_orbit_label':r['hecke_orbit_label'],'prec':r['prec']})
         if not rold is None:
             if float(pymongo.version)==2.8:
                 D._aps.remove(rold['_id'])
