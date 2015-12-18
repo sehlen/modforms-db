@@ -2462,6 +2462,7 @@ class CheckingDB(CompMF):
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                 clogger.debug("Checked!")
+            clogger.debug("prec={0}".format(precs))
             maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
