@@ -250,7 +250,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         in_db = True
         for x in self.hecke_orbits:
             label = self.hecke_orbits[x].hecke_orbit_label
-            if WebNewForm_computing.find({'hecke_orbit_label':label}).count()==0:
+            if len(WebNewForm_computing.find({'hecke_orbit_label':label}))==0:
                 wmf_logger.critical("The hecke orbit {0} is not in the database".format(label))
                 in_db = False
                 break
