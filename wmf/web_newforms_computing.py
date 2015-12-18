@@ -62,7 +62,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False,save_to_db=False):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False,save_to_db=False,**kwds):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -83,7 +83,7 @@ class WebNewForm_computing(WebNewForm):
         # update the version to current one 
         self.version = emf_version
         emf_logger.critical("version={0}".format(self.version))
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
+        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent,**kwds)
         if not self.is_in_modularforms_db():
             wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
             return None

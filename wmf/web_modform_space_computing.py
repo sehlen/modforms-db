@@ -78,7 +78,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))
         self._host = host; self._port=int(port); self._dbname = db
         
-        super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
+        super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db,**kwds)
         wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
         #if self.dimension == 0: ### does not work if the record has
@@ -250,7 +250,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         in_db = True
         for x in self.hecke_orbits:
             label = self.hecke_orbits[x].hecke_orbit_label
-            if len(WebNewForm_computing.find({'hecke_orbit_label':label}))==0:
+            if list(WebNewForm_computing.find({'hecke_orbit_label':label}))==[]:
                 wmf_logger.critical("The hecke orbit {0} is not in the database".format(label))
                 in_db = False
                 break
