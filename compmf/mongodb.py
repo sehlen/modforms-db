@@ -1368,7 +1368,7 @@ class CompMF(MongoMF):
                     E,v = E
                 ### convert base ring of E
                 E = convert_matrix_to_extension_fld(E,v.base_ring())
-                clogger.debug("E= matrix over {0} of size {1} x {0}".format(E.base_ring(),E.nrows(),E.ncols()))
+                clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,ci).split("/")[-1])
@@ -1377,6 +1377,7 @@ class CompMF(MongoMF):
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
                 r = self._aps.find_one({'filename':fname1})
+                label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 if not r is None:
                     fs_ap.delete(r['_id'])
                 try:
@@ -1387,13 +1388,13 @@ class CompMF(MongoMF):
                                      character_galois_orbit=orbit,
                                      conrey_galois_orbit_number=int(on),
                                      newform=int(d),
-                                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                                     hecke_orbit_label=label,
                                      nmin=int(nmin),nmax=int(nmax),prec=int(nmax),
                                      cputime = meta.get("cputime",""),
                                      sage_version = meta.get("version",""),
                                      ambient_id=ambient_id)
                     aps_in_mongo.append(apid)
-                    clogger.debug("We could insert {0} fname={1}".format(apid,fname1))
+                    clogger.debug("We could insert {0} fname={1} label={2}".format(apid,fname1,label))
                 except ValueError as e: #gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e))
                     q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
