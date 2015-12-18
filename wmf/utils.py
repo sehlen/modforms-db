@@ -142,17 +142,33 @@ def Modf_changevar_f(f,NF=None,Bfacto=10^6):
     return Modf_changevar_Ev(E,v,NF,Bfacto=Bfaco,Klabel=label)
 
 
-def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
+def get_lmfdb_label(v,NF=None,Bfacto=10^6):
+    return Modf_changevar_Ev(E=None,v=v,NF=NF,Bfacto=Bfacto,Klabel='',label_only=True)
+
+
+def Modf_changevar_Ev(E=None,v=None,NF=None,Bfacto=10^6,Klabel='',label_only=False):
     r"""
     Usage : f a hecke_orbit, NF=lmfdb.base.getDBConnection()['numberfields']['fields']
-    Returns : [v2,E2,Q,emb,label], where v2 and E2 are v and E expressed on a nice model of the coeff field, Q is the absolute defining polynomial of this model, emb is the embeddding of the generator of the cycltomic subfield (for Gamma1), and label is the lmfdb label of the field (or '' if not in the database)
+    Returns : [v2,E2,Q,emb,label], where v2 and E2 are v and E
+    expressed on a nice model of the coeff field, Q is the absolute
+    defining polynomial of this model, emb is the embeddding of the
+    generator of the cycltomic subfield (for Gamma1), and label is the
+    lmfdb label of the field (or '' if not in the database)
+
+    if label_only = True we only want to see if we can find the label,
+    not apply the isomorphism.
     """
     import lmfdb
+    if v is None:
+        return [None,None,None,None,None]
     if NF is None:
         NF=lmfdb.base.getDBConnection()['numberfields']['fields']
     coefficient_field = v[0].parent()
+    wmf_logger.debug("K={0}".format(coefficient_field))
     # If f is rational, nothing to do :)
     if coefficient_field.absolute_degree() == 1:
+        if label_only:
+            return u'1.1.1.1'
         return [E,v,QQ,'x',-1,u'1.1.1.1']
     P=coefficient_field.absolute_polynomial()
     ZZx=ZZ['x']
@@ -203,8 +219,10 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
             query['disc_sign']=s
             query['disc_abs_key']=D
         LK=NF.find(query)
+        print "query=",query
         Klabel=''
         for K in LK:
+            print "K=",K
             # Found a candidate in the nf DB, here is its defining polynomial
             Q=ZZx([ZZ(a) for a in K['coeffs'].split(',')])
             # Compute max order in gp
@@ -222,7 +240,8 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
         Q=ZZx(str(Q))
         pkQ=gp.nfinit([Q,Bfacto])
         iso=QQx(str(gp.lift(iso)))
-
+    if label_only:
+        return Klabel
     # Now we have the model we want for the absolute field.
     # We now want the explicit embedding of the cyclotomic field, the
     # relative polynomial for thi new field, and the relative version of the isomorphism
@@ -243,7 +262,7 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
         R=Kcyc.extension(relQ,name='a')
         a = R.gen()
         relIso=iso(a)
-        newv=[l.lift()(relIso) for l in v]
+        newv=vector([l.lift()(relIso) for l in v])
         if E.base_ring() != Kcyc:
             E=E.apply_map(lambda x:x[0])
         return [E,newv,Q,emb,Klabel]

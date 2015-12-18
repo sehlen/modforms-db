@@ -48,7 +48,7 @@ from sage.rings.number_field.number_field_base import NumberField as NumberField
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm,WebEigenvalues
 
-from utils import Modf_changevar_Ev
+from utils import get_lmfdb_label
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label,parse_newform_label
 
@@ -136,7 +136,7 @@ class WebNewForm_computing(WebNewForm):
         r"""
         check if we have a corresponding record in the database. Otherwise we need to comp[ute it first.
         """
-        orbit_label = newform_label(self.level,self.weight,self.character,self.label)
+        orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
         s = {'hecke_orbit_label':orbit_label}
         n = self._db._mongodb['Newform_factors.files'].find(s).count()
         m = self._db._mongodb['ap.files'].find(s).count()
@@ -161,9 +161,9 @@ class WebNewForm_computing(WebNewForm):
         self.set_aps()
         wmf_logger.debug("We set aps!")
         self.set_q_expansion()
-        self.set_q_expansion_embeddings()
         self.set_base_ring()       
         self.set_coefficient_field()
+        self.set_q_expansion_embeddings()
 
         #self.set_twist_info()
         self.set_is_cm()
@@ -238,14 +238,12 @@ class WebNewForm_computing(WebNewForm):
                 pprec = prec
             
             E,v,meta = aps[prec]
-            if self.version > 1.3:
-                l = Modf_changevar_Ev(E,v)
-                E=l[0]; v=l[1]
-                nf_label = l[-1]
-                self.coefficient_field = v[0].parent()
-                self.coefficient_field._label = nf_label
-            else:
-                nf_label = ''
+            #if self.version > 1.3:
+
+            #self.coefficient_field = v[0].parent()
+            #self.coefficient_field._label = nf_label
+            #else:
+            #    nf_label = ''
             if E.nrows() <> prime_pi(pprec):
                 raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
             self._available_precisions.append(pprec)
@@ -337,6 +335,8 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("evs={0}".format(self.eigenvalues))
             self.coefficient_field = self.eigenvalues[2].parent()
             self.coefficient_field_degree = self.coefficient_field.absolute_degree()
+            nf_label = get_lmfdb_label([self.eigenvalues[2]])
+            setattr(self.coefficient_field,'lmfdb_label',nf_label)
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
         if self.coefficient_field_degree == 1:
