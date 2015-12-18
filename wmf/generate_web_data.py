@@ -1205,12 +1205,12 @@ def fix_aps_nmax(D,nmax=10,ncpus=1,verbose=0):
 
 @parallel(ncpus=8)
 def fix_aps_parallel_8(fid):
-    return fix_pprec_parallel_one(fid)
+    return fix_aps_parallel_one(fid)
 
 
 @parallel(ncpus=32)
 def fix_aps_parallel_32(fid):
-    return fix_pprec_parallel_one(fid)
+    return fix_aps_parallel_one(fid)
 
 def fix_aps_parallel_one(fid,verbose=0):
     r"""

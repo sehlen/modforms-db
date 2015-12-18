@@ -1372,7 +1372,7 @@ class CompMF(MongoMF):
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,ci).split("/")[-1])
-                fname1 = "{0}-{1:0>3}-{2:0>5}".format(fname,d,pprec)
+                fname1 = "{0}-{1:0>3}-{2:0>5}-{3:0>5}".format(fname,d,nmin,nmax)
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
