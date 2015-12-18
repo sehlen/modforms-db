@@ -2477,7 +2477,7 @@ class CheckingDB(CompMF):
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
             
         elif ambient_id is not None:
-            clogger.debug("updating 2")
+            clogger.debug("updating 2 res={0}".format(res))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         else:
             res['aps']=False

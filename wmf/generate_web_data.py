@@ -84,7 +84,9 @@ def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpu
     elif ncpus>=4:
         l = generate_one_webmodform_space4(args)
     else:
-        l =  generate_one_webmodform_space1_par(args)
+        l = []
+        for N,k,cchi in args:
+            l.append(generate_one_webmodform_space1_par(N,k,cchi))
     return list(l)
 
 @parallel(ncpus=32)
@@ -99,7 +101,7 @@ def generate_one_webmodform_space8(level,weight,chi,**kwds):
 @parallel(ncpus=4)
 def generate_one_webmodform_space4(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
-@parallel(ncpus=1)
+#@parallel(ncpus=1)
 def generate_one_webmodform_space1_par(level,weight,chi,**kwds):
     return generate_one_webmodform_space1(level,weight,chi,**kwds)
 
