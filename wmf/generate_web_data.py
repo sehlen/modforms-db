@@ -1230,6 +1230,7 @@ def fix_aps_parallel_one(fid,verbose=0):
     aps_new = D._mongodb['ap2'] 
     if r is None:
         return
+    emf_logger.debug("checking: {0}".format(r['hecke_orbit_label'])
     if verbose > 0:
         print "record = ",r
     try:
