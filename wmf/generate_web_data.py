@@ -1250,7 +1250,7 @@ def fix_aps_parallel_one(fid,verbose=0):
         a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))
         if a2 > 2.0:
             clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
-            D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+            D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
             return
         rr = deepcopy(r)
         rr.pop('_id')
@@ -1261,7 +1261,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             rr['nmin'] = nmin
         if E.nrows()<>prime_pi(rr['nmax'])-prime_pi(rr['nmin']) :
             clogger.critical("Record {0} does not have correct  number of coefficients".format(r['hecke_orbit_label']))
-            D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+            D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
             return
         fs_ap = gridfs.GridFS(D._mongodb, 'ap')
         rr['is_converted']=True
