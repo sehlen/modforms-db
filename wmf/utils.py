@@ -150,14 +150,15 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
     if NF is None:
         NF=lmfdb.base.getDBConnection()['numberfields']['fields']
     coefficient_field = v[0].parent()
-    ZZx=ZZ['x']
-    QQx=QQ['x']
-    P=coefficient_field.absolute_polynomial
     # If f is rational, nothing to do :)
     if coefficient_field.absolute_degree() == 1:
-        return [E,v,QQ,'x',u'1.1.1.1']
+        return [E,v,QQ,'x',-1,u'1.1.1.1']
+    P=coefficient_field.absolute_polynomial
+    ZZx=ZZ['x']
+    QQx=QQ['x']
+
     # Is the coefficient field already identified ?
-    #Klabel=f.coefficient_field.lmfdb_label
+    #Klabel=coefficient_field.lmfdb_label
     if Klabel != '':
         # It is, let us make the isomorphism explicit
         K=NF.find_one({'label':Klabel})
@@ -251,4 +252,4 @@ def Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6,Klabel=''):
     iso=KQ(iso)
     newv=[l.lift()(iso) for l in v]
     Enew=E.apply_map(lambda x: x.lift()(iso))
-    return [Enew,newv,Q,QQx.gen(),Klabel]
+    return [Enew,newv,Q,-1,Klabel]

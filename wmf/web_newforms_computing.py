@@ -48,6 +48,7 @@ from sage.rings.number_field.number_field_base import NumberField as NumberField
 from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modularforms_db,get_files_from_gridfs
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm,WebEigenvalues
 
+from utils import Modf_changevar_Ev
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label,parse_newform_label
 
@@ -115,7 +116,7 @@ class WebNewForm_computing(WebNewForm):
             
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
-        if save_to_db:
+        if save_to_db or self.version>1.3:
             self.save_to_db()
 
     def __repr__(self):
