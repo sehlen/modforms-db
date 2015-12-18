@@ -1197,7 +1197,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
 
 def fix_aps_nmax(D,nmax=10,ncpus=1,verbose=0):
     args = []
-    for r in D._aps.find({'converted':False,'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
+    for r in D._aps.find({'is_converted':False,'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
         args.append(r['_id'])
     wmf_logger.debug("num of args={0}".format(len(args)))
     if ncpus>=32:
