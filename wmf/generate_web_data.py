@@ -1263,9 +1263,9 @@ def fix_aps_parallel_one(fid,verbose=0):
             return
         fs_ap = gridfs.GridFS(D._mongodb, 'ap')
         rr['is_converted']=True
-        rr['field_gen']=gen
-        rr['field_emb']=emb
-        rr['field_label']=label
+        #rr['field_gen']=gen
+        #rr['field_emb']=emb
+        #rr['field_label']=label
         t = fs_ap.put(dumps( (E,v)),**rr)
         return t
     #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
