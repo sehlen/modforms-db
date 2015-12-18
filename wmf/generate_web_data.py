@@ -1270,9 +1270,9 @@ def fix_aps_parallel_one(fid,verbose=0):
         rold = D._aps.find({'hecke_orbit_label':r['hecke_orbit_label'],'version':emf_version})
         if not rold is None:
             if float(pymongo.version)==2.8:
-                D._aps.remove(rold['_id']))
+                D._aps.remove(rold['_id'])
             else:
-                D._aps.delete_one(rold['_id']))
+                D._aps.delete_one(rold['_id'])
         t = fs_ap.put(dumps( (E,v)),**rr)
         return t
     #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
