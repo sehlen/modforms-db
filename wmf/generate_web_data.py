@@ -219,6 +219,7 @@ def create_index(host='localhost',port=int(37010),only=None):
          'unique':True},
         {'name':  'webchar', 'index': [
                 ('modulus',pymongo.ASCENDING),
+                ('version',pymongo.ASCENDING),
                 ('number',ASCENDING)],
          'unique':True},
         #       {'name':  'webchar', 'index': [
@@ -1620,15 +1621,18 @@ def recompute_one(label):
 
 def get_duplicate_keys(D):
     C=D._mongodb['webmodformspace.files']
-    for r in C.find().sort([('uploadDate',pymongo.DESCENDING)]):
+    C=D._mongodb['webchar']
+    for r in C.find(): #.sort([('uploadDate',pymongo.DESCENDING)]):
         fid = r['_id']
-        q = C.find({'space_label':r['space_label'],'version':r['version']})
+        #q = C.find({'space_label':r['space_label'],'version':r['version']})
+        q = C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']})
         n = q.count()
         if n==1:
             continue
         else:
             wmf_logger.debug("Duplicates for {0} : {1}".format(r['space_label'],n))
-        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
-            print x['_id'],x['uploadDate']
+#        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
+        for x in C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
+print x['_id'],x['uploadDate']
             if x['_id']<>r['_id']:
                 C.remove({'_id':x['_id']})
