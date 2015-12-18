@@ -2409,7 +2409,7 @@ class CheckingDB(CompMF):
             clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
             for r in q:
                 id =r['_id']; prec=r['prec']
-                #clogger.debug("loading coeffs for r={0}".format(r))
+                clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
                     #c = multiply_mat_vec(E,v)
