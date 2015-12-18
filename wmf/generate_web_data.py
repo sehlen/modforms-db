@@ -1630,9 +1630,8 @@ def get_duplicate_keys(D):
         if n==1:
             continue
         else:
-            wmf_logger.debug("Duplicates for {0} : {1}".format(r['space_label'],n))
+            wmf_logger.debug("Duplicates for {0}.{1} : {1}".format(r['modulus'],r['number'],n))
 #        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
         for x in C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
-print x['_id'],x['uploadDate']
             if x['_id']<>r['_id']:
                 C.remove({'_id':x['_id']})
