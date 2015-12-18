@@ -83,10 +83,10 @@ class WebNewForm_computing(WebNewForm):
         # update the version to current one 
         self.version = emf_version
         emf_logger.critical("version={0}".format(self.version))
-        if self.is_in_modularforms_db(level,weight,character,label) == 0:
+        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
+        if not self.is_in_modularforms_db():
             wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
             return None
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent)
         self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
 
 
@@ -132,11 +132,11 @@ class WebNewForm_computing(WebNewForm):
             s = "Empty WebNewForm"
         return s
         
-    def is_in_modularforms_db(self,level,weight,character,label):
+    def is_in_modularforms_db(self):
         r"""
         check if we have a corresponding record in the database. Otherwise we need to comp[ute it first.
         """
-        orbit_label = newform_label(level,weight,character,label)
+        orbit_label = newform_label(self.level,self.weight,self.character,self.label)
         s = {'hecke_orbit_label':orbit_label}
         n = self._db._mongodb['Newform_factors.files'].find(s).count()
         m = self._db._mongodb['ap.files'].find(s).count()
@@ -145,8 +145,8 @@ class WebNewForm_computing(WebNewForm):
         if m == 0:
             wmf_logger.debug("No aps factor for {0} in the database!".format(orbit_label))
         if m==0 or n==0:
-            return 0 
-        return 1
+            return False
+        return True
     
     def compute_additional_properties(self):
         r"""
@@ -590,6 +590,7 @@ class WebNewForm_computing(WebNewForm):
         nz = coeffs.count(0)  # number of zero coefficients
         nnz = len(coeffs) - nz  # number of non-zero coefficients
         if(nz == 0):
+            self.is_cm = False
             self._is_CM = [False, 0]
             return self._is_CM
         # probaly checking too many
