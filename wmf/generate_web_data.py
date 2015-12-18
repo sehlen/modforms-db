@@ -1251,7 +1251,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
             return
         if not r.has_key('nmax'):
-            nmax = int(nth_prime(n+1)-1)
+            nmax = int(nth_prime(E.nrows()+1)-1)
             nmin = int(0)
             rr['nmax'] = nmax
             rr['nmin'] = nmin
