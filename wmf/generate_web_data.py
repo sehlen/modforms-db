@@ -1250,6 +1250,8 @@ def fix_aps_parallel_one(fid,verbose=0):
             clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
             D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
             return
+        rr = deepcopy(r)
+        rr.pop('_id')
         if not r.has_key('nmax'):
             nmax = int(nth_prime(E.nrows()+1)-1)
             nmin = int(0)
@@ -1260,8 +1262,6 @@ def fix_aps_parallel_one(fid,verbose=0):
             D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
             return
         fs_ap = gridfs.GridFS(D._mongodb, 'ap')
-        rr = deepcopy(r)
-        rr.pop('_id')
         rr['is_converted']=True
         rr['field_gen']=gen
         rr['field_emb']=emb
