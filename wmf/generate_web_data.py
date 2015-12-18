@@ -1244,7 +1244,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             E = convert_matrix_to_extension_fld(E,v.base_ring())
             #gen = str(l[2]); emb=str(l[3]); label=str(l[4])
         a2 = sum(E[0,x]*v[x] for x in range(len(v)))
-        k = r['weight']
+        k = r['k']
         a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))
         if a2 > 2.0:
             clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
