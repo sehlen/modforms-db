@@ -1207,7 +1207,7 @@ def fix_aps_nmax(D,nmax=10,ncpus=1,verbose=0):
     else:
         l = []
         for fid in args:
-            l.append(fix_aps_parallel_one(fid),verbose=verbose)
+            l.append(fix_aps_parallel_one(fid,verbose=verbose))
         return list(l)
 
 @parallel(ncpus=8)
