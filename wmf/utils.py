@@ -219,10 +219,10 @@ def Modf_changevar_Ev(E=None,v=None,NF=None,Bfacto=10^6,Klabel='',label_only=Fal
             query['disc_sign']=s
             query['disc_abs_key']=D
         LK=NF.find(query)
-        print "query=",query
+        #print "query=",query
         Klabel=''
         for K in LK:
-            print "K=",K
+            #print "K=",K
             # Found a candidate in the nf DB, here is its defining polynomial
             Q=ZZx([ZZ(a) for a in K['coeffs'].split(',')])
             # Compute max order in gp
