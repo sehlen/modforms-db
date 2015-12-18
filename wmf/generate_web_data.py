@@ -1234,6 +1234,7 @@ def fix_aps_parallel_one(fid,verbose=0):
     if verbose > 0:
         print "record = ",r
     try:
+        
         E,v = D.load_from_mongo('ap',fid)
         #if verbose > 0:
         wmf_logger.debug("Checking E and v for {0}".format('hecke_orbit_label'))
@@ -1270,7 +1271,7 @@ def fix_aps_parallel_one(fid,verbose=0):
         return t
     #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
     except Exception as e:
-        wmf_logger.critical("Wrongly formatted record!")
+        wmf_logger.critical("Wrongly formatted record!. Error{0}".format(e))
         D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
         #wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
         #if not 'out of memory' in str(e):
