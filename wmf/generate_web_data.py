@@ -1267,12 +1267,17 @@ def fix_aps_parallel_one(fid,verbose=0):
         #rr['field_gen']=gen
         #rr['field_emb']=emb
         #rr['field_label']=label
+        rold = D._aps.find({'hecke_orbit_label':r['hecke_orbit_label'],'version':emf_version}):
+            if float(pymongo.version)==2.8:
+                D._aps.remove(rold['_id']))
+            else:
+                D._aps.delete_one(rold['_id']))
         t = fs_ap.put(dumps( (E,v)),**rr)
         return t
     #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
     except Exception as e:
         wmf_logger.critical("Wrongly formatted record!. Error{0}".format(e))
-        D._aps.update({'_id':['_id']},{"$set":{'recheck':True}})
+        D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
         #wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
         #if not 'out of memory' in str(e):
         #    D.delete_from_mongo('ap',r['_id'])
