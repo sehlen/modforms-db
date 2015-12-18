@@ -1265,6 +1265,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             rr['field_emb']=emb
             rr['field_label']=label
             t = fs_ap.put(dumps( (EE,v)),**rr)
+            return t
             #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
     except Exception as e:
         wmf_logger.critical("Wrongly formatted record!")
