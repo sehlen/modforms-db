@@ -1234,8 +1234,7 @@ def fix_aps_parallel_one(fid,verbose=0):
     wmf_logger.debug("checking: {0}, id={1}".format(r['hecke_orbit_label'],r['_id']))
     if verbose > 0:
         print "record = ",r
-    if True:
-        
+    try:
         E,v = D.load_from_mongo('ap',fid)
         #if verbose > 0:
         wmf_logger.debug("Checking E and v for {0}".format('hecke_orbit_label'))
@@ -1277,7 +1276,7 @@ def fix_aps_parallel_one(fid,verbose=0):
         t = fs_ap.put(dumps( (E,v)),**rr)
         return t
     #res = D._aps.update({'_id':r['_id']},{"$set":{'nmax':nmax,'nmin':nmin,'pmax':int(nn)}})            
-    if True: #except Exception as e:
+    except Exception as e:
         wmf_logger.critical("Wrongly formatted record!. Error{0}".format(e))
         D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
         #wmf_logger.debug("Removing record {0} which has old class number field elements!".format(r['hecke_orbit_label']))
