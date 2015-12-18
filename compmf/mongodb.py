@@ -1380,6 +1380,7 @@ class CompMF(MongoMF):
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 if not r is None:
                     fs_ap.delete(r['_id'])
+                    clogger.debug("Deleting record {0} matching: filename={1}".format(r['_id'],fname1))
                 try:
                     # check again if we have this record in the gridfs db
                     clogger.debug("ambient id: {0} nmin={1} nmax={2}".format(ambient_id,nmin,nmax))
