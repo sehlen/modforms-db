@@ -1225,7 +1225,7 @@ def fix_aps_parallel_one(fid,verbose=0):
     """
     from sage.all import prime_pi,nth_prime
     D = MongoMF(host='localhost',port=int(37010))
-    s = {'_id':fid,'pmax':{"$exists":False}}
+    s = {'_id':fid,'is_converted':False}
     r = D._aps.find_one(s)
     aps_new = D._mongodb['ap2'] 
     if r is None:
