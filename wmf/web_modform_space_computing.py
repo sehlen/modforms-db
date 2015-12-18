@@ -86,7 +86,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.setup_modular_symbols_db()
         if kwds.get('recompute',True):
             self.compute_additional_properties()
-
+        else:
+            self.update_dimension_table()
     def setup_modular_symbols_db(self):
         r"""
         Connect to the mongodb with modular symbols and fetch the current record.
@@ -124,7 +125,6 @@ class WebModFormSpace_computing(WebModFormSpace):
         if self.group is None:
             self.group = Gamma0(self.level)
         self.set_dimensions()
-        self.update_dimension_table()
         self.set_character_used_in_computation()
         self.set_character_galois_orbit()
         self.set_character_orbit_rep()
@@ -142,6 +142,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.version = float(emf_version)
         self.creation_date=datetime.datetime.utcnow()
         self.save_to_db()
+        self.update_dimension_table()
 
 
     def get_zetas(self):
@@ -241,10 +242,20 @@ class WebModFormSpace_computing(WebModFormSpace):
     def update_dimension_table(self):
         if self._db is None:
             self.setup_modular_symbols_db()
-        C = self._db._mongodb['dimension_table']
+        if self.vervsion > 1.3:
+            C = self._db._mongodb['dimension_table2']
+        else:
+            C = self._db._mongodb['dimension_table']
+        in_db = True
+        for x in self.hecke_orbits:
+            label = self.hecke_orbits[x].hecke_orbit_label
+            if WebNewForm_computing.find({'hecke_orbit_label':label}).count()==0:
+                wmf_logger.critical("The hecke orbit {0} is not in the database".format(label))
+                in_db = False
+                break
         r = C.find_one({'space_label':self.space_label})
         if not r is None:
-            C.update({'_id':r['_id']},{"$set":{'in_wdb':int(1),'in_msdb':int(1)}})
+            C.update({'_id':r['_id']},{"$set":{'in_wdb':int(in_db),'in_msdb':int(1)}})
         else:
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
@@ -256,7 +267,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_cusp':int(self.dimension_cusp_forms),
                  'd_newf':int(self.dimension_new_cusp_forms),
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
-                 'in_wdb':int(1),
+                 'in_wdb':int(in_db),
                  'in_msdb':int(1)}
             C.insert(r)
         # Check Gamma1 as well...??
