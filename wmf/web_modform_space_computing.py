@@ -243,7 +243,7 @@ class WebModFormSpace_computing(WebModFormSpace):
     def update_dimension_table(self):
         if self._db is None:
             self.setup_modular_symbols_db()
-        if self.vervsion > 1.3:
+        if self.version > 1.3:
             C = self._db._mongodb['dimension_table2']
         else:
             C = self._db._mongodb['dimension_table']
