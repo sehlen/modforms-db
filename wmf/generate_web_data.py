@@ -1191,7 +1191,7 @@ def check_coefficients_one_record(N,k,ci,d,maxn,datadir='/home/stromberg/data/mo
 
 def fix_aps_nmax(D,nmax=10,ncpus=1,verbose=0):
     args = []
-    for r in D._aps.find({'converted':False:,'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
+    for r in D._aps.find({'converted':False,'N':{"$lt":int(nmax)}}).sort([('N',int(1)),('k',int(1))]):
         args.append(r['_id'])
     if ncpus>=32:
         return list(fix_aps_parallel_32(args))
@@ -1230,8 +1230,9 @@ def fix_aps_parallel_one(fid,verbose=0):
         if verbose > 0:
             wmf_logger.debug("Multiplying E and v for {0}".format('hecke_orbit_label'))
         if E.base_ring() <> v.base_ring():
-            l = Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6)
-            E=l[0]; v=l[1]
+            #l = Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6)
+            #E=l[0]; v=l[1]
+            
             gen = str(l[2]); emb=str(l[3]); label=str(l[4])
             a2 = sum(EE[0,x]*v[x] for x in range(len(v)))
             a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))

@@ -131,7 +131,7 @@ class MongoMF(object):
             'unique':True},
         { 'name' : 'ap.files', 'index' : [
             ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-            ("newform",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
+            ("newform",pymongo.ASCENDING),("is_converted",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
           'unique':True},
         { 'name' : 'Atkin_Lehner.files', 'index': [
             ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
