@@ -81,8 +81,9 @@ class WebModFormSpace_computing(WebModFormSpace):
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db)
         wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
-        if self.dimension == 0:
-            return 
+        #if self.dimension == 0: ### does not work if the record has
+        #not been computed...
+        #    return 
         self.setup_modular_symbols_db()
         if kwds.get('recompute',True):
             self.compute_additional_properties()

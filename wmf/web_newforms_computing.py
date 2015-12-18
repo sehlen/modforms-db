@@ -413,7 +413,7 @@ class WebNewForm_computing(WebNewForm):
                 embc = [ CF(cn) ] # this is only occuring for Q
             self._embeddings['values'][n]=embc
         c2 = self._embeddings['values'][2][0]
-        t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+        t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
             raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
         self._embeddings['prec'] = prec+1

@@ -197,10 +197,12 @@ def create_index(host='localhost',port=int(37010),only=None):
                 ('chi',pymongo.ASCENDING)],
          'unique':False},
         {'name':'webnewforms', 'index':[
-                ('hecke_orbit_label',pymongo.ASCENDING)],
+            ('hecke_orbit_label',pymongo.ASCENDING),
+            ('version',pymongo.ASCENDING)],
          'unique':True},
         {'name': 'webnewforms.files', 'index': [
-                ('hecke_orbit_label',pymongo.ASCENDING)],
+            ('hecke_orbit_label',pymongo.ASCENDING),
+            ('version',pymongo.ASCENDING)],
          'unique':True},
         {'name': 'webmodformspace' ,'index':[
                 ('level',pymongo.ASCENDING),
@@ -208,10 +210,12 @@ def create_index(host='localhost',port=int(37010),only=None):
                 ('chi',pymongo.ASCENDING)],
          'unique':False},
         {'name': 'webmodformspace', 'index':[
-                ('space_label',pymongo.ASCENDING)],
+                ('space_label',pymongo.ASCENDING),
+                ('version',pymongo.ASCENDING)],
          'unique':True},
         {'name':  'webmodformspace.files', 'index':[
-                ('space_label',pymongo.ASCENDING)],
+            ('space_label',pymongo.ASCENDING),
+            ('version',pymongo.ASCENDING)],
          'unique':True},
         {'name':  'webchar', 'index': [
                 ('modulus',pymongo.ASCENDING),
@@ -221,7 +225,8 @@ def create_index(host='localhost',port=int(37010),only=None):
         #            ('label',ASCENDING)],
         #        'unique':True},
         {'name' : 'webeigenvalues', 'index':[
-                ('hecke_orbit_label',ASCENDING)],
+                ('hecke_orbit_label',ASCENDING),
+            ('version',pymongo.ASCENDING)],
          'unique':True}
         ]
     for r in collections_indices:
@@ -1612,3 +1617,18 @@ def check_twist_info(D,nmax=10,nmin=1):
 def recompute_one(label):
     F=WebNewForm_computing(label,recompute=False)
     return True
+
+def get_duplicate_keys(D):
+    C=D._mongodb['webmodformspace.files']
+    for r in C.find().sort([('uploadDate',pymongo.DESCENDING)]):
+        fid = r['_id']
+        q = C.find({'space_label':r['space_label'],'version':r['version']})
+        n = q.count()
+        if n==1:
+            continue
+        else:
+            wmf_logger.debug("Duplicates for {0} : {1}".format(r['space_label'],n))
+        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
+            print x['_id'],x['uploadDate']
+            if x['_id']<>r['_id']:
+                C.delete_one({'_id':x['_id']})
