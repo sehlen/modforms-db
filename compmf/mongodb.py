@@ -1363,7 +1363,7 @@ class CompMF(MongoMF):
             aps = {(N,k,i,d) : (E,v,meta) }
             where E*v gives the actual list of ap's and meta is a dictionary with cputime and sage version.
             """
-            clogger.debug("aps to insert into mongo:{0}".format(aps))
+            #clogger.debug("aps to insert into mongo:{0}".format(aps))
             if isinstance(aps,list):
                 res = []
                 for aps1 in aps:
