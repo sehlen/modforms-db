@@ -1023,7 +1023,7 @@ class CompMF(MongoMF):
                     completeness = r['complete']
                 else:
                     completeness = int(1)
-                clogger.debug("Set complete to {0}".completeness)
+                clogger.debug("Set complete to {0}".format(completeness))
             else:
                 clogger.debug("Set complete to 0")
                 clogger.debug("Factor={0}".format(factor_ids))
