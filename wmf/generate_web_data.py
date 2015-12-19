@@ -1248,7 +1248,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             #gen = str(l[2]); emb=str(l[3]); label=str(l[4])
         a2 = (E*v)[0] # sum(E[0,x]*v[x] for x in range(len(v)))
         k = r['k']
-        if a2.base_ring() != QQ:
+        if a2.parent() != QQ:
             a2 = max(map(abs,a2.complex_embeddings()))
         else:
             a2 = abs(a2)
