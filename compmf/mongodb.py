@@ -729,7 +729,8 @@ class MongoMF(object):
                     if prec >= prec_needed and coeffs:
                         res[newform][(nmin,nmax)] = multiply_mat_vec(E,v)
             if isinstance(d,(int,Integer)):
-                res = res[d]
+                if isinstance(res,(dict,list)):
+                    res = res[d]
 
         elif sources == ['files']:
             # The files are named according to Galois orbits but here we simply request
