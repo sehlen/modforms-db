@@ -1010,7 +1010,8 @@ class CompMF(MongoMF):
             clogger.debug("Got {0}".format(ap))
             try:
                 atkin_lehner = self.compute_atkin_lehner(N,k,ci,**kwds)
-            except:
+            except Exception as e:
+                clogger.critical("Could not compute Atkin-Lehner! ERROR: {0}".format(str(e)))
                 atkin_lehner = None
             if not (ambient_fid is None or factor_ids is None or ap is None or atkin_lehner is None):
                 completeness = int(1)
@@ -1498,7 +1499,7 @@ class CompMF(MongoMF):
             clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
             return insert_aps_into_filesdb(aps)
         elif len(aps_in_mongo)>=num_factors: #  we are ok anyway
-            clogger.debug("We have anough coefficients in mongo and do not want to write to file!")
+            clogger.debug("We have enough coefficients in mongo and/or do not want to write to file!")
         else:
             clogger.critical("aps for: {0},{1},{2} could not be computed!".format(N,k,ci))
         return aps_in_mongo
