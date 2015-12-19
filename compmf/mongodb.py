@@ -1078,7 +1078,7 @@ class CompMF(MongoMF):
                 except IOError:
                     meta = {}
                 fname = 'atkin_lehner_evs-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}'.format(N,k,ci,d)
-                sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)
+                N,sage_i = sage_galois_orbit_number_from_conrey_character_number(N,ci)
                 fid = fs.put(dumps(atkin_lehner),filename=fname,
                              N=int(N),k=int(k),chi=int(sage_i),newform=int(d),cchi=int(ci),
                              character_galois_orbit = orbit,
