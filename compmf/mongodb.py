@@ -2203,11 +2203,12 @@ class CheckingDB(CompMF):
         else:
             check = []
             for x in args:
-                check.append(self.check_record(x[0],x[1],x[2],x[3],x[4]))
+                check.append( (x,self.check_record(x[0],x[1],x[2],x[3],x[4])))
         #clogger.debug("check={0}".format(check))
         #check = self.check_record(args)
-        for arg,val in check:
+        for t in check:
             try:
+                arg,val = t
                 if val.values().count(False)>0:
                     res[arg[0][0:3]] = val
             except AttributeError:
