@@ -2201,7 +2201,9 @@ class CheckingDB(CompMF):
         elif ncpus >= 8:
             check = list(self.check_record8(args))
         else:
-            check = list(self.check_record(args))
+            check = []
+            for x in args:
+                check.append(self.check_record(x[0],x[1],x[2],x[3],x[4]))
         #clogger.debug("check={0}".format(check))
         #check = self.check_record(args)
         for arg,val in check:
