@@ -1635,22 +1635,23 @@ def recompute_one(label):
     return True
 
 def get_duplicate_keys(D):
-    C=D._mongodb['webmodformspace.files']
-    C=D._mongodb['webchar']
-    for r in C.find(): #.sort([('uploadDate',pymongo.DESCENDING)]):
+    #C=D._mongodb['webmodformspace.files']
+    C=D._mongodb['Modular_symbols.files']
+    #C=D._mongodb['webchar']
+    for r in C.find({'complete':{"$exists":True}}):  #.sort([('uploadDate',pymongo.DESCENDING)]):
         fid = r['_id']
-        #q = C.find({'space_label':r['space_label'],'version':r['version']})
-        q = C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']})
+        q = C.find({'space_label':r['space_label'],'complete':{"$exists":False}})
+        #q = C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']})
         n = q.count()
-        if n==1:
+        if n<=1:
             continue
         else:
-            wmf_logger.debug("Duplicates for {0}.{1} : {1}".format(r['modulus'],r['number'],n))
-#        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
-        for x in C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
+            wmf_logger.debug("Duplicates for {0} : {1}".format(r['space_label'],n))
+            #        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
+        for x in q.sort([('uploadDate',pymongo.ASCENDING)]):
             if x['_id']<>r['_id']:
                 C.remove({'_id':x['_id']})
-
+                wmf_logger.debug("Removing {0} : {1}".format(x['space_label'],x['_id']))
 
 def remove_faulty_records(D):
     for r in D._mongodb['webnewforms'].find({'version':float(1.3)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)]):
