@@ -91,12 +91,17 @@ def multiply_mat_vec(E,v):
 def convert_matrix_to_extension_fld(E,K):
     if E.base_ring() == K:
         return E
-    if E.base_ring() == QQ:
-        return E.change_ring(K)
     EE=Matrix(K,E.nrows(), E.ncols())
-    z = K(E.base_ring().gen())
+    KE = E.base_ring()
+    if KE.is_relative():
+        gen = E.base_ring().base_ring().gen()
+    else:
+        gen = E.base_ring().gen()
+    z = K(gen)
     x = E[0,0].polynomial().parent().gen()
-    for a in range(E.nrows()):
-        for b in range(E.ncols()):
-            EE[a,b]=E[a,b].polynomial().substitute({x:z})
+    EE=E.apply_map(lambda y: y.polynomial().substitute({x:z}))
+#    for a in range(E.nrows()):
+#        for b in range(E.ncols()):
+#            EE[a,b]=E[a,b].polynomial().substitute({x:z})
     return EE
+    
