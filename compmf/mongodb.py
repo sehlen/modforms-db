@@ -1014,12 +1014,16 @@ class CompMF(MongoMF):
                 clogger.critical("Could not compute Atkin-Lehner! ERROR: {0}".format(str(e)))
                 atkin_lehner = None
             if not (ambient_fid is None or factor_ids is None or ap is None or atkin_lehner is None):
-                clogger.debug("Set complete to 1")
                 clogger.debug("Factor={0}".format(factor_ids))
                 clogger.debug("AL={0}".format(atkin_lehner))
                 clogger.debug("ap={0}".format(ap))
                 clogger.debug("ambient={0}".format(ambient_fid))
-                completeness = int(1)
+                r = self._modular_symbols.find_one({'_id':ambient_fid}):
+                if r['complete']  > 1:
+                    completeness = r['complete']
+                else:
+                    completeness = int(1)
+                clogger.debug("Set complete to {0}".completeness)
             else:
                 clogger.debug("Set complete to 0")
                 clogger.debug("Factor={0}".format(factor_ids))
