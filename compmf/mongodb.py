@@ -1478,7 +1478,8 @@ class CompMF(MongoMF):
             aps_in_file=len(aps)
             if aps_in_file > 0 and aps[0] is None:
                 aps_in_file = 0
-        except:
+        except Exception as e:
+            clogger.critical("could not load aps! ERROR:{0}".format(e))
             aps_in_file=0
         clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
 
