@@ -1376,7 +1376,10 @@ class CompMF(MongoMF):
                 if isinstance(E,tuple):
                     E,v = E
                 ### convert base ring of E
-                E = convert_matrix_to_extension_fld(E,v.base_ring())
+                K = v.base_ring()
+                if K != QQ:
+                    clogger.debug("changing E to K={0}".format(K))
+                    E = convert_matrix_to_extension_fld(E,K)
                 clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
