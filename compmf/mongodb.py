@@ -1935,7 +1935,7 @@ class CompMF(MongoMF):
         cchi = r['cchi']
         fid = r['_id']
         N = r['N']; k=r['k']; chi=r['chi']
-        print "Get ambient with ",N,k,cchi
+        #print "Get ambient with ",N,k,cchi
         M = self.get_ambient(N,k,cchi)
         if M is None:
             # This space is probably empty due to inconsistency.
