@@ -2401,10 +2401,10 @@ class CheckingDB(CompMF):
         if res['factors'] is False:
             facts = {}
         for t in facts.keys():
-            clogger.debug("t={0}".format(t))
             N,k,ci,d=t
             s = {'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}
             q = self._aps.find(s)
+            clogger.debug("t={0} s ={1}".format(t,s))
             if q.count()==0:
                 res['aps']=False
                 break
