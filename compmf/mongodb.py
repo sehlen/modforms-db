@@ -1393,18 +1393,19 @@ class CompMF(MongoMF):
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
-                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax)}
+                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'converted':True}
                 r = self._aps.find_one(s)
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 if not r is None:
                     fs_ap.delete(r['_id'])
-                    clogger.debug("Deleting record {0} matching: filename={1}".format(r['_id'],fname1))
+                    clogger.debug("Deleting record {0} matching: s={1}".format(r['_id'],s))
                 try:
                     # check again if we have this record in the gridfs db
                     clogger.debug("ambient id: {0} nmin={1} nmax={2}".format(ambient_id,nmin,nmax))
                     apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
+                                     converted=True,
                                      conrey_galois_orbit_number=int(on),
                                      newform=int(d),
                                      hecke_orbit_label=label,
