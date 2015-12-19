@@ -93,7 +93,9 @@ def convert_matrix_to_extension_fld(E,K):
         return E
     EE=Matrix(K,E.nrows(), E.ncols())
     KE = E.base_ring()
-    if KE.is_relative():
+    if KE == QQ:
+        return E
+    if KE.is_relative(): # KE = NF / Cyclotomic
         gen = E.base_ring().base_ring().gen()
     else:
         gen = E.base_ring().gen()
