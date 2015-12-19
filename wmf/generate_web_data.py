@@ -1248,7 +1248,8 @@ def fix_aps_parallel_one(fid,verbose=0):
             #gen = str(l[2]); emb=str(l[3]); label=str(l[4])
         a2 = sum(E[0,x]*v[x] for x in range(len(v)))
         k = r['k']
-        a2 = a2.abs()/RR(2.0)**(RR(k-1)/RR(2))
+        a2 = max(map(abs,c[0].complex_embeddings()))
+        a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
         if a2 > 2.0:
             clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
             D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
