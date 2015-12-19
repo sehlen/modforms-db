@@ -2420,7 +2420,10 @@ class CheckingDB(CompMF):
                     #a2 = c[0] #.abs()/RR(2.0)**(RR(k-1)/RR(2))
                     if not self.check_ramanujan_bound_cp(E,v,2,k):
                         c = multiply_mat_vec(E,v)
-                        a2 = max(map(abs,c[0].complex_embeddings()))
+                        if hasattr(c[0],'complex_embeddings'):
+                            a2 = max(map(abs,c[0].complex_embeddings()))
+                        else:
+                            a2 = RR(abs(c[0]))
                         a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
                         clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
                         res['aps'] = False
@@ -2498,7 +2501,10 @@ class CheckingDB(CompMF):
         """
         c = multiply_mat_vec(E,v)
         n = prime_pi(p)-1
-        an = max(map(abs,c[n].complex_embeddings()))
+        if hasattr(c[n],'complex_embeddings'):
+            an = max(map(abs,c[n].complex_embeddings()))
+        else:
+            an = RR(abs(c[n]))
         an = an/RR(p)**(RR(k-1)/RR(2))
         return an < 2.0
     
