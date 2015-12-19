@@ -235,7 +235,7 @@ class ComputeMFData(object):
     #@fork    
     def compute_atkin_lehner(self,N, k, i,M=None,m=None,**kwds):
         filename = self.files().ambient(N, k, i)
-        recompute = kwds.gete('recompute',False)
+        recompute = kwds.get('recompute',False)
         if not self.files().path_exists(filename):
             clogger.warning("Ambient (%s,%s,%s) space not computed. Filename=%s "%(N,k,i,filename))
             return -1
