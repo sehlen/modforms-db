@@ -2461,7 +2461,7 @@ class CheckingDB(CompMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 nmin =r.get('nmin',0)
-                clogger.debug("Have nmin={0} and nmax={1}".format(nmin,r.get('nmax'))
+                clogger.debug("Have nmin={0} and nmax={1}".format(nmin,r.get('nmax')))
                 if nmin > 0:
                     nmax = r.get('nmax',0)
                     if nmax > pprec:
