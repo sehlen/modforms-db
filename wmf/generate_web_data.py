@@ -1246,7 +1246,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             #E=l[0]; v=l[1]
             E = convert_matrix_to_extension_fld(E,v.base_ring())
             #gen = str(l[2]); emb=str(l[3]); label=str(l[4])
-        a2 = sum(E[0,x]*v[x] for x in range(len(v)))
+        a2 = (E*v)[0] # sum(E[0,x]*v[x] for x in range(len(v)))
         k = r['k']
         if a2.base_ring() != QQ:
             a2 = max(map(abs,a2.complex_embeddings()))
@@ -1254,7 +1254,7 @@ def fix_aps_parallel_one(fid,verbose=0):
             a2 = abs(a2)
         a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
         if a2 > 2.0:
-            clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
+            wmf_logger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
             D._aps.update({'_id':r['_id']},{"$set":{'recheck':True}})
             return
         rr = deepcopy(r)
