@@ -1452,6 +1452,8 @@ class CompMF(MongoMF):
         try:
             aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec])
             aps_in_file=len(aps)
+            if aps_in_file > 0 and aps[0] is None:
+                aps_in_file = 0
         except:
             aps_in_file=0
         clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
