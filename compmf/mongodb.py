@@ -2461,9 +2461,11 @@ class CheckingDB(CompMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 nmin =r.get('nmin',0)
+                clogger.debug("Have nmin={0} and nmax={1}".format(nmin,r.get('nmax'))
                 if nmin > 0:
                     nmax = r.get('nmax',0)
                     if nmax > pprec:
+                        maxprec=nmax
                         res['aps']=True
                         break
                     else:
@@ -2526,7 +2528,7 @@ class CheckingDB(CompMF):
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                 clogger.debug("Checked!")
-            clogger.debug("prec={0}".format(precs))
+            clogger.debug("prec={0} maxprec".format(precs,maxprec))
             if maxprec == 0:
                 maxprec = max(precs)
             if maxprec < pprec:
