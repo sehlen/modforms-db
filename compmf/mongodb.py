@@ -1396,7 +1396,7 @@ class CompMF(MongoMF):
                 s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'converted':True}
                 r = self._aps.find_one(s)
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
-                clogger.debug("Checking record {0} matching: s={1}".format(r['_id'],s))
+                clogger.debug("Checking record matching: s={0}".format(s))
                 if not r is None:
                     fs_ap.delete(r['_id'])
                     clogger.debug("Deleting record {0} matching: s={1}".format(r['_id'],s))
