@@ -238,8 +238,9 @@ class WebNewForm_computing(WebNewForm):
                 pprec = prec
             
             E,v,meta = aps[prec]
-            #if self.version > 1.3:
-
+            if self.version > 1.3:
+                l = Modf_changevar_Ev(E,v)
+                E = l[0]; v=l[1]
             #self.coefficient_field = v[0].parent()
             #self.coefficient_field._label = nf_label
             #else:
