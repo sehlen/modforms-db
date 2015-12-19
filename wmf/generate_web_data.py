@@ -1239,7 +1239,7 @@ def fix_aps_parallel_one(fid,verbose=0):
     try:
         E,v = D.load_from_mongo('ap',fid)
         #if verbose > 0:
-        wmf_logger.debug("Checking E and v for {0}".format('hecke_orbit_label'))
+        wmf_logger.debug("Checking E and v for {0}".format(r['hecke_orbit_label']))
         if E.base_ring() <> v.base_ring():
             wmf_logger.debug("converting E")
             #l = Modf_changevar_Ev(E,v,NF=None,Bfacto=10^6)
