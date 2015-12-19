@@ -2226,7 +2226,9 @@ class CheckingDB(CompMF):
             clogger.debug(" t={0}".format(t))
             try:
                 arg,val = t
-                if len(arg)==1:
+                if len(arg)==2 and isinstance(arg[1],dict):
+                    arg = arg[0]
+                if len(arg)==2  and isinstance(arg[1],dict):
                     arg = arg[0]
                 clogger.debug("arg={0}".format(arg))
                 if val.values().count(False)>0:
