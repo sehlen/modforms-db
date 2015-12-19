@@ -1018,8 +1018,8 @@ class CompMF(MongoMF):
                 clogger.debug("AL={0}".format(atkin_lehner))
                 clogger.debug("ap={0}".format(ap))
                 clogger.debug("ambient={0}".format(ambient_fid))
-                r = self._modular_symbols.find_one({'_id':ambient_fid}):
-                if r['complete']  > 1:
+                r = self._modular_symbols.find_one({'_id':ambient_fid})
+                if r.get('complete',0)  > 1:
                     completeness = r['complete']
                 else:
                     completeness = int(1)
