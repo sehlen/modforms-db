@@ -116,16 +116,16 @@ class MongoMF(object):
         self._complete_spaces =  self._mongodb["complete_spaces"]
         ## The indices we use for the collections given above
         self._collections_indexes = [
+        #{ 'name': 'Modular_symbols.files', 'index':[
+        #    ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
+        #  'unique':True},
         { 'name': 'Modular_symbols.files', 'index':[
-            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING)],
+            ("space_label",pymongo.ASCENDING)],
           'unique':True},
-        { 'name': 'Modular_symbols.files', 'index':[
-            ("hecke_orbit_label",pymongo.ASCENDING)],
-          'unique':True},
-        { 'name': 'Newform_factors.files', 'index':[
-            ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-            ("newform",pymongo.ASCENDING)],
-          'unique':True},
+        #{ 'name': 'Newform_factors.files', 'index':[
+        #    ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
+        #    ("newform",pymongo.ASCENDING)],
+        #  'unique':True},
         { 'name': 'Newform_factors.files', 'index':[
             ("hecke_orbit_label",pymongo.ASCENDING)],
             'unique':True},
