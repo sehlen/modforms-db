@@ -2465,15 +2465,15 @@ class CheckingDB(CompMF):
             for r in q:
                 id =r['_id']; prec=r['prec']
                 nmin =r.get('nmin',0)
+                nmax = r.get('nmax',0)
+                if nmax > maxprec:
+                    maxprec=nmax
                 clogger.debug("Have nmin={0} and nmax={1}".format(nmin,r.get('nmax')))
+                if nmax > pprec:
+                    res['aps']=True
+                    break
                 if nmin > 0:
-                    nmax = r.get('nmax',0)
-                    if nmax > pprec:
-                        maxprec=nmax
-                        res['aps']=True
-                        break
-                    else:
-                        continue
+                    continue
                 #clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
