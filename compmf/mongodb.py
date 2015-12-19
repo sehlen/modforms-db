@@ -1393,7 +1393,7 @@ class CompMF(MongoMF):
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
-                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newforms':int(d),'nmin':int(nmin),'nmax':int(nmax)}
+                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax)}
                 r = self._aps.find_one(s)
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 if not r is None:
