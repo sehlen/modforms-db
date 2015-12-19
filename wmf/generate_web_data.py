@@ -1679,10 +1679,11 @@ def remove_faulty_records(D):
             D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(1)}})
 
 
-def remove_bad_factors(D):
+def remove_bad_factors(D,nmax=10,nmin=1):
     args = []
-    for r in D._newform_factors.find().sort([('N',int(1)),('k',int(1))]):
+    for r in D._newform_factors.find({'checked':{"$ne":int(1)},'N':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}).sort([('N',int(1)),('k',int(1))]):
         args.append(r['_id'])
+    wmf_logger.debug("checking {0} records!".format(len(args)))
     return list(remove_bad_factors(args))
 
 @parallel(16)
@@ -1714,3 +1715,5 @@ def remove_bad_factors_par(fid)
                 wmf_logger.critical("Need to delete files at {0}".format(D._db.factor(r['N'],r['k'],r['cchi'],r['newform'])))
             wmf_logger.debug("Removing MongoDB record!")
             #D._newform_factors.remove({'_id':fid})
+        else:
+            D._newform_factors.update({'_id':fid},{"$set":{'checked':int(1)}})
