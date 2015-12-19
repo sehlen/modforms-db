@@ -1064,7 +1064,7 @@ class CompMF(MongoMF):
             ambient = self.get_ambient(N,k,ci,**kwds)
             number_of_factors = self.number_of_factors(N,k,ci)
             self._computedb.compute_atkin_lehner(N,k,ci,M=ambient,m=number_of_factors,verbose=verbose)
-            m = self._db.number_of_known_factors(N,k,on)
+            m = self._db.number_of_known_factors(N,k,ci)
             for d in range(m):
 
                 atkin_lehner_file = self._db.factor_atkin_lehner(N,k,ci,d,True)

@@ -288,6 +288,7 @@ class FilenamesMFDB(Filenames):
         Returning the number of factors for which we have computed data.
         TODO: add check for empty files.
         """
+        clogger.debug("n,k,i={0}".format((N,k,i)))
         num_factors = 0
         fn = self.space(N,k,i)
         factors_dirs = [d for d in self.listdir(fn) if d.isdigit() and self.isdir(self.make_path_name(fn, d)) ] 
