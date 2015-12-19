@@ -1696,6 +1696,8 @@ def remove_bad_factors_par(fid):
             wmf_logger.critical("Problem with character and galois orbit! label={0}".format(label))
             continue
         F = D.load_from_mongo('Newform_factors',r['_id'])
+        if F is None:
+            wmf_logger.critical("Problem with factor is None! label={0} id={1}".format(label,r['_id']))
         if not F.is_cuspidal():
             wmf_logger.critical("Problem with factor is not cuspidal! label={0}".format(label))
             remove = True
