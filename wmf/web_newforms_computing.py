@@ -116,8 +116,8 @@ class WebNewForm_computing(WebNewForm):
             
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
-        if save_to_db or self.version>1.3:
-            self.save_to_db()
+        #if save_to_db or self.version>1.3:
+        self.save_to_db() # this should be efficient now
 
     def __repr__(self):
         r"""
