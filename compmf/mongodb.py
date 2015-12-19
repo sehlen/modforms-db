@@ -1393,7 +1393,7 @@ class CompMF(MongoMF):
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
-                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'converted':True}
+                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'is_converted':True}
                 r = self._aps.find_one(s)
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 clogger.debug("Checking record matching: s={0}".format(s))
@@ -1406,7 +1406,7 @@ class CompMF(MongoMF):
                     apid = fs_ap.put(dumps( (E,v)),filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
-                                     converted=True,
+                                     is_converted=True,
                                      conrey_galois_orbit_number=int(on),
                                      newform=int(d),
                                      hecke_orbit_label=label,
