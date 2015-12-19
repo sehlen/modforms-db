@@ -2320,7 +2320,7 @@ class CheckingDB(CompMF):
     def check_record32(self,N,k,ci,check_content=False,recheck=False):
         return self.check_record(N,k,ci,check_content,recheck)
 
-    @parallel(ncpus=1,verbose=True)
+#    @parallel(ncpus=1,verbose=True)
 #    @classmethod
     def check_record(self,N,k,ci,check_content=False,recheck=False):
         r"""

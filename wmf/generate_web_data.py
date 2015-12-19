@@ -1636,22 +1636,27 @@ def recompute_one(label):
 
 def get_duplicate_keys(D):
     #C=D._mongodb['webmodformspace.files']
-    C=D._mongodb['Modular_symbols.files']
-    #C=D._mongodb['webchar']
-    for r in C.find({'complete':{"$exists":True}}):  #.sort([('uploadDate',pymongo.DESCENDING)]):
+    C=D._newform_factors
+    for r in C.find({'character_galois_orbit':{"$exists":True}}).sort([('uploadDate',int(-1))]): 
         fid = r['_id']
-        q = C.find({'space_label':r['space_label'],'complete':{"$exists":False}})
-        #q = C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']})
+        label = r['hecke_orbit_label']
+        q = C.find({'hecke_orbit_label':label}) #,'conrey_galois_orbit':{"$exists":False}})
         n = q.count()
         if n<=1:
             continue
         else:
-            wmf_logger.debug("Duplicates for {0} : {1}".format(r['space_label'],n))
-            #        for x in C.find({'space_label':r['space_label'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
-        for x in q.sort([('uploadDate',pymongo.ASCENDING)]):
-            if x['_id']<>r['_id']:
-                C.remove({'_id':x['_id']})
-                wmf_logger.debug("Removing {0} : {1}".format(x['space_label'],x['_id']))
+            F = D.load_from_mongo('Newform_factors',fid)
+            x = sage_character_to_conrey_character(F.character())
+            if x.number() <> r['cchi'] or x.number() not in r['character_galois_orbit']:
+                raise ValueError,"Check the record:{0}".format(label)
+            wmf_logger.debug("Duplicates for {0} : {1}".format(r['hecke_orbit_label'],n))
+            for x in q.sort([('uploadDate',pymongo.ASCENDING)]):
+                if x['_id']==r['_id']:
+                    continue
+                F2 = D.load_from_mongo('Newform_factors',x['_id'])
+                if F2 == F:
+                    wmf_logger.debug("Removing {0} : {1}".format(x['hecke_orbit_label'],x['_id']))
+                    C.delete_one({'_id':x['_id']})
 
 def remove_faulty_records(D):
     for r in D._mongodb['webnewforms'].find({'version':float(1.3)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)]):
