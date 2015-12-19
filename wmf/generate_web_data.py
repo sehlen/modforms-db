@@ -1687,7 +1687,7 @@ def remove_bad_factors(D,nmax=10,nmin=1):
     return list(remove_bad_factors(args))
 
 @parallel(16)
-def remove_bad_factors_par(fid)
+def remove_bad_factors_par(fid):
   D = CheckingDB()
   for r in D._newform_factors.find({'_id':fid})
         label = r['hecke_orbit_label']
