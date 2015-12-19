@@ -2457,11 +2457,17 @@ class CheckingDB(CompMF):
                 break
             precs = []
             clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
+            maxprec = 0
             for r in q:
                 id =r['_id']; prec=r['prec']
                 nmin =r.get('nmin',0)
                 if nmin > 0:
-                    continue
+                    nmax = r.get('nmax',0)
+                    if nmax > pprec:
+                        res['aps']=True
+                        break
+                    else:
+                        continue
                 #clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
@@ -2521,7 +2527,8 @@ class CheckingDB(CompMF):
                     res['aps'] = True
                 clogger.debug("Checked!")
             clogger.debug("prec={0}".format(precs))
-            maxprec = max(precs)
+            if maxprec == 0:
+                maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
