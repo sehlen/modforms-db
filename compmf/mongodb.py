@@ -2304,7 +2304,11 @@ class CheckingDB(CompMF):
             return list(self.check_record16(args))
         elif ncpus >= 8:
             return list(self.check_record8(args))
-        return list(self.check_record(args))
+        else:
+            res = []
+            for n,k,cchi,cc,re in args:
+                res.append(self.check_record(n,k,cchi,cc,re))
+            return res
 
     @parallel(ncpus=8,verbose=True)
 #    @classmethod
