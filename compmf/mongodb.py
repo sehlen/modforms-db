@@ -2207,6 +2207,7 @@ class CheckingDB(CompMF):
         #clogger.debug("check={0}".format(check))
         #check = self.check_record(args)
         for t in check:
+            clogger.debug(" t={0}".format(t))
             try:
                 arg,val = t
                 if val.values().count(False)>0:
