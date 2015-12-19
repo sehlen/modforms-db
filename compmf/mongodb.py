@@ -1493,7 +1493,8 @@ class CompMF(MongoMF):
                 ## No coefficients in either mongo or files => we compute and save if desired
                 clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
                 for d in range(num_factors):
-                    aps = self._computedb.compute_aplists(N,k,ci,d,pprec,ambient=ambient,save=self._save_to_file)
+                    self._computedb.compute_aplists(N,k,ci,d,pprec,ambient=ambient,save=self._save_to_file)
+                    aps = load_aps(N,k,i,d,ambient=ambient,nrange='all')
                     insert_aps_into_mongodb(aps)
                 aps_in_file = 1 # after this the aps should be in both
                 # file and mongo
