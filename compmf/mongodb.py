@@ -2418,10 +2418,12 @@ class CheckingDB(CompMF):
                     #a2 = c[0] #.abs()/RR(2.0)**(RR(k-1)/RR(2))
                     if not self.check_ramanujan_bound_cp(E,v,2,k):
                         c = multiply_mat_vec(E,v)
-                        a2 = c[0].abs()/RR(2.0)**(RR(k-1)/RR(2))
+                        a2 = max(map(abs,c[0].complex_embeddings()))
+                        a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
                         clogger.critical("a(2)={0} does not satisfy the Ramanujan bound".format(a2))
                         res['aps'] = False
-                        #fs_ap.delete(id)
+                        #r.delete(r['_id'])
+                        fs_ap.delete(id)
                         continue
                 except Exception as e:
                     clogger.debug("Could not load E,v. Error:{0}".format(e))
@@ -2494,7 +2496,8 @@ class CheckingDB(CompMF):
         """
         c = multiply_mat_vec(E,v)
         n = prime_pi(p)-1
-        an = abs(c[n])/RR(p)**(RR(k-1)/RR(2))
+        an = max(map(abs,c[n].complex_embeddings()))
+        an = an/RR(p)**(RR(k-1)/RR(2))
         return an < 2.0
     
     # def check_ramanujan(self):
