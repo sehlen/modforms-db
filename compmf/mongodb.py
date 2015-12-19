@@ -2450,6 +2450,9 @@ class CheckingDB(CompMF):
             clogger.debug("Number of coefficient records of this t={0}".format(q.count()))
             for r in q:
                 id =r['_id']; prec=r['prec']
+                nmin =r.get('nmin',0)
+                if nmin > 0:
+                    continue
                 #clogger.debug("loading coeffs for r={0}".format(r))
                 try: 
                     E,v = loads(fs_ap.get(id).read())
