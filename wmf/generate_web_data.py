@@ -1688,7 +1688,7 @@ def remove_bad_factors(D,nmax=10,nmin=1):
 
 @parallel(16)
 def remove_bad_factors_par(fid):
-  D = CheckingDB()
+  D = CheckingDB('/home/stromberg/data/modforms-db/',host='lmfdb')
   for r in D._newform_factors.find({'_id':fid}):
         label = r['hecke_orbit_label']
         remove = False
