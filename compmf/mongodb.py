@@ -131,7 +131,8 @@ class MongoMF(object):
             'unique':True},
         { 'name' : 'ap.files', 'index' : [
             ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
-            ("newform",pymongo.ASCENDING),("is_converted",pymongo.ASCENDING),("prec",pymongo.ASCENDING)],
+            ("newform",pymongo.ASCENDING),("is_converted",pymongo.ASCENDING),
+            ("nmin",pymongo.ASCENDING),("nax",pymongo.ASCENDING)],
           'unique':True},
         { 'name' : 'Atkin_Lehner.files', 'index': [
             ("N",pymongo.ASCENDING),("k",pymongo.ASCENDING),("cchi",pymongo.ASCENDING),
@@ -1392,7 +1393,7 @@ class CompMF(MongoMF):
                 label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
-                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newforms':int(d),'prec':int(prec)}
+                s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newforms':int(d),'nmin':int(nmin),'nmax':int(nmax)}
                 r = self._aps.find_one(s)
                 label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
                 if not r is None:
