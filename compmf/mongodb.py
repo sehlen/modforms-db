@@ -1430,7 +1430,13 @@ class CompMF(MongoMF):
                     continue
                 for prec in val.keys():
                     E,v,meta = val[prec]
-                    aplist_file = self._db.factor_aplist(N, k, ci, d, False, prec)
+                    if isinstance(prec,tuple):
+                        prec0 = prec[0]
+                        prec1 = prec[1]
+                    else:
+                        prec0 = 0
+                        prec1 = prec
+                    aplist_file = self._db.factor_aplist(N, k, ci, d, False, prec0, prec1)
                     apdir = join(aplist_file.split("/")[0:-1],"/")
                     if not self._db.isdir(apdir):
                         self._db.makedirs(apdir)
