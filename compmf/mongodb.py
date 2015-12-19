@@ -1431,7 +1431,13 @@ class CompMF(MongoMF):
                     continue
                 for prec in val.keys():
                     E,v,meta = val[prec]
-                    aplist_file = self._db.factor_aplist(N, k, ci, d, False, prec)
+                    if isinstance(prec,tuple):
+                        prec0 = prec[0]
+                        prec1 = prec[1]
+                    else:
+                        prec0 = 0
+                        prec1 = prec
+                    aplist_file = self._db.factor_aplist(N, k, ci, d, False, prec0, prec1)
                     apdir = join(aplist_file.split("/")[0:-1],"/")
                     if not self._db.isdir(apdir):
                         self._db.makedirs(apdir)
@@ -1453,6 +1459,8 @@ class CompMF(MongoMF):
         try:
             aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec])
             aps_in_file=len(aps)
+            if aps_in_file > 0 and aps[0] is None:
+                aps_in_file = 0
         except:
             aps_in_file=0
         clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
