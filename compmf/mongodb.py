@@ -2403,6 +2403,17 @@ class CheckingDB(CompMF):
                 if d <> d1:
                     res['factors'] = False
                     clogger.warning("Dimensions of all factors do not sum up to the total dimension! n,k,cchi={0}".format((N,k,ci)))
+                    if d > d1:
+                        # check if this factor is not cuspidal...
+                        for key in facts.keys():
+                            f = facts[key]
+                            if not f.is_cuspidal():
+                                clogger.debug("Newform factor is not cuspidal! label={0}.{1}.{2}.{3}".format(N,k,ci,key[3]))
+                                r = D._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(key[3])})
+                                if pymongo.version_tuple[0]>=3:
+                                    D._newforms.delete_one(r['_id'])
+                                else:
+                                    D._newforms.remove(r['_id'])
                 if not M is None:
                     dim = M.dimension()
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})

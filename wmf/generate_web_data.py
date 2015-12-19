@@ -1677,3 +1677,26 @@ def remove_faulty_records(D):
         except Exception as e:
             wmf_logger.debug("No twist info. Need to fix: {0}".format(label))
             D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(1)}})
+
+def remove_bad_factors(D):
+    for r in D._newform_factors.find().sort([('N',int(1)),('k',int(1))]):
+        label = r['hecke_orbit_label']
+        remove = False
+        if  r['cchi'] not in r['character_galois_orbit']:
+            wmf_logger.critical("Problem with character and galois orbit! label={0}".format(label))
+            continue
+        F = D.load_from_mongo('Newform_factors',r['_id'])
+        if not F.is_cuspidal():
+            wmf_logger.critical("Problem with factor is not cuspidal! label={0}".format(label))
+            remove = True
+        if not remove:
+            M = D.get_ambient(r['N'],r['k'],r['cchi'])
+            if not F.is_submodule(M):
+                wmf_logger.critical("Problem with factor is not submodule of ambient! label={0}".format(label))
+                remove=True
+        if remove:
+            F1 = D._db.load_factor(r['N'],r['k'],r['cchi'],r['newform'])
+            if F1 == F:
+                wmf_logger.critical("Need to delete files at {0}".format(D._db.factor(r['N'],r['k'],r['cchi'],r['newform'])))
+            wmf_logger.debug("Removing MongoDB record!")
+            #D._newform_factors.remove({'_id':fid})
