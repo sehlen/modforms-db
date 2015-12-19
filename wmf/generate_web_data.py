@@ -1650,3 +1650,24 @@ def get_duplicate_keys(D):
         for x in C.find({'modulus':r['modulus'],'number':r['number'],'version':r['version']}).sort([('uploadDate',pymongo.ASCENDING)]):
             if x['_id']<>r['_id']:
                 C.remove({'_id':x['_id']})
+
+
+def remove_faulty_records(D):
+    for r in D._mongodb['webnewforms'].find({'version':float(1.3)}).sort([('level',pymongo.ASCENDING),('weight',pymongo.ASCENDING)]):
+        label = r['hecke_orbit_label']
+        try:
+            F = WebNewForm_computing(label,recompute=False,update_from_db=True)
+        except Exception as e:
+            wmf_logger.critical("ERROR:{0} {1}".format(label,str(e)))
+            D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(2)}})
+            continue
+        l = F.twist_info
+        try:
+            for x in F.twist_info[1]:
+                if 'computing' in type(x):
+                    wmf_logger.debug("Need to fix: {0}".format(label))
+                    D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(1)}})
+                #F=WebNewForm_computing(label,recompute=True,update_from_db=True)
+        except Exception as e:
+            wmf_logger.debug("No twist info. Need to fix: {0}".format(label))
+            D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(1)}})
