@@ -2180,7 +2180,7 @@ class CheckingDB(CompMF):
             s['complete']={"$lt":int(data_record_checked_and_complete)}
         args = []
         clogger.debug("search  pattern :{0}".format(s))
-        for r in self._modular_symbols.find(s):
+        for r in self._modular_symbols.find(s).sort([('N',pymongo.ASCENDING),('k',pymongo.ASCENDING)]):
             N = r['N']; k=r['k']; ci = r['cchi']
             clogger.debug("r = {0}".format((N,k,ci)))
             args.append((N,k,ci,check_content,recheck))
@@ -2353,6 +2353,7 @@ class CheckingDB(CompMF):
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
         if numf1 == 0 and numf == 0:
+            clogger.debug("updating 0 complete:{0}".format(check_level))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
             return res
         res['factors'] = False
@@ -2475,11 +2476,11 @@ class CheckingDB(CompMF):
             clogger.debug("done checking coeffs! t={0}".format(t))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
-            clogger.debug("updating 1")
+            clogger.debug("updating 1 complete:{0}".format(check_level))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
             
         elif ambient_id is not None:
-            clogger.debug("updating 2 res={0}".format(res))
+            clogger.debug("updating 2 res={0} complete: {1}".format(res,0))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
         else:
             res['aps']=False
