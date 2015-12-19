@@ -2210,8 +2210,9 @@ class CheckingDB(CompMF):
             clogger.debug(" t={0}".format(t))
             try:
                 arg,val = t
-                if len(arg)>1:
+                if len(arg)==1:
                     arg = arg[0]
+                clogger.debug("arg={0}".format(arg))
                 if val.values().count(False)>0:
                     res[arg[0:3]] = val
             except AttributeError:
