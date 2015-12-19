@@ -98,7 +98,7 @@ class WebNewForm_computing(WebNewForm):
         self._available_precisions = []
         self._newform_number = None
         self._satake = {}
-        self._twist_info = None
+        #self._twist_info = None
         self._as_polynomial_in_E4_and_E6 = None
         ## If it is in the database we don't need to compute everything unless we specify recompute=True
         s = {'hecke_orbit_label':self.hecke_orbit_label}
@@ -466,7 +466,7 @@ class WebNewForm_computing(WebNewForm):
         N = self.level
         k = self.weight
         if(is_squarefree(ZZ(N))):
-            self._twist_info = [True, None ]
+            self.twist_info = [True, None ]
             return [True, None]
 
         # We need to check all square factors of N
@@ -561,13 +561,13 @@ class WebNewForm_computing(WebNewForm):
                     pass
 
         wmf_logger.debug("Candidates=v{0}".format(twist_candidates))
-        self._twist_info = (False, twist_candidates)
+        self.twist_info = (False, twist_candidates)
         if len(twist_candidates) == 0:
-            self._twist_info = [True, None]
+            self.twist_info = [True, None]
         else:
-            self._twist_info = [False, twist_candidates]
-        self.twist_info = self._twist_info
-        return self._twist_info
+            self.twist_info = [False, twist_candidates]
+        self.twist_info = self.twist_info
+        return self.twist_info
 
     def set_is_cm(self,insert_in_db=True):
         r"""
