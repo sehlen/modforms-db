@@ -27,7 +27,7 @@ import gridfs
 import bson
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
-from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF
+from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version
@@ -1678,8 +1678,17 @@ def remove_faulty_records(D):
             wmf_logger.debug("No twist info. Need to fix: {0}".format(label))
             D._mongodb['webnewforms'].update({'_id':r['_id']},{"$set":{'fix':int(1)}})
 
+
 def remove_bad_factors(D):
+    args = []
     for r in D._newform_factors.find().sort([('N',int(1)),('k',int(1))]):
+        args.append(r['_id'])
+    return list(remove_bad_factors(args))
+
+@parallel(16)
+def remove_bad_factors_par(fid)
+  D = CheckingDB()
+  for r in D._newform_factors.find({'_id':fid})
         label = r['hecke_orbit_label']
         remove = False
         if  r['cchi'] not in r['character_galois_orbit']:
@@ -1691,6 +1700,11 @@ def remove_bad_factors(D):
             remove = True
         if not remove:
             M = D.get_ambient(r['N'],r['k'],r['cchi'])
+            x = M.character()
+            xc = sage_character_to_conrey_character(x)
+            if xc.number()<>r['cchi']:
+                wmf_logger.critical("Problem with ambient! character is not correct label={0}".format(label))
+                remove=True
             if not F.is_submodule(M):
                 wmf_logger.critical("Problem with factor is not submodule of ambient! label={0}".format(label))
                 remove=True
