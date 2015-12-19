@@ -1684,7 +1684,7 @@ def remove_bad_factors(D,nmax=10,nmin=1):
     for r in D._newform_factors.find({'checked':{"$ne":int(1)},'N':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}).sort([('N',int(1)),('k',int(1))]):
         args.append(r['_id'])
     wmf_logger.debug("checking {0} records!".format(len(args)))
-    return list(remove_bad_factors(args))
+    return list(remove_bad_factors_par(args))
 
 @parallel(16)
 def remove_bad_factors_par(fid):
