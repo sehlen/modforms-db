@@ -2147,8 +2147,9 @@ def precision_needed_for_L(N,k,**kwds):
     of the L-function (as on the LMFDB pages). This bound is taken from there and is probably heuristic.
     """
     from sage.all import ceil
-    pprec = 20 + int(RR(5) * ceil(RR(k) * RR(N).sqrt()))
+    pprec = 22 + int(RR(5) * ceil(RR(k) * RR(N).sqrt()))
     pprec = max(pprec,kwds.get('pprec',100))
+    pprec = max(pprec,100)
     ## Get even hundreds of primes to look nicer.
     return ceil(RR(pprec)/RR(100))*100
 
@@ -2435,9 +2436,10 @@ class CheckingDB(CompMF):
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
         ### Check ap's
         # Necessary for L-function computations (rounded to nearest 100).
-        pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
-        pprec = max(pprec,100)
-        pprec = ceil(RR(pprec)/RR(100))*100
+        #pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
+        #pprec = max(pprec,100)
+        #pprec = ceil(RR(pprec)/RR(100))*100
+        pprec = precision_needed_for_L(N,k)
         #if check_content:
         #    #aps = self.get_aps(N,k,i)
         #else:
