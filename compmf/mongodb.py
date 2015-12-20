@@ -2436,9 +2436,6 @@ class CheckingDB(CompMF):
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
         ### Check ap's
         # Necessary for L-function computations (rounded to nearest 100).
-        #pprec = 22 + int(RR(5) * RR(k) * RR(N).sqrt())
-        #pprec = max(pprec,100)
-        #pprec = ceil(RR(pprec)/RR(100))*100
         pprec = precision_needed_for_L(N,k)
         #if check_content:
         #    #aps = self.get_aps(N,k,i)
