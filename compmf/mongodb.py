@@ -2457,8 +2457,9 @@ class CheckingDB(CompMF):
             N,k,ci,d=t
             s = {'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}
             q = self._aps.find(s)
-            clogger.debug("t={0} s ={1}".format(t,s))
-            if q.count()==0:
+            n = q.count()
+            clogger.debug("t={0} s ={1} count={2}".format(t,s,n))
+            if n==0:
                 res['aps']=False
                 break
             precs = []
