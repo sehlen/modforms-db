@@ -855,12 +855,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         A._HeckeModule_free_module__decomposition = {(None,True):Sequence([A], check=False)}
         return A
 
-    def load_aps(self,N, k, i, d='all', ambient=None,nrange='all',coeffs=False):
+    def load_aps(self,N, k, i, d='all', ambient=None,nrange='all',coeffs=False,convert=False,check=False):
         r"""
         Load aps for a given factor. If numc > 0 we return all sets.
         nrange = 'all', 'max', or [nstart,nstop] (for instance, [0,100])
         """
         import sage.modular.modsym.subspace
+        from utils import convert_matrix_to_extension_fld
         if d=='all':
             res = []
             for d in range(self.number_of_known_factors(N,k,i)):
@@ -934,6 +935,10 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         metaname = fname.split(".")[0]+"-meta.sobj"
         #clogger.debug("fname={0}".format(fname))
         #clogger.debug("metaname={0}".format(metaname))
+        try: 
+            v = load("{0}/v.sobj".format(factor_dir))
+        except Exception as e:
+            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,'v.sobj',e.message)      
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
             if isinstance(E,tuple):
@@ -947,6 +952,21 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 new_n_start = n_start # assuming this is correct... 
                 new_n_stop = nth_prime(E.nrows()+1+prime_pi(n_start))-1
                 apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)
+                if convert:
+                    K = v.base_ring()
+                    if K != QQ:
+                        clogger.debug("changing E to K={0}".format(K))
+                        E = convert_matrix_to_extension_fld(E,K)
+                if check:
+                    a2 = sum(E[0,x]*v[x] for x in range(len(v)))
+                    if hasattr(c[0],'complex_embeddings'):
+                        a2 = max(map(abs,c[0].complex_embeddings()))
+                    else:
+                        a2 = RR(abs(c[0]))
+                    a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
+                    if abs(a2) > 2.0:
+                        clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,i,d))
+                        raise ArithmeticError,"Could not load E!"
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
                 new_metaname = self.meta(apfname)
@@ -958,10 +978,6 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 #    raise ValueError,"We do not have {0} coefficients! At most: {1}".format(numc,new_prec)
         except Exception as e:
             raise ValueError,"Could not load coefficients: {0}/{1}. Error:{2}".format(factor_dir,fname,e.message)
-        try: 
-            v = load("{0}/v.sobj".format(factor_dir))
-        except Exception as e:
-            raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,'v.sobj',e.message)      
         try: 
             meta = load("{0}/{1}".format(factor_dir,metaname))
         except Exception as e:

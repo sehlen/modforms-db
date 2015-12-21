@@ -742,7 +742,7 @@ class MongoMF(object):
             elif isinstance(prec_needed,int):
                 prec_needed = [0,prec_needed]
             try:
-                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs)
+                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs,check=True,convert=True)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
                 res = None
@@ -1450,6 +1450,11 @@ class CompMF(MongoMF):
                     continue
                 for prec in val.keys():
                     E,v,meta = val[prec]
+                    K = v.base_ring()
+                    if K != QQ:
+                        clogger.debug("changing E to K={0}".format(K))
+                        E = convert_matrix_to_extension_fld(E,K)
+                        clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
                     if isinstance(prec,tuple):
                         prec0 = prec[0]
                         prec1 = prec[1]
@@ -1462,7 +1467,7 @@ class CompMF(MongoMF):
                         self._db.makedirs(apdir)
                     clogger.debug("aplist_file={0}, meta = {1}".format(aplist_file,meta))
                     save(E, aplist_file)
-
+                    
                     vname = self._db.factor_dual_eigenvector(N, k, ci, d)
                     if not self._db.path_exists(vname):
                         save(v,vname)
@@ -1476,7 +1481,7 @@ class CompMF(MongoMF):
         #        aps_in_file = 1
         #        # check if really there:
         try:
-            aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec])
+            aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec],convert=True,check=True)
             aps_in_file=len(aps)
             if aps_in_file > 0 and aps[0] is None:
                 aps_in_file = 0
@@ -1488,9 +1493,9 @@ class CompMF(MongoMF):
         # If we have coefficients both in mongo and files we don't do anything.
         if len(aps_in_mongo) == num_factors and aps_in_file==1:
             return aps_in_mongo
-        elif len(aps_in_mongo) < num_factors:
+        elif len(aps_in_mongo) < num_factors: # if we don't have coefficients in mongo
             aps = {}          
-            if aps_in_file == 0:
+            if aps_in_file == 0: 
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
@@ -1498,6 +1503,7 @@ class CompMF(MongoMF):
                 for d in range(num_factors):
                     self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
                     aps = self._db.load_aps(N,k,i,d,ambient=ambient,nrange='all')
+                    
                     insert_aps_into_mongodb(aps)
                 aps_in_file = 1 # after this the aps should be in both
                 # file and mongo
@@ -2449,7 +2455,7 @@ class CheckingDB(CompMF):
         if not check_content and res['factors']:
             newforms_with_aps = self._aps.find({'N':int(N),'k':int(k),'cchi':int(ci)}).distinct('newform')
             res['aps'] = len(newforms_with_aps) == numf
-        clogger.debug("facts={0}, numf={1}".format(facts,numf))
+        clogger.debug("facts={0}, numf={1} want prec:{2}".format(facts,numf,pprec))
         fs_ap = gridfs.GridFS(self._mongodb,self._aps_collection)
         if res['factors'] is False:
             facts = {}
