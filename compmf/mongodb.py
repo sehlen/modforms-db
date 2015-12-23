@@ -1024,7 +1024,7 @@ class CompMF(MongoMF):
                     completeness = r['complete']
                 else:
                     completeness = int(1)
-                clogger.debug("Set complete to {0}".format(completeness))
+                clogger.debug("Set complete to {0}, label={1}.{2}.{2}".format(completeness,N,k,ci))
             else:
                 clogger.debug("Set complete to 0")
                 clogger.debug("Factor={0}".format(factor_ids))
@@ -1219,13 +1219,24 @@ class CompMF(MongoMF):
         files_fact = self._newform_factors
         files_ms = self._modular_symbols
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
-        factors_in_file = self._db.number_of_known_factors(N,k,ci)
-        factors_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        ## we should check again if we have sufficiently many factors:
+        #factors_in_file = self._db.number_of_known_factors(N,k,ci)
+        factors_file = self.get_factors(N,k,ci,source=['files'])
+        d_file = 0
+        for fact in factors_in_file:
+            d_file += fact.dimension()
+        d_mongo = 0
+        factors_in_mongo = self.get_factors(N,k,ci,source=['mongo']) #files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        for fact in factor_in_mongo:
+            d_mongo += fact.dimension()
         dimc = self.get_dimc(N,k,ci)
         if dimc == 0:
             return []  # There are no factors to compute
-        clogger.debug("factors: in_file={0} in mongo={1}".format(factors_in_file,factors_in_mongo))
-        if factors_in_file == 0 and  len(factors_in_mongo)==0:
+        
+        clogger.debug("dimension of factors: in_file={0} in mongo={1}".format(d_file,d_mongo))
+        
+        if d_file < dimc and  d_mongo < dimc:
+            # we do not have sufficiently many factors in either mongo or files.
             if not compute:
                 clogger.debug("No factors exist in db and we do not compute anything!")
                 return None
@@ -1233,7 +1244,8 @@ class CompMF(MongoMF):
             factors_in_file = self._computedb.compute_decompositions(N,k,ci)
             clogger.debug("Computing factors! m={0}".format(factors_in_file))
 
-        if len(factors_in_mongo)==0:
+        if d_mongo < dimc:
+            # we have in files but not in mongo
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,ci))
             clogger.debug("Inserting factors into mongo! fname={0}".format(fname))
             num_factors_in_file = self._db.number_of_known_factors(N,k,ci)
