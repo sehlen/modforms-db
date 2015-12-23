@@ -1230,10 +1230,10 @@ class CompMF(MongoMF):
         for fact in factor_in_mongo:
             d_mongo += fact.dimension()
         dimc = self.get_dimc(N,k,ci)
+        clogger.debug("dimension of factors: in_file={0} in mongo={1} dimc={2}".format(d_file,d_mongo,dimc))
         if dimc == 0:
             return []  # There are no factors to compute
         
-        clogger.debug("dimension of factors: in_file={0} in mongo={1}".format(d_file,d_mongo))
         
         if d_file < dimc and  d_mongo < dimc:
             # we do not have sufficiently many factors in either mongo or files.
