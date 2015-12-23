@@ -840,7 +840,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             v = load(self.factor_dual_eigenvector(N, k, i, d))
             nz = load(self.factor_eigen_nonzero(N, k, i, d))
         except IOError:
+            clogger.critical("Data is incomplete for  factor ({0}) at {1}".format((N,k,i,d),f))
             raise RuntimeError,"Data is incomplete for factor ({0}) at {1}".format((N,k,i,d),f)
+        
         if B._cache is None:
             B._cache = {}
         if Bd._cache is None:

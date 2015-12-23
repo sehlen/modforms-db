@@ -604,7 +604,11 @@ class MongoMF(object):
             # The files are named according to Galois orbits.
             #on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
             if not d is None:
-                res = self._db.load_factor(N,k,ci,d)
+                try:
+                    res = self._db.load_factor(N,k,ci,d)
+                except RuntimeError:
+                    clogger.critical("Could not load factor at {0}".format((N,k,ci,d)))
+                    res = {}
             else:
                 if res is None:
                     res = {}
