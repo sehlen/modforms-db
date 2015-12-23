@@ -2584,7 +2584,7 @@ class CheckingDB(CompMF):
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
                 clogger.debug("Checked!")
-            clogger.debug("prec={0} maxprec".format(precs,maxprec))
+            clogger.debug("prec={0} maxprec={1} and need pprec={2}".format(precs,maxprec,pprec))
             if maxprec == 0:
                 maxprec = max(precs)
             if maxprec < pprec:
