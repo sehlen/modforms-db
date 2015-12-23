@@ -2583,14 +2583,16 @@ class CheckingDB(CompMF):
                 #clogger.debug("E.ncols={0}".format(E.ncols()))
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
-                clogger.debug("Checked!")
+                else:
+                    clogger.debug("E00={0} and len(v)={1}, E.ncols()={2} prec_in_db={3}, prec={4}"
+.format(E[0,0],len(v),E.ncols(),prec_in_Db,prec))
+            clogger.debug("Checked!")
             clogger.debug("prec={0} maxprec={1} and need pprec={2}".format(precs,maxprec,pprec))
             if maxprec == 0:
                 maxprec = max(precs)
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
-            clogger.debug("done checking coeffs! 0")                
             clogger.debug("done checking coeffs! N,k,ci,d={0}".format((N,k,ci,d)))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
