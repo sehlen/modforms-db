@@ -1397,7 +1397,7 @@ class CompMF(MongoMF):
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
         key = {'N':int(N),'k':int(k),'cchi':int(ci),'prec' : {"$gt": int(pprec -1) }}
         clogger.debug("key={0}".format(key))
-        aps_in_mongo = self._aps.find(key).distinct('_id')
+        aps_in_mongo = self._aps.find(key).distinct('newform')
         aps_in_file = 0
         clogger.debug("Already have {0} ap lists in mongodb! Need at least {1}".format(len(aps_in_mongo),num_factors))
         def insert_aps_into_mongodb(aps):
@@ -1524,22 +1524,23 @@ class CompMF(MongoMF):
         #    if r[4]>=pprec:
         #        aps_in_file = 1
         #        # check if really there:
+        aps_in_file = 0
         try:
-            aps = self._db.load_aps(N,k,ci,0,ambient=ambient,nrange=[0,pprec],convert=True,check=True)
-            aps_in_file=len(aps)
-            if aps_in_file > 0 and aps[0] is None:
-                aps_in_file = 0
+            for d in range(num_factors):
+                aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec],convert=True,check=True)
+                if aps not is None:
+                    aps_in_file+=1
         except Exception as e:
             clogger.critical("could not load aps! ERROR:{0}".format(e))
-            aps_in_file=0
+            aps_in_file = 0
         clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
 
         # If we have coefficients both in mongo and files we don't do anything.
-        if len(aps_in_mongo) == num_factors and aps_in_file==1:
+        if len(aps_in_mongo) == num_factors and aps_in_file==num_factors:
             return aps_in_mongo
-        elif len(aps_in_mongo) < num_factors: # if we don't have coefficients in mongo
+        elif len(aps_in_mongo) < num_factors: # if we don't have all coefficients in mongo
             aps = {}          
-            if aps_in_file == 0: 
+            if aps_in_file < num_factors: 
                 if not compute:
                     return []
                 ## No coefficients in either mongo or files => we compute and save if desired
@@ -1549,7 +1550,7 @@ class CompMF(MongoMF):
                     aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
                     
                     insert_aps_into_mongodb(aps)
-                aps_in_file = 1 # after this the aps should be in both
+                aps_in_file = num_factors # after this the aps should be in both
                 # file and mongo
             if aps is None or aps == {}:
                 for d in range(num_factors):
@@ -1560,7 +1561,7 @@ class CompMF(MongoMF):
                     else:
                         clogger.debug("Loading aplist! d={0} with pprec={1}".format(d,pprec))
                         insert_aps_into_mongodb(aps)
-            if aps_in_file == 0:
+            if aps_in_file < num_factors:
                 clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
                 return aps
         elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
@@ -2577,12 +2578,9 @@ class CheckingDB(CompMF):
                     ## Also check the file system:
 
                     ##  We now check that E,v is consistent: i.e. E is non-zero E*v exists and that we have the correct number of primes.
-                #clogger.debug("Check if E[0,0]==0")
-                #clogger.debug("Check if E[0,0]={0}".format(E[0,0]))
-                #clogger.debug("Check if lenv=={0}".format(len(v)))
-                #clogger.debug("E.ncols={0}".format(E.ncols()))
                 if (not (E[0,0] is 0)) and len(v)==E.ncols() and  prec_in_db >= prec:
                     res['aps'] = True
+                    cloger.debug("set res['aps']=True")
                 else:
                     clogger.debug("E00={0} and len(v)={1}, E.ncols()={2} prec_in_db={3}, prec={4}"
 .format(E[0,0],len(v),E.ncols(),prec_in_Db,prec))
@@ -2593,7 +2591,7 @@ class CheckingDB(CompMF):
             if maxprec < pprec:
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
-            clogger.debug("done checking coeffs! N,k,ci,d={0}".format((N,k,ci,d)))
+            clogger.debug("done checking coeffs! N,k,ci,d={0} res['aps']={1}".format((N,k,ci,d),res['aps']))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             clogger.debug("updating 1 complete:{0}".format(check_level))
