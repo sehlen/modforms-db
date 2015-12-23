@@ -603,9 +603,12 @@ class WebNewForm_computing(WebNewForm):
                 # (for p not dividing N)
                 #if(x.values().count(-1) > nz):
                 #    continue  # do not have CM with this char
-                for p in prime_range(max_nump + 1):
-                    if(x(p) == -1 and coeffs[p] != 0):
-                        continue  # do not have CM with this char
+                try:
+                    for p in prime_range(max_nump + 1):
+                        if(x(p) == -1 and coeffs[p] != 0):
+                            raise StopIteration()  # do not have CM with this char
+                except:
+                    continue
                 # if we are here we have CM with x.
                 self._is_CM = [True, x]
                 self.is_cm = True
