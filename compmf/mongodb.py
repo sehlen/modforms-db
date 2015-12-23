@@ -1240,6 +1240,7 @@ class CompMF(MongoMF):
             d_file += fact.dimension()
         d_mongo = 0
         factors_in_mongo = self.get_factors(N,k,ci,sources=['mongo']) #files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        fids_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
         for fact in factors_in_mongo.values():
             d_mongo += fact.dimension()
         dimc = self.get_dimc(N,k,ci)
@@ -1327,14 +1328,15 @@ class CompMF(MongoMF):
                                     ambient_id=ambient_id,
                                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                                     v=int(1))
+                factors_in_mongo.append(dumps(factor))
                 if not facid is None:
-                    factors_in_mongo.append(facid)
+                    fids_in_mongo.append(facid)
                 clogger.debug("inserted factor: {0},{1}".format(d,facid))
         ambient_files = self._modular_symbols
-        ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(factors_in_mongo)}})
+        ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(fids_in_mongo)}})
         if factors_in_file == 0:
             D = []
-            for fid in factors_in_mongo:
+            for fid in fids_in_mongo:
                 D.append(loads(fs_fact.get(fid).read()))
                 self._computedb.compute_decompositions(N,k,ci,D=D)
 
