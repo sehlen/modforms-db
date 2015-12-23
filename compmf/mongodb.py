@@ -614,9 +614,13 @@ class MongoMF(object):
                     res = {}
                 nfacts = self._db.number_of_known_factors(N,k,ci)
                 for d in range(nfacts):
-                    F = self._db.load_factor(N,k,ci,d)
-                    if not F is None:
-                        res[d]=F
+                    try:
+                        F = self._db.load_factor(N,k,ci,d)                        
+                        if not F is None:
+                            res[d]=F
+                    except RuntimeError:
+                        clogger.critical("Could not load factor at {0}".format((N,k,ci,d)))
+                        res = {}
             return res
         elif len(sources)>1:
             for ss in sources:
