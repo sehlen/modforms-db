@@ -2451,15 +2451,15 @@ class CheckingDB(CompMF):
                     clogger.warning("Dimensions of all factors do not sum up to the total dimension! n,k,cchi={0}".format((N,k,ci)))
                     if d > d1:
                         # check if this factor is not cuspidal...
-                        for key in facts.keys():
-                            f = facts[key]
-                            if not f.is_cuspidal():
-                                clogger.debug("Newform factor is not cuspidal! label={0}.{1}.{2}.{3}".format(N,k,ci,key[3]))
-                                r = D._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(key[3])})
-                                if pymongo.version_tuple[0]>=3:
-                                    D._newforms.delete_one(r['_id'])
-                                else:
-                                    D._newforms.remove(r['_id'])
+                        for d,fact in facts.iteritems():
+                            if not fact.is_cuspidal():
+                                clogger.debug("Newform factor is not cuspidal! label={0}.{1}.{2}.{3}".format(N,k,ci,d))
+                                r = D._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
+                                if not r is None:
+                                    if pymongo.version_tuple[0]>=3:
+                                        D._newforms.delete_one(r['_id'])
+                                    else:
+                                        D._newforms.remove(r['_id'])
                 if not M is None:
                     dim = M.dimension()
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
@@ -2482,12 +2482,11 @@ class CheckingDB(CompMF):
         fs_ap = gridfs.GridFS(self._mongodb,self._aps_collection)
         if res['factors'] is False:
             facts = {}
-        for t in facts.keys():
-            N,k,ci,d=t
+        for d,fact in facts.iteritems():
             s = {'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)}
             q = self._aps.find(s)
             n = q.count()
-            clogger.debug("t={0} s ={1} count={2}".format(t,s,n))
+            clogger.debug("s ={1} count={2}".format(s,n))
             if n==0:
                 res['aps']=False
                 break
