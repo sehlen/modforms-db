@@ -1311,6 +1311,11 @@ class CompMF(MongoMF):
                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                     v=int(1)))
 
+                hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label)
+                r = self._newform_factors.find_one({'hecke_orbit_label':hecke_orbit_label})
+                if not r is None:
+                    fs_fact.delete(r['_id'])
+                
                 facid = fs_fact.put(dumps(factor),filename=fname1,
                                     N=int(N),k=int(k),chi=int(sage_i[1]),
                                     cchi=int(ci),
