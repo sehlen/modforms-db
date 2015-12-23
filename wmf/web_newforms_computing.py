@@ -442,7 +442,10 @@ class WebNewForm_computing(WebNewForm):
             A = self.as_factor()
             for p in prime_divisors(self.level):
                 if self.character.is_trivial() or p==self.level:
-                    self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
+                    try:
+                        self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
+                    except ArithmeticError as e:
+                        raise e
 
     def set_twist_info(self, prec=10,insert_in_db=True):
         r"""
