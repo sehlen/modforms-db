@@ -261,7 +261,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         else:
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
-                 'character_orbit':map(int,self.character.character.galois_orbit()),
+                 'character_orbit':map(lambda x: int(x.number()),self.character.character.galois_orbit()),
                  'level':int(self.level),
                  'weight':int(self.weight),
                  'cchi':int(self.character.number),
