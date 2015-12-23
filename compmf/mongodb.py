@@ -925,7 +925,12 @@ class CompMF(MongoMF):
         """
         ncpus = kwds.pop('ncpus',1)
         pool = Pool(processes=ncpus)
-        clogger.debug("ncpus={0}".format(ncpus))        
+        clogger.debug("ncpus={0}".format(ncpus))
+        if ncpus == 1:
+            res = []
+            for arg in args:
+                res.append(self.compute_and_insert_one_space(arg[0],arg[1],arg[2],**kwds))
+            return res
         n = len(args)
         if n > 100:
             chunksize = 10
@@ -1230,7 +1235,7 @@ class CompMF(MongoMF):
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
         ## we should check again if we have sufficiently many factors:
         #factors_in_file = self._db.number_of_known_factors(N,k,ci)
-        factors_file = self.get_factors(N,k,ci,sources=['files'])
+        factors_in_file = self.get_factors(N,k,ci,sources=['files'])
         d_file = 0
         for fact in factors_in_file:
             d_file += fact.dimension()
