@@ -565,16 +565,19 @@ class MongoMF(object):
     def get_factors(self,N,k,ci,d=None,sources=['mongo','files']):
         r"""
         Get factor nr. d of the space M(N,k,i)
-        ci should be in the conrey naming scheme. Any conversions should take place before calling this function. 
+        ci should be in the conrey naming scheme. Any conversions should take place before calling this function.
+
+        Returns a dictionary { d : factor n.r d } 
+        
         """
-        res = []
+        res = {}
         if not hasattr(self,'_db'):
             sources = ['mongo']
         from utils import orbit_index_from_label,param_from_label
         if d == 'all':
             for d in range(self.number_of_factors(N,k,ci)):
-                f = self.get_factors(N,k,ci,d,sources=sources)
-                res.extend(f)
+                res1 = self.get_factors(N,k,ci,d,sources=sources)
+                res[d]=res1[d]
             return res
         if isinstance(N,basestring):
             N,k,ci,d = param_from_label(N)
@@ -592,8 +595,7 @@ class MongoMF(object):
                 newform = r['newform']
                 fid = r['_id']
                 f = self.load_from_mongo('Newform_factors',fid)
-                t = (int(N),int(k),int(ci),int(newform))
-                res.append(f)
+                res[newform] = f
             return res
         elif sources == ['files']:
             # The files are named according to Galois orbits.
@@ -601,7 +603,7 @@ class MongoMF(object):
             if not d is None:
                 try:
                     f = self._db.load_factor(N,k,ci,d)
-                    res.append(f)
+                    res[d] = f
                 except RuntimeError:
                     clogger.critical("Could not load factor at {0}".format((N,k,ci,d)))
                     
@@ -611,16 +613,17 @@ class MongoMF(object):
                     try:
                         F = self._db.load_factor(N,k,ci,d)                        
                         if not F is None:
-                            res.append(F)
+                            res[d] = F
                     except RuntimeError:
                         clogger.critical("Could not load factor at {0}".format((N,k,ci,d)))
                         res = {}
             return res
         elif len(sources)>1:
             for ss in sources:
-                res = self.get_factors(N,k,ci,d,sources=[ss])
-                if not res is None:
-                    return res
+                res1 = self.get_factors(N,k,ci,d,sources=[ss])
+                for key,value in res1.iteritems():
+                    res[key]=value
+            return res
         else:
             clogger.critical("Can not load factors, unknown source:{0}".format(sources))
         return res
@@ -1231,11 +1234,11 @@ class CompMF(MongoMF):
         #factors_in_file = self._db.number_of_known_factors(N,k,ci)
         factors_in_file = self.get_factors(N,k,ci,sources=['files'])
         d_file = 0
-        for fact in factors_in_file:
+        for fact in factors_in_file.values():
             d_file += fact.dimension()
         d_mongo = 0
         factors_in_mongo = self.get_factors(N,k,ci,sources=['mongo']) #files_fact.find({'ambient_id':ambient_id}).distinct('_id')
-        for fact in factor_in_mongo:
+        for fact in factors_in_mongo.values():
             d_mongo += fact.dimension()
         dimc = self.get_dimc(N,k,ci)
         clogger.debug("dimension of factors: in_file={0} in mongo={1} dimc={2}".format(d_file,d_mongo,dimc))
@@ -2433,7 +2436,7 @@ class CheckingDB(CompMF):
             if check_content:
                 facts = self.get_factors(N,k,ci,'all')
                 d = 0
-                for f in facts:
+                for f in facts.values():
                     d+=f.dimension()
                 clogger.debug("Sum of dimensions of factors: {0}".format(d))
                 #if M is None:
