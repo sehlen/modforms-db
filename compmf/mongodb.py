@@ -578,7 +578,7 @@ class MongoMF(object):
             for d in range(self.number_of_factors(N,k,ci)):
                 res1 = self.get_factors(N,k,ci,d,sources=sources)
                 clogger.debug("res1={0}".format(res1))
-                if not res1 is None:
+                if not res1 is None and res1 != {}:
                     res[d]=res1[d]
             return res
         if isinstance(N,basestring):
