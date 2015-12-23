@@ -1208,6 +1208,7 @@ class CompMF(MongoMF):
         verbose = kwds.get('verbose',0)
         ambient_id = kwds.get('ambient_id',None)
         compute = kwds.get('compute',self._do_computations)
+        clogger.debug("in compute_factors")
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
         on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
