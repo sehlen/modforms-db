@@ -1328,7 +1328,7 @@ class CompMF(MongoMF):
                                     ambient_id=ambient_id,
                                     hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
                                     v=int(1))
-                factors_in_mongo.append(dumps(factor))
+                factors_in_mongo[int(d)] = dumps(factor)
                 if not facid is None:
                     fids_in_mongo.append(facid)
                 clogger.debug("inserted factor: {0},{1}".format(d,facid))
