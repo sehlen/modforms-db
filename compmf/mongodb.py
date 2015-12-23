@@ -1534,7 +1534,7 @@ class CompMF(MongoMF):
                 clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
                 for d in range(num_factors):
                     self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
-                    aps = self._db.load_aps(N,k,i,d,ambient=ambient,nrange='all')
+                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
                     
                     insert_aps_into_mongodb(aps)
                 aps_in_file = 1 # after this the aps should be in both
