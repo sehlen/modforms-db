@@ -2570,7 +2570,7 @@ class CheckingDB(CompMF):
                 clogger.debug("have coefficients but not sufficiently many! Need {0} and got {1}".format(pprec,maxprec))
                 res['aps'] = False
             clogger.debug("done checking coeffs! 0")                
-            clogger.debug("done checking coeffs! t={0}".format(t))
+            clogger.debug("done checking coeffs! N,k,ci,d={0}".format((N,k,ci,d)))
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             clogger.debug("updating 1 complete:{0}".format(check_level))
