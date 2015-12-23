@@ -170,7 +170,7 @@ class WebNewForm_computing(WebNewForm):
         self.compute_satake_parameters_numeric()
         try:
             self.set_atkin_lehner()
-        except ZeroDivisionError, ArithmeticError:
+        except ArithmeticError:
             wmf_logger.critical("Computing Atkin-Lehner failed!")
         wmf_logger.debug("We set Atkin-lehner!")
         self.set_absolute_polynomial()
