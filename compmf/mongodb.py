@@ -577,7 +577,8 @@ class MongoMF(object):
         if d == 'all':
             for d in range(self.number_of_factors(N,k,ci)):
                 res1 = self.get_factors(N,k,ci,d,sources=sources)
-                res[d]=res1[d]
+                if not res1 is None:
+                    res[d]=res1[d]
             return res
         if isinstance(N,basestring):
             N,k,ci,d = param_from_label(N)
