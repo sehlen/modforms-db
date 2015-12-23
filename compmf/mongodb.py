@@ -544,6 +544,18 @@ class MongoMF(object):
             return -1
         return r.get('dimc',-1)
 
+    def get_dimn(self,N,k,ci):
+        r"""
+        Get dimension of cusp forms in S_k(N,i).
+
+        """
+        if isinstance(N,basestring):
+            N,k,ci = param_from_label(N)
+        r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)},projection=['dimn'])
+        if r is None:
+            return -1
+        return r.get('dimn',-1)
+
     def number_of_factors(self,N,k,ci,**kwds):
         r"""
         Return the number of factors.
@@ -1243,13 +1255,13 @@ class CompMF(MongoMF):
         fids_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
         for fact in factors_in_mongo.values():
             d_mongo += fact.dimension()
-        dimc = self.get_dimc(N,k,ci)
-        clogger.debug("dimension of factors: in_file={0} in mongo={1} dimc={2}".format(d_file,d_mongo,dimc))
-        if dimc == 0:
+        dimn = self.get_dimn(N,k,ci)
+        clogger.debug("dimension of factors: in_file={0} in mongo={1} dimn={2}".format(d_file,d_mongo,dimn))
+        if dimn == 0:
             return []  # There are no factors to compute
         
         
-        if d_file < dimc and  d_mongo < dimc:
+        if d_file < dimn and  d_mongo < dimn:
             # we do not have sufficiently many factors in either mongo or files.
             if not compute:
                 clogger.debug("No factors exist in db and we do not compute anything!")
@@ -1258,7 +1270,7 @@ class CompMF(MongoMF):
             factors_in_file = self._computedb.compute_decompositions(N,k,ci)
             clogger.debug("Computing factors! m={0}".format(factors_in_file))
 
-        if d_mongo < dimc:
+        if d_mongo < dimn:
             # we have in files but not in mongo
             fname = "gamma0-factors-{0}".format(self._db.space_name(N,k,ci))
             clogger.debug("Inserting factors into mongo! fname={0}".format(fname))
