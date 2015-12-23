@@ -234,14 +234,15 @@ def Modf_changevar_Ev(E=None,v=None,NF=None,Bfacto=10^6,Klabel='',label_only=Fal
                 Klabel=K['label']
                 break
 
+    if label_only:
+        return Klabel
+            
     if Klabel=='':
         # Field not found, so we reduce the initial polynomial as we can
         [Q,iso]=gp.polredbest(P,1)
         Q=ZZx(str(Q))
         pkQ=gp.nfinit([Q,Bfacto])
         iso=QQx(str(gp.lift(iso)))
-    if label_only:
-        return Klabel
     # Now we have the model we want for the absolute field.
     # We now want the explicit embedding of the cyclotomic field, the
     # relative polynomial for thi new field, and the relative version of the isomorphism

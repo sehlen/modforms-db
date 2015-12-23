@@ -176,7 +176,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
-        wmf_logger.debug("Will set twise")
+        wmf_logger.debug("Will set twist")
         self.set_twist_info()
         wmf_logger.debug("Have set twist")
         self.creation_date=datetime.datetime.utcnow()
@@ -326,7 +326,7 @@ class WebNewForm_computing(WebNewForm):
         self.base_ring = self.as_factor().base_ring()
         ## We also want to know what the generator actually is.
         
-    def set_coefficient_field(self):
+    def set_coefficient_field(self, get_label=True):
         r"""
         The base ring of self, that is, the field of values of the character of self. 
         """
@@ -336,8 +336,9 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("evs={0}".format(self.eigenvalues))
             self.coefficient_field = self.eigenvalues[2].parent()
             self.coefficient_field_degree = self.coefficient_field.absolute_degree()
-            nf_label = get_lmfdb_label([self.eigenvalues[2]])
-            setattr(self.coefficient_field,'lmfdb_label',nf_label)
+            if get_label:
+                nf_label = get_lmfdb_label([self.eigenvalues[2]])
+                setattr(self.coefficient_field,'lmfdb_label',nf_label)
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
         if self.coefficient_field_degree == 1:
