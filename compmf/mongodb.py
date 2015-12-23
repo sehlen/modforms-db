@@ -573,7 +573,8 @@ class MongoMF(object):
         from utils import orbit_index_from_label,param_from_label
         if d == 'all':
             for d in range(self.number_of_factors(N,k,ci)):
-                res.append(self.get_factors(N,k,ci,d,sources=sources))
+                f = self.get_factors(N,k,ci,d,sources=sources)
+                res.extend(f)
             return res
         if isinstance(N,basestring):
             N,k,ci,d = param_from_label(N)
