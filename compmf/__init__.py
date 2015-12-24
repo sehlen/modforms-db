@@ -12,7 +12,7 @@ try:
     LOGFORMAT = "  %(log_color)s%(levelname)-10s%(filename)s:%(lineno)d%(reset)s:%(asctime)s \t| %(log_color)s%(message)s%(reset)s"
     formatter = ColoredFormatter(LOGFORMAT,datefmt="%m-%d %H:%M:%S")
 except:
-    LOGFORMAT = "  %(levelname)-10s%(filename)s:%(lineno)d:%(ascitime)s \t | %(message)s"
+    LOGFORMAT = "  %(levelname)-10s%(filename)s:%(lineno)d:%(asctime)s \t | %(message)s"
     formatter = logging.Formatter(LOGFORMAT,datefmt="%m-%d %H:%M:%S")
 stream = logging.StreamHandler()
 stream.setLevel(LOG_LEVEL)
