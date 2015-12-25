@@ -96,11 +96,13 @@ def convert_matrix_to_extension_fld(E,K):
     if KE == QQ:
         return E
     # we need to make the names agree
+    clogger.debug("KE={0}".format(KE))
     KE = KE.change_names(K._names)
+    clogger.debug("New KE={0}".format(KE))
     if KE.is_relative(): # KE = NF / Cyclotomic
-        gen = E.base_ring().base_ring().gen()
+        gen = KE.base_ring().gen()
     else:
-        gen = E.base_ring().gen()
+        gen = KE.gen()
     z = K(gen)
     x = E[0,0].polynomial().parent().gen()
     EE=E.apply_map(lambda y: y.polynomial().substitute({x:z}))
