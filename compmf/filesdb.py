@@ -946,7 +946,8 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             if isinstance(E,tuple):
                 E = E[0]
             nn = prime_pi(n_stop)-prime_pi(n_start)
-            apfname = self.factor_aplist(N,k,i,d,False,n_start,n_stop)            
+            apfname = self.factor_aplist(N,k,i,d,False,n_start,n_stop)
+            do_save = False
             if nn != E.nrows():
                 clogger.debug("Have only {0} aps. Claim that we have {1}. We will rename!".format(E.nrows(),nn))
                 
@@ -954,21 +955,27 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                 new_n_start = n_start # assuming this is correct... 
                 new_n_stop = nth_prime(E.nrows()+1+prime_pi(n_start))-1
                 apfname = self.factor_aplist(N,k,i,d,False,new_n_start,new_n_stop)
-                if convert:
-                    K = v.base_ring()
-                    if K != QQ:
-                        clogger.debug("changing E to K={0}".format(K))
-                        E = convert_matrix_to_extension_fld(E,K)
-                if check:
-                    a2 = sum(E[0,x]*v[x] for x in range(len(v)))
-                    if hasattr(c[0],'complex_embeddings'):
-                        a2 = max(map(abs,c[0].complex_embeddings()))
-                    else:
-                        a2 = RR(abs(c[0]))
-                    a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
-                    if abs(a2) > 2.0:
-                        clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,i,d))
-                        raise ArithmeticError,"Could not load E!"
+                do_save = True
+            else:
+                apfname = self.factor_aplist(N,k,i,d,False,n_start,n_stop)
+            if convert:
+                K = v.base_ring()
+                KE = E.base_ring()
+                if K != QQ and KE!=QQ:
+                    clogger.debug("changing E to K={0}".format(K))
+                    E = convert_matrix_to_extension_fld(E,K)
+                    do_save = True
+            if check:
+                a2 = sum(E[0,x]*v[x] for x in range(len(v)))
+                if hasattr(c[0],'complex_embeddings'):
+                    a2 = max(map(abs,c[0].complex_embeddings()))
+                else:
+                    a2 = RR(abs(c[0]))
+                a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
+                if abs(a2) > 2.0:
+                    clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,if,d))
+                    raise ArithmeticError,"Could not load E!"
+            if do_save:
                 save(E,apfname)
                 meta = load("{0}/{1}".format(factor_dir,metaname))
                 new_metaname = self.meta(apfname)

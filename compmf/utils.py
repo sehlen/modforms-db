@@ -96,10 +96,11 @@ def convert_matrix_to_extension_fld(E,K):
     KE = E.base_ring()
     if KE == QQ:
         return E
-    # we need to make the names agree
+    # we need to make the names agree since sometimes a field is given by a1 and sometimes by a or a2... 
     clogger.debug("KE={0}".format(KE))
-    KE = KE.change_names(K._names)
-    clogger.debug("New KE={0}".format(KE))
+    if len(K._names) == len(KE._names):
+        KE = KE.change_names(K._names)
+        clogger.debug("New KE={0}".format(KE))
     if KE.is_relative(): # KE = NF / Cyclotomic
         gen = KE.base_ring().gen()
     else:
