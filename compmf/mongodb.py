@@ -1447,8 +1447,9 @@ class CompMF(MongoMF):
                 try:
                     # check again if we have this record in the gridfs db
                     clogger.debug("ambient id: {0} nmin={1} nmax={2}".format(ambient_id,nmin,nmax))
-                    clogger.debug("inserting: N={N},k={k}, chi={chi} ci={ci} on={on} d={d} nmin={nmin} nmax={nmax}".format(N=N,k=k,chi=sage_i[1],ci=ci,on=on,d=d,nmin=nmin,nmax=nmax))
-                    apid = fs_ap.put(dumps( (E,v)),filename=fname1,
+                    clogger.debug("inserting: N={N},k={k}, chi={chi} ci={ci} on={on} d={d} nmin={nmin} nmax={nmax}, orbit={orbit}".format(N=N,k=k,chi=sage_i[1],ci=ci,on=on,d=d,nmin=nmin,nmax=nmax,orbit=orbit))
+                    Ev = dumps((E,v))
+                    apid = fs_ap.put(Ev,filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
                                      is_converted=True,
