@@ -2477,12 +2477,12 @@ class CheckingDB(CompMF):
                         for d,fact in facts.iteritems():
                             if not fact.is_cuspidal():
                                 clogger.debug("Newform factor is not cuspidal! label={0}.{1}.{2}.{3}".format(N,k,ci,d))
-                                r = D._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
+                                r = self._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
                                 if not r is None:
                                     if pymongo.version_tuple[0]>=3:
-                                        D._newforms.delete_one(r['_id'])
+                                        self._newforms.delete_one(r['_id'])
                                     else:
-                                        D._newforms.remove(r['_id'])
+                                        self._newforms.remove(r['_id'])
                 if not M is None:
                     dim = M.dimension()
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
