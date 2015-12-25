@@ -95,6 +95,8 @@ def convert_matrix_to_extension_fld(E,K):
     KE = E.base_ring()
     if KE == QQ:
         return E
+    # we need to make the names agree
+    KE = KE.change_names(K._names)
     if KE.is_relative(): # KE = NF / Cyclotomic
         gen = E.base_ring().base_ring().gen()
     else:
