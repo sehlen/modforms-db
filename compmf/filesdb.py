@@ -967,13 +967,13 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     do_save = True
             if check:
                 a2 = sum(E[0,x]*v[x] for x in range(len(v)))
-                if hasattr(c[0],'complex_embeddings'):
-                    a2 = max(map(abs,c[0].complex_embeddings()))
+                if hasattr(a2,'complex_embeddings'):
+                    a2 = max(map(abs,a2.complex_embeddings()))
                 else:
-                    a2 = RR(abs(c[0]))
+                    a2 = RR(abs(a2))
                 a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
                 if abs(a2) > 2.0:
-                    clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,i,d))
+                    clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} a2={4}".format(N,k,i,d,a2))
                     raise ArithmeticError,"Could not load E!"
             if do_save:
                 save(E,apfname)
