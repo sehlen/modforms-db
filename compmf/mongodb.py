@@ -2460,6 +2460,7 @@ class CheckingDB(CompMF):
         if M is None:
             res['modular_symbols']=False
             numf = 0
+            dimn = -1
         else:
             self.check_characters_ambient(N,k,ci)
             if check_content and not 'modsym.ambient' in str(M.__class__):
@@ -2471,14 +2472,15 @@ class CheckingDB(CompMF):
                 res['modular_symbols']=True
             rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)})
             clogger.debug("rec={0}".format(rec))
-            numf = rec['orbits']
+            numf = rec['nfactors']
             ambient_id = rec['_id']
+            dimn = rec.get('dimn',-1)
         ## Check factors
         clogger.debug("will check number of factors! for M={0}".format(M))
         numf1 = self.number_of_factors(N,k,ci)
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
-        if numf1 == 0 and numf == 0:
+        if dimn == 0 or (numf1 == 0 and numf == 0):
             clogger.debug("updating 0 complete:{0}".format(check_level))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
             return res
