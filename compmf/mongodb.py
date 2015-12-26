@@ -712,13 +712,14 @@ class MongoMF(object):
         if not hasattr(self,'_db'):
             sources = ['mongo']
         clogger.debug("find aps with N,k,ci,d={0} from sources:{1}".format((N,k,ci,d),sources))
-        res = None
+        res = {}
         if sources == ['mongo']:
             s = {'N':int(N),'k':int(k),'cchi':int(ci)}
-            if self._aps.find(s).count()==0:
-                ## Fetch the record in the database corresponding to the Galois orbit of
-                ## chi_N,i  (in Conrey's character naming scheme)
-                s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(ci)]}}
+            ## This is probably only causing trouble....
+            #if self._aps.find(s).count()==0:
+            #    ## Fetch the record in the database corresponding to the Galois orbit of
+            #    ## chi_N,i  (in Conrey's character naming scheme)
+            #    s = {'N':int(N),'k':int(k),'character_galois_orbit':{"$all":[int(ci)]}}
             if not d is None and not isinstance(d,basestring):
                 s['newform']=int(d)
             clogger.debug("find aps with s={0} from sources:{1}".format(s,sources))
@@ -738,7 +739,7 @@ class MongoMF(object):
                     clogger.debug("Can not load ap's: {0}".format(e))
                     clogger.debug("Removing these ap's from database!: match={0}".format(s))
                     self._aps.delete_one({'_id':fid})
-                    return None
+                    return {}
                 #clogger.debug("id={0} and E={1}".format(fid,E))
                 t = (int(N),int(k),int(ci),int(newform))
                 if not res.has_key(newform):
@@ -750,7 +751,7 @@ class MongoMF(object):
                         res[newform][(nmin,nmax)] = multiply_mat_vec(E,v)
             if isinstance(d,(int,Integer)):
                 if isinstance(res,(dict,list)):
-                    res = res[d]
+                    res = res.get(d,{})
 
         elif sources == ['files']:
             # The files are named according to Galois orbits but here we simply request
