@@ -1578,6 +1578,7 @@ class CompMF(MongoMF):
             aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
             if not rec_mongo is None:
                 precs_in_mongo = rec_mongo.keys()
+                clogger.debug("precisions in mongo for d={0}: {1}".format(d,precs_in_mongo))
                 for prec1,prec2 in aps.keys():
                     if not (prec1,prec2) in rec_mongo.keys():
                         insert_in_mongo = True
