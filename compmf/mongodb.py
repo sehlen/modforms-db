@@ -1246,12 +1246,12 @@ class CompMF(MongoMF):
         fs_fact = gridfs.GridFS(self._mongodb, 'Newform_factors')
         ## we should check again if we have sufficiently many factors:
         #factors_in_file = self._db.number_of_known_factors(N,k,ci)
-        factors_in_file = self.get_factors(N,k,ci,sources=['files'])
+        factors_in_file = self.get_factors(N,k,ci,'all',sources=['files'])
         d_file = 0
         for fact in factors_in_file.values():
             d_file += fact.dimension()
         d_mongo = 0
-        factors_in_mongo = self.get_factors(N,k,ci,sources=['mongo']) #files_fact.find({'ambient_id':ambient_id}).distinct('_id')
+        factors_in_mongo = self.get_factors(N,k,ci,'all',sources=['mongo']) #files_fact.find({'ambient_id':ambient_id}).distinct('_id')
         fids_in_mongo = files_fact.find({'ambient_id':ambient_id}).distinct('_id')
         for fact in factors_in_mongo.values():
             d_mongo += fact.dimension()
