@@ -1457,7 +1457,7 @@ class CompMF(MongoMF):
                 ### convert base ring of E
                 K = v.base_ring()
                 if K != QQ:
-                    clogger.debug("changing E to K={0}".format(K))
+                    clogger.debug("changing E to K of relative degree {0}".format(K.relative_degree()))
                     E = convert_matrix_to_extension_fld(E,K)
                 clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
                 clogger.debug("v=vector of length {0}".format(len(v)))
