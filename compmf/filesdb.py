@@ -973,7 +973,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     a2 = RR(abs(c[0]))
                 a2 = a2/RR(2.0)**(RR(k-1)/RR(2))
                 if abs(a2) > 2.0:
-                    clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,if,d))
+                    clogger.critical("Loaded E does not satisfy Ramanujan bound. Label:{0}.{1}.{2}.{3} ".format(N,k,i,d))
                     raise ArithmeticError,"Could not load E!"
             if do_save:
                 save(E,apfname)
