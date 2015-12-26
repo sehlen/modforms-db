@@ -38,7 +38,7 @@ by William Stein.
 
 """
 import os
-from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols,prime_pi,nth_prime,ZZ,QQ
+from sage.all import cached_function,prime_range,DirichletGroup,dimension_new_cusp_forms,save,load,trivial_character,Sequence,ModularSymbols,prime_pi,nth_prime,ZZ,QQ,RR
 
 
 import sqlite3
