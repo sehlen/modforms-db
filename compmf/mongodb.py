@@ -2481,9 +2481,9 @@ class CheckingDB(CompMF):
                                 r = self._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
                                 if not r is None:
                                     if pymongo.version_tuple[0]>=3:
-                                        self._newforms.delete_one(r['_id'])
+                                        self._newform_factors.delete_one(r['_id'])
                                     else:
-                                        self._newforms.remove(r['_id'])
+                                        self._newform_factors.remove(r['_id'])
                 if not M is None:
                     dim = M.dimension()
                     self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
