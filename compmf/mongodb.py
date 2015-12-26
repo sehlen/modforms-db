@@ -1343,7 +1343,33 @@ class CompMF(MongoMF):
                 factors_in_mongo[int(d)] = factor
                 if not facid is None:
                     fids_in_mongo.append(facid)
-                clogger.debug("inserted factor: {0},{1}".format(d,facid))
+                clogger.debug("inserted factor in mongo: {0},{1}".format(d,facid))
+                d_mongo += factor.dimension()
+        if d_mongo ==dimn and d_file < dimn:
+            # we should now have a factor which we can insert into the files
+            a = self.get_factors(N,k,ci,sources=['mongo'])
+            for d in a.keys():
+                # insert it # SHOULD BE IN SEPARATE ROUTINE
+                A = a[d]
+                cdb = self._computedb
+                cdb.files().factor(N,k,i,d,makedir=True)
+                f = cdb.factor_basis_matrix(N, k, ci, d)
+                B  = A.free_module().basis_matrix()
+                Bd = A.dual_free_module().basis_matrix()
+                v  = A.dual_eigenvector(names='a', lift=False)    # vector over number field
+                nz = A._eigen_nonzero()
+                name = cdb.files().factor_basis_matrix(N, k, ci, d)
+                save(B, name)
+                save(Bd, cdb.files().factor_dual_basis_matrix(N, k, ci, d))
+                save(v, cdb.files().factor_dual_eigenvector(N, k, ci, d))
+                save(nz, cdb.files().factor_eigen_nonzero(N, k, ci, d))
+                clogger.debug("Inserted factor nr. {0} in files".format(d))
+            r = self._newform_factors.find({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
+            tm = r.get('cputime')
+            sage_v = r.get('sage_version')
+            meta = {'cputime':tm, 'number':max(a.keys()), 'version':sage_v}
+            save(meta, cdb.files().decomp_meta(N, k, ci))
+            
         ambient_files = self._modular_symbols
         ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(fids_in_mongo)}})
         if factors_in_file == 0:
