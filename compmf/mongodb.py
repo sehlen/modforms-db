@@ -1352,7 +1352,7 @@ class CompMF(MongoMF):
                 # insert it # SHOULD BE IN SEPARATE ROUTINE
                 A = a[d]
                 cdb = self._computedb
-                cdb.files().factor(N,k,i,d,makedir=True)
+                cdb.files().factor(N,k,ci,d,makedir=True)
                 f = cdb.factor_basis_matrix(N, k, ci, d)
                 B  = A.free_module().basis_matrix()
                 Bd = A.dual_free_module().basis_matrix()
