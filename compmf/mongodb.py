@@ -1353,7 +1353,9 @@ class CompMF(MongoMF):
                 A = a[d]
                 cdb = self._computedb
                 cdb.files().factor(N,k,ci,d,makedir=True)
-                f = cdb.factor_basis_matrix(N, k, ci, d)
+                f = cdb.files().factor_basis_matrix(N, k, ci, d)
+                if self.files().path_exists(f):
+                    continue
                 B  = A.free_module().basis_matrix()
                 Bd = A.dual_free_module().basis_matrix()
                 v  = A.dual_eigenvector(names='a', lift=False)    # vector over number field
