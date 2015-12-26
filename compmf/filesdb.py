@@ -865,9 +865,9 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         import sage.modular.modsym.subspace
         from utils import convert_matrix_to_extension_fld
         if d=='all':
-            res = []
+            res = {}
             for d in range(self.number_of_known_factors(N,k,i)):
-                res.append(self.load_aps(N,k,i,d,ambient=ambient,nrange=nrange))
+                res [d] = self.load_aps(N,k,i,d,ambient=ambient,nrange=nrange)
             return res
         clogger.debug("Load_aps of {0} at {1} for nrange={2}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False),nrange))
         F = self.load_factor(N, k, i, d, ambient)
