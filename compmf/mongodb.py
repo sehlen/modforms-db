@@ -1412,8 +1412,9 @@ class CompMF(MongoMF):
         if ci_new <> ci:
             clogger.debug("Character is different!")
         ci = ci_new
-        num_factors = len(kwds.get('factors_ids',self.compute_factors(N,k,ci,**kwds)))
 
+        #num_factors = len(kwds.get('factors_ids',self.compute_factors(N,k,ci,**kwds)))
+        num_factors = len(self.get_factors(N,k,ci))
         compute = kwds.get('compute',self._do_computations)
         verbose = kwds.get('verbose')
         #        c = dirichlet_character_conrey_from_sage_character_number(N,i)
@@ -1426,9 +1427,8 @@ class CompMF(MongoMF):
         fs_v = gridfs.GridFS(self._mongodb, 'vector_on_basis')
         key = {'N':int(N),'k':int(k),'cchi':int(ci),'prec' : {"$gt": int(pprec -1) }}
         clogger.debug("key={0}".format(key))
-        aps_in_mongo = self._aps.find(key).distinct('newform')
-        aps_in_file = 0
-        clogger.debug("Already have {0} ap lists in mongodb! Need at least {1}".format(len(aps_in_mongo),num_factors))
+        #aps_in_mongo = self._aps.find(key).distinct('newform')
+        #aps_in_file = 0
         def insert_aps_into_mongodb(aps):
             r"""
             Insert a dictionary of aps into the mongo database.
@@ -1489,7 +1489,7 @@ class CompMF(MongoMF):
                                      cputime = meta.get("cputime",""),
                                      sage_version = meta.get("version",""),
                                      ambient_id=ambient_id)
-                    aps_in_mongo.append(apid)
+                    #res.append(apid)
                     clogger.debug("We could insert {0} fname={1} label={2}".format(apid,fname1,label))
                 except ValueError as e: #gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e))
