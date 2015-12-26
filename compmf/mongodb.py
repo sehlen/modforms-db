@@ -2472,7 +2472,8 @@ class CheckingDB(CompMF):
                 res['modular_symbols']=True
             rec = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)})
             clogger.debug("rec={0}".format(rec))
-            numf = rec['nfactors']
+            numf = self._newform_factors.find({'ambient_id':rec['_id']}).count()
+            #numf = rec['nfactors']
             ambient_id = rec['_id']
             dimn = rec.get('dimn',-1)
         ## Check factors
