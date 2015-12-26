@@ -1555,55 +1555,77 @@ class CompMF(MongoMF):
         #    if r[4]>=pprec:
         #        aps_in_file = 1
         #        # check if really there:
-        aps_in_file = 0
-        try:
-            for d in range(num_factors):
-                aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec],convert=True,check=True)
-                if not None in aps:
-                    aps_in_file+=1
-        except Exception as e:
-            clogger.critical("could not load aps! ERROR:{0}".format(e))
-            aps_in_file = 0
-        clogger.debug("Have ap lists in filesdb : {0}".format(aps_in_file))
-
-        # If we have coefficients both in mongo and files we don't do anything.
-        if len(aps_in_mongo) == num_factors and aps_in_file==num_factors:
-            return aps_in_mongo
-        elif len(aps_in_mongo) < num_factors: # if we don't have all coefficients in mongo
-            aps = {}          
-            if aps_in_file < num_factors: 
-                if not compute:
-                    return []
-                ## No coefficients in either mongo or files => we compute and save if desired
-                clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
-                for d in range(num_factors):
-                    self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
-                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
-                    
-                    insert_aps_into_mongodb(aps)
-                aps_in_file = num_factors # after this the aps should be in both
-                # file and mongo
-            if aps is None or aps == {}:
-                for d in range(num_factors):
-                    aps = self._db.load_aps(N,k,ci,d,ambient=ambient) #,nrange=[0,pprec])
-                    if aps == {} or aps is None:
-                        aps_in_file = 0
-                        break
-                    else:
-                        clogger.debug("Loading aplist! d={0} with pprec={1}".format(d,pprec))
-                        insert_aps_into_mongodb(aps)
-            if aps_in_file < num_factors:
-                clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
-                return aps
-        elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
-            ### We have coefficients in mongo, need to save them to file
-            aps = self.get_aps(N,k,ci,sources=['mongo'])
-            clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
-            return insert_aps_into_filesdb(aps)
-        elif len(aps_in_mongo)>=num_factors: #  we are ok anyway
-            clogger.debug("We have enough coefficients in mongo and/or do not want to write to file!")
+        aps_in_file = self.get_aps(N,k,ci,'all',sources=['files'])
+        aps_in_mongo= self.get_aps(N,k,ci,'all',sources=['mongo'])
+        if pprec != None:
+            pprec_needed  = max(precision_needed_for_L(N,k),pprec)
         else:
-            clogger.critical("aps for: {0},{1},{2} could not be computed!".format(N,k,ci))
+            pprec_needed  = precision_needed_for_L(N,k)
+        # Now check if we have sufficient coefficients in the files.
+        clogger.debug("Need aps with precision: {0}".format(pprec_needed))
+        for d in range(num_factors):
+            recs = aps_in_file.get(d)
+            compute = True
+            precs_in_files = recs.keys()
+            if not recs is None: 
+                for prec1,prec2 in precs_in_files:
+                    if prec2 > pprec:
+                        compute = False
+            if compute:
+                self._computedb.compute_aplists(N,k,ci,0,pprec,one_d=d)
+            rec_mongo = aps_in_mongo.get(d)
+            insert_in_mongo = False
+            aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
+            if not rec_mongo is None:
+                precs_in_mongo = rec_mongo.keys()
+                for prec1,prec2 in aps.keys():
+                    if prec1,prec2 not in rec_mongo.keys():
+                        insert_in_mongo = True
+            else:
+                insert_in_mongo = True
+            if insert_in_mongo:
+                clogger.debug("Inserting aplist in mongo! precs={0} with label={1}.{2}.{3}".format(aps,keys(),N,k,ci))
+                insert_aps_into_mongodb(aps)
+                
+        # If we have coefficients both in mongo and files we don't do anything.
+        #if len(aps_in_mongo) == num_factors and aps_in_file==num_factors:
+        #    return aps_in_mongo
+        # if len(aps_in_mongo) < num_factors and aps_in_file < num_factors:
+        #     # if we don't have all coefficients we need to compute
+        #     aps = {}          
+        #     if aps_in_file < num_factors: 
+        #         if not compute:
+        #             return []
+        #         ## No coefficients in either mongo or files => we compute and save if desired
+        #         clogger.debug("Computing aplist! m={0} with pprec={1}".format(num_factors,pprec))
+        #         for d in range(num_factors):
+        #             self._computedb.compute_aplists(N,k,ci,0,pprec,ambient=ambient,save=self._save_to_file)
+        #             aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange='all')
+                    
+        #             insert_aps_into_mongodb(aps)
+        #         aps_in_file = num_factors # after this the aps should be in both
+        #         # file and mongo
+        #     if aps is None or aps == {}:
+        #         for d in range(num_factors):
+        #             aps = self._db.load_aps(N,k,ci,d,ambient=ambient) #,nrange=[0,pprec])
+        #             if aps == {} or aps is None:
+        #                 aps_in_file = 0
+        #                 break
+        #             else:
+        #                 clogger.debug("Loading aplist! d={0} with pprec={1}".format(d,pprec))
+        #                 insert_aps_into_mongodb(aps)
+        #     if aps_in_file < num_factors:
+        #         clogger.critical("APS: {0},{1},{2},{3} could not be computed!".format(N,k,ci,d))
+        #         return aps
+        # elif len(aps_in_mongo) >= num_factors and len(aps_in_mongo)>aps_in_file and self._save_to_file:
+        #     ### We have coefficients in mongo, need to save them to file
+        #     aps = self.get_aps(N,k,ci,sources=['mongo'])
+        #     clogger.debug("Need to insert aps into the files! num_Factors={0}".format(num_factors))
+        #     return insert_aps_into_filesdb(aps)
+        # elif len(aps_in_mongo)>=num_factors: #  we are ok anyway
+        #     clogger.debug("We have enough coefficients in mongo and/or do not want to write to file!")
+        # else:
+        #     clogger.critical("aps for: {0},{1},{2} could not be computed!".format(N,k,ci))
         return aps_in_mongo
 
 

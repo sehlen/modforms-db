@@ -274,6 +274,7 @@ class ComputeMFData(object):
         length 5.
         """
         recompute = kwds.get('recompute',False)
+        one_d = kwds.get('one_d',-1)
         if i == 'all':
             G = DirichletGroup(N).galois_orbits()
             sgn = (-1)**k
@@ -302,7 +303,7 @@ class ComputeMFData(object):
             return -1
             #compute_ambient_space(N, k, i)
         clogger.debug("computing aplists for (%s,%s,%s)"%(N,k,i))
-
+        
         m = self.files().number_of_known_factors(N, k, i)
         clogger.debug("m={0}".format(m))
         if m == 0:
@@ -317,6 +318,10 @@ class ComputeMFData(object):
             res = {}
         else:
             res = 0
+        if one_d > 0:
+            drange = [one_d]
+        else:
+            drange = range(m)
         for d in range(m):
             if kwds.get('factor') is not None:
                 if d <> kwds.get('factor'):
