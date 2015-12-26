@@ -1579,7 +1579,7 @@ class CompMF(MongoMF):
             if not rec_mongo is None:
                 precs_in_mongo = rec_mongo.keys()
                 for prec1,prec2 in aps.keys():
-                    if prec1,prec2 not in rec_mongo.keys():
+                    if not (prec1,prec2) in rec_mongo.keys():
                         insert_in_mongo = True
             else:
                 insert_in_mongo = True
