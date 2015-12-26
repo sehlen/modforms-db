@@ -1366,11 +1366,12 @@ class CompMF(MongoMF):
                 save(v, cdb.files().factor_dual_eigenvector(N, k, ci, d))
                 save(nz, cdb.files().factor_eigen_nonzero(N, k, ci, d))
                 clogger.debug("Inserted factor nr. {0} in files".format(d))
-            r = self._newform_factors.find({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
-            tm = r.get('cputime')
-            sage_v = r.get('sage_version')
-            meta = {'cputime':tm, 'number':max(a.keys()), 'version':sage_v}
-            save(meta, cdb.files().decomp_meta(N, k, ci))
+            r = self._newform_factors.find_one({'N':int(N),'k':int(k),'cchi':int(ci),'newform':int(d)})
+            if not r is None:
+                tm = r.get('cputime')
+                sage_v = r.get('sage_version')
+                meta = {'cputime':tm, 'number':max(a.keys()), 'version':sage_v}
+                save(meta, cdb.files().decomp_meta(N, k, ci))
             
         ambient_files = self._modular_symbols
         ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(fids_in_mongo)}})
