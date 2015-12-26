@@ -1559,7 +1559,7 @@ class CompMF(MongoMF):
         try:
             for d in range(num_factors):
                 aps = self._db.load_aps(N,k,ci,d,ambient=ambient,nrange=[0,pprec],convert=True,check=True)
-                if not aps is None:
+                if not None in aps:
                     aps_in_file+=1
         except Exception as e:
             clogger.critical("could not load aps! ERROR:{0}".format(e))
