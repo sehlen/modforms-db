@@ -1459,8 +1459,8 @@ class CompMF(MongoMF):
                 if K != QQ:
                     try:
                         clogger.debug("changing E to K of relative degree {0}".format(K.relative_degree()))
-                        E = convert_matrix_to_extension_fld(E,K)
-                        Ev = dumps((E,v)) # we do this here since it sometimes fails..
+                        EE = convert_matrix_to_extension_fld(E,K)
+                        Ev = dumps((EE,v)) # we do this here since it sometimes fails..
                     except OverflowError as e:
                         clogger.critical("Could not dump converted E. ERROR:{0} ".format(e))
                         Ev = dumps((E,v))
