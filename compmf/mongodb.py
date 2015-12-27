@@ -1457,8 +1457,15 @@ class CompMF(MongoMF):
                 ### convert base ring of E
                 K = v.base_ring()
                 if K != QQ:
-                    clogger.debug("changing E to K of relative degree {0}".format(K.relative_degree()))
-                    E = convert_matrix_to_extension_fld(E,K)
+                    try:
+                        clogger.debug("changing E to K of relative degree {0}".format(K.relative_degree()))
+                        E = convert_matrix_to_extension_fld(E,K)
+                        Ev = dumps((E,v)) # we do this here since it sometimes fails..
+                    except OverflowError as e:
+                        clogger.critical("Could not dump converted E. ERROR:{0} ".format(e))
+                        Ev = dumps((E,v))
+                else:
+                    Ev = dumps((E,v))
                 clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
                 clogger.debug("v=vector of length {0}".format(len(v)))
                 clogger.debug("meta={0}".format(meta))
@@ -1478,7 +1485,7 @@ class CompMF(MongoMF):
                     # check again if we have this record in the gridfs db
                     clogger.debug("ambient id: {0} nmin={1} nmax={2}".format(ambient_id,nmin,nmax))
                     clogger.debug("inserting: N={N},k={k}, chi={chi} ci={ci} on={on} d={d} nmin={nmin} nmax={nmax}, orbit={orbit}".format(N=N,k=k,chi=sage_i[1],ci=ci,on=on,d=d,nmin=nmin,nmax=nmax,orbit=orbit))
-                    Ev = dumps((E,v))
+
                     apid = fs_ap.put(Ev,filename=fname1,
                                      N=int(N),k=int(k),chi=int(sage_i[1]),cchi=int(ci),
                                      character_galois_orbit=orbit,
