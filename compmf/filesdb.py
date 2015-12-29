@@ -944,7 +944,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         else: 
             raise ValueError,"Need a range of integers in nrange. Got:{0}".format(nrange)
         metaname = fname.split(".")[0]+"-meta.sobj"
-        #clogger.debug("fname={0}".format(fname))
+        clogger.debug("Will try to load from fname={0}".format(fname))
         #clogger.debug("metaname={0}".format(metaname))
         try: 
             v = load("{0}/v.sobj".format(factor_dir))
@@ -952,6 +952,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
             raise ValueError,"Could not load factor: {0}/{1}. Error:{2}".format(factor_dir,'v.sobj',e.message)      
         try:
             E = load("{0}/{1}".format(factor_dir,fname))
+            clogger.debug("loaded E from : {0}".format(fname))
             if isinstance(E,tuple):
                 E = E[0]
             nn = prime_pi(n_stop)-prime_pi(n_start)
