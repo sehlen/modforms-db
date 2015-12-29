@@ -829,7 +829,11 @@ class FilenamesMFDBLoading(FilenamesMFDB):
         if d=='all':
             res = []
             for d in range(self.number_of_known_factors(N,k,i)):
-                res.append(self.load_factor(N,k,i,d))
+                try:
+                    f = self.load_factor(N,k,i,d)
+                    res.append(f)
+                except RuntimeError as e:
+                    clogger.critical("RuntimeError : {0}".format(str(e)))
             return res
         f = self.factor(N, k, i, d, makedir=False)
         if not self.path_exists(f):
