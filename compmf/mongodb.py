@@ -765,12 +765,11 @@ class MongoMF(object):
                 res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs,check=True,convert=True)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
-                res = None
         elif len(sources)>1:
             for ss in sources:
                 res = self.get_aps(N,k,ci,d,prec_needed,coeffs,[ss])
                 #print "res=",res
-                if not res is None:
+                if res != None and res !={}:
                     return res
                     
         return res
