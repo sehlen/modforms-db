@@ -877,6 +877,7 @@ class FilenamesMFDBLoading(FilenamesMFDB):
                     clogger.debug("Add aps for factor : {0}".format(d))
                 except RuntimeError as e:
                     clogger.critical("Could not load aps for factor {0}! ERROR: {1}".format(d,str(e)))
+                    raise RuntimeError e
             return res
         clogger.debug("Load_aps of {0} at {1} for nrange={2}".format((N,k,i,d),self.factor(N,k,i,d,makedir=False),nrange))
         F = self.load_factor(N, k, i, d, ambient)
