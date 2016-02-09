@@ -501,19 +501,21 @@ class WebNewForm_computing(WebNewForm):
                 for x in DM:
                     for y in D:
                         ## Get the decomposition of left hand side (since multiplication of character with different modulus is not implemented in DirichletGroup_conrey)
+                        ## We can in fact not even multiply characters with the same conductor!!!
+                        ## e.g. chi_4.1 and chi_2.1...
                         #wmf_logger.debug("y={0}".format(y))
                         lhs_decomp = {}
                         for xx in x.decomposition():
-                            if not lhs_decomp.has_key(xx.conductor()):
-                                lhs_decomp[xx.conductor()]=xx
+                            if not lhs_decomp.has_key(xx.modulus()):
+                                lhs_decomp[xx.modulus()]=xx
                             else:
-                                lhs_decomp[xx.conductor()]  = xx*lhs_decomp[xx.conductor()]
+                                lhs_decomp[xx.modulus()]  = xx*lhs_decomp[xx.modulus()]
                         for yy in y.decomposition():
-                            wmf_logger.debug("yy={0} and lhs_Decomp[{1}] = {2}".format(yy,yy.conductor(),lhs_decomp))
-                            if not lhs_decomp.has_key(yy.conductor()):
-                                lhs_decomp[yy.conductor()]=yy
+                            wmf_logger.debug("yy={0} and lhs_Decomp[{1}] = {2}".format(yy,yy.modulus(),lhs_decomp))
+                            if not lhs_decomp.has_key(yy.modulus()):
+                                lhs_decomp[yy.modulus()]=yy
                             else:
-                                lhs_decomp[yy.conductor()]  = yy*lhs_decomp[yy.conductor()]
+                                lhs_decomp[yy.modulus()]  = yy*lhs_decomp[yy.modulus()]
                         wmf_logger.debug("lhs_Decomp = {0}".format(lhs_decomp))
                         try:
                             for m in character_decomp.keys():
