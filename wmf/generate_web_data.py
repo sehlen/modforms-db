@@ -1723,3 +1723,6 @@ def remove_bad_factors_par(fid):
             #D._newform_factors.remove({'_id':fid})
         else:
             D._newform_factors.update({'_id':fid},{"$set":{'checked':int(1)}})
+
+#def check_directories(D):
+    
