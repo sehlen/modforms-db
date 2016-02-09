@@ -509,7 +509,7 @@ class WebNewForm_computing(WebNewForm):
                             else:
                                 lhs_decomp[xx.conductor()]  = xx*lhs_decomp[xx.conductor()]
                         for yy in y.decomposition():
-                            wmf_logger.debug("yy={0} and lhs_Decomp = {1}".format(yy,lhs_decomp))
+                            wmf_logger.debug("yy={0} and lhs_Decomp[{1}] = {2}".format(yy,yy.conductor(),lhs_decomp))
                             if not lhs_decomp.has_key(yy.conductor()):
                                 lhs_decomp[yy.conductor()]=yy
                             else:
