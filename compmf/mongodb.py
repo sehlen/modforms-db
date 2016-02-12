@@ -695,7 +695,7 @@ class MongoMF(object):
             clogger.critical("Can not load factors, unknown source:{0}".format(sources))
         return res
 
-    def get_aps(self,N,k,ci,d='all',prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','files']):
+    def get_aps(self,N,k,ci,d='all',prec_needed=0,coeffs=False,sources=['mongo','mongo_raw','files'],**kwds):
         r"""
         Get the lists of Fourier coefficients for the space M(n,k,i) and orbit nr. d
         i is in the Conrey naming scheme.
@@ -713,6 +713,7 @@ class MongoMF(object):
             sources = ['mongo']
         clogger.debug("find aps with N,k,ci,d={0} from sources:{1}".format((N,k,ci,d),sources))
         res = {}
+        do_convert = kwds.get('do_convert',False)
         if sources == ['mongo']:
             s = {'N':int(N),'k':int(k),'cchi':int(ci)}
             ## This is probably only causing trouble....
@@ -762,7 +763,7 @@ class MongoMF(object):
             elif isinstance(prec_needed,int):
                 prec_needed = [0,prec_needed]
             try:
-                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs,check=True,convert=True)
+                res = self._db.load_aps(N,k,ci,d,nrange=prec_needed,coeffs=coeffs,check=True,convert=do_convert)
             except Exception as e:
                 clogger.critical("Could not get ap's from file:{0}".format(e))
         elif len(sources)>1:
@@ -1394,6 +1395,7 @@ class CompMF(MongoMF):
         if pprec is None:
             pprec = precision_needed_for_L(N,k)
         pprec = int(pprec)
+        do_convert = kwds.get('do_convert',False) ## Converting matrix to extension field or not.
         ambient_id = kwds.get('ambient_id',None)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
@@ -1455,7 +1457,7 @@ class CompMF(MongoMF):
                     E,v = E
                 ### convert base ring of E
                 K = v.base_ring()
-                if K != QQ:
+                if K != QQ and do_convert:
                     try:
                         clogger.debug("changing E to K of relative degree {0}".format(K.relative_degree()))
                         EE = convert_matrix_to_extension_fld(E,K)
@@ -1533,7 +1535,7 @@ class CompMF(MongoMF):
                 for prec in val.keys():
                     E,v,meta = val[prec]
                     K = v.base_ring()
-                    if K != QQ:
+                    if K != QQ and do_convert:
                         clogger.debug("changing E to K={0}".format(K))
                         E = convert_matrix_to_extension_fld(E,K)
                         clogger.debug("E= matrix over field of degree {0} of size {1} x {2}".format(E.base_ring().absolute_degree(),E.nrows(),E.ncols()))
