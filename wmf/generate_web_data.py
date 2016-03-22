@@ -1749,8 +1749,8 @@ def fix_cm(D,nmax=10,nmin=1,date=""):
     return res
 
 @parallel(32)
-def fix_cm_par(label):
-    F = WebNewForm_computing(label)
+def fix_cm_par(label,recompute=True):
+    F = WebNewForm_computing(label,recompute=recompute)
     F.set_is_cm()
     F.save_to_db()
     return F.is_cm
