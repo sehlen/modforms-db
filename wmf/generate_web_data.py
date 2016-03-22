@@ -1738,7 +1738,7 @@ def fix_cm(D,nmax=10,nmin=1):
 
 @parallel(32)
 def fix_cm_par(label):
-    F = WebNewForm_computinf(label)
+    F = WebNewForm_computing(label)
     F.set_is_cm()
     F.save_to_db()
     return F.is_cm
