@@ -1734,14 +1734,14 @@ def fix_cm(D,nmax=10,nmin=1,date=""):
     import dateutil.parser
     if date != "":
         d = dateutil.parser.parse(date)
-        s = {"modification_date":{"$exists":False},'version':{"$ge":"1.3"}}
+        s = {"modification_date":{"$exists":False},'version':{"$gt":float(1.2)}}
         for r in D._mongodb['webnewforms'].find(s):
             args.append(r['hecke_orbit_label'])
-        s = {"modification_date":{"$lt":d},'version':{"$ge":"1.3"}}
+        s = {"modification_date":{"$lt":d},'version':{"$gt":float(1.2)}}
         for r in D._mongodb['webnewforms'].find(s):
             args.append(r['hecke_orbit_label'])
     else:
-        for r in D._mongodb['webnewforms'].find({'version':{"$ge":"1.3"}}):
+        for r in D._mongodb['webnewforms'].find({'version':{"$gt":float(1.2)}}):
             args.append(r['hecke_orbit_label'])
 
     wmf_logger.debug("checking {0} records!".format(len(args)))
