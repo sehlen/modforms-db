@@ -1728,10 +1728,22 @@ def remove_bad_factors_par(fid):
     
 
 
-def fix_cm(D,nmax=10,nmin=1):
+def fix_cm(D,nmax=10,nmin=1,date=""):
     args = []
-    for r in D._newform_factors.find({'N':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}).sort([('N',int(1)),('k',int(1))]):
-        args.append(r['hecke_orbit_label'])
+    #for r in D._newform_factors.find({'N':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}).sort([('N',int(1)),('k',int(1))]):
+    import dateutil.parser
+    if date != "":
+        d = dateutil.parser.parse(date)
+        s = {"modification_date":{"$exists":False},'version':{"$ge":"1.3"}}
+        for r in D._mongodb['webnewforms'].find(s):
+            args.append(r['hecke_orbit_label'])
+        s = {"modification_date":{"$lt":d},'version':{"$ge":"1.3"}}
+        for r in D._mongodb['webnewforms'].find(s):
+            args.append(r['hecke_orbit_label'])
+    else:
+        for r in D._mongodb['webnewforms'].find({'version':{"$ge":"1.3"}}):
+            args.append(r['hecke_orbit_label'])
+
     wmf_logger.debug("checking {0} records!".format(len(args)))
     res = list(fix_cm_par(args))
     return res
