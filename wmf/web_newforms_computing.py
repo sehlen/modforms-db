@@ -585,8 +585,8 @@ class WebNewForm_computing(WebNewForm):
         """
         #if(len(self._is_CM) > 0):
         #    return self._is_CM
-        max_nump = self._number_of_hecke_eigenvalues_to_check()
-        # E,v = self._f.compact_system_of_eigenvalues(max_nump+1)
+        max_nump = self._number_of_hecke_eigenvalues_to_check_for_cm()
+        # E,v = self._f.compact_system_of_eigenvalue(max_nump+1)
         try:
             coeffs = self.coefficients(range(max_nump + 1))
         except IndexError: 
@@ -937,13 +937,16 @@ class WebNewForm_computing(WebNewForm):
         return self._satake
 
 
-    def _number_of_hecke_eigenvalues_to_check(self):
+    def _number_of_hecke_eigenvalues_to_check_for_cm(self):
         r""" Compute the number of Hecke eigenvalues (at primes) we need to check to identify twists of our given form with characters of conductor dividing the level.
         """
-        ## initial bound
-        bd = self.as_factor().sturm_bound()
+        # We know that the space we end up in after twisting self of level N
+        # with a character of conductor q is lcm(N,q^2)
+        # and we can obviously bound this by N^2
+        # 
+        bd = Gamma0(self.level()**2).sturm_bound(self.weight())
         # we do not check primes dividing the level
-        bd = bd + len(divisors(self.level))
+        #bd = bd + len(divisors(self.level))
         return bd
 
 
