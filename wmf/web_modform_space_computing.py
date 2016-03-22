@@ -154,6 +154,10 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.zeta_orders = []
         for a in self.hecke_orbits:
             f = self.hecke_orbits[a]
+            if not hasattr(f,'q_expansion'):
+                continue
+            if not hasattr(f.q_expansion,'base_ring'):
+                continue
             K = f.q_expansion.base_ring()
             if K == QQ:
                 continue
