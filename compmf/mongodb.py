@@ -1195,7 +1195,7 @@ class CompMF(MongoMF):
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             clogger.debug("Inserting in {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
             if fs_ms.find({'filename':fname}).count()>0:
-                clogger.debug("Record already exists!")
+                clogger.debug("Record {0} already exists!".format(fname))
             try:
                 fid = fs_ms.put(dump_ambient,filename=fname,
                                 N=int(N),k=int(k),nfactors=int(0),
