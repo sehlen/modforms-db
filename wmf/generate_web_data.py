@@ -1726,3 +1726,19 @@ def remove_bad_factors_par(fid):
 
 #def check_directories(D):
     
+
+
+def fix_cm(D,nmax=10,nmin=1):
+    args = []
+    for r in D._newform_factors.find({'N':{"$gt":int(nmin-1),"$lt":int(nmax+1)}}).sort([('N',int(1)),('k',int(1))]):
+        args.append(r['hecke_orbit_label'])
+    wmf_logger.debug("checking {0} records!".format(len(args)))
+    res = list(fix_cm_par(args))
+    return res
+
+@parallel(32)
+def fix_cm_par(label):
+    F = WebNewForm_computinf(label)
+    F.set_is_cm()
+    F.save_to_db()
+    return F.is_cm

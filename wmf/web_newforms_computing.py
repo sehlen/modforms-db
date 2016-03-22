@@ -590,7 +590,11 @@ class WebNewForm_computing(WebNewForm):
         try:
             coeffs = self.coefficients(range(max_nump + 1))
         except IndexError: 
-           return None,None
+            ## In this case we might have insufficiently many coefficients to determine
+            ## if we are CM but we can at least discard being CM in most cases
+            ## with only a few coefficients. 
+            coeffs = self.coefficients
+            #return None,None
         nz = coeffs.count(0)  # number of zero coefficients
         nnz = len(coeffs) - nz  # number of non-zero coefficients
         if(nz == 0):
@@ -610,8 +614,11 @@ class WebNewForm_computing(WebNewForm):
                     for p in prime_range(max_nump + 1):
                         if(x(p) == -1 and coeffs[p] != 0):
                             raise StopIteration()  # do not have CM with this char
-                except:
+                except StopIteration:
                     continue
+                except IndexError:
+                     self._is_CM = [-1,'Not enough coefficients in database to determine CM.']
+                     self.is_cm = self._is_CM[0]
                 # if we are here we have CM with x.
                 self._is_CM = [True, x]
                 self.is_cm = True
