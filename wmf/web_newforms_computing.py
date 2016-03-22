@@ -944,7 +944,7 @@ class WebNewForm_computing(WebNewForm):
         # with a character of conductor q is lcm(N,q^2)
         # and we can obviously bound this by N^2
         # 
-        bd = Gamma0(self.level()**2).sturm_bound(self.weight())
+        bd = Gamma0(self.level**2).sturm_bound(self.weight)
         # we do not check primes dividing the level
         #bd = bd + len(divisors(self.level))
         return bd
