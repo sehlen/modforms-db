@@ -593,7 +593,7 @@ class WebNewForm_computing(WebNewForm):
             ## In this case we might have insufficiently many coefficients to determine
             ## if we are CM but we can at least discard being CM in most cases
             ## with only a few coefficients. 
-            coeffs = self.coefficients
+            coeffs = self.coefficients(range(self.max_cn()+1))
             #return None,None
         nz = coeffs.count(0)  # number of zero coefficients
         nnz = len(coeffs) - nz  # number of non-zero coefficients
