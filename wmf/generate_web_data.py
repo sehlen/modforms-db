@@ -876,7 +876,7 @@ def fix_spaces(D):
 
 #### LAtest dimension table routines
 #### These should be used.
-def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
+def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
     r"""
     Update the dimension table in the collection 'dimension_table'
     """
