@@ -936,7 +936,6 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
         for k in range(krange[0],krange[1]+1):
             label = '{0}.{1}'.format(n,k)
             r = C.find_one({'gamma1_label':label}); fid = None
-            wmf_logger.info("Checking label={0} r={1}".format(label,r))
             if r is None:
                 d_new = G.dimension_new_cusp_forms(k)
                 d_mod = G.dimension_modular_forms(k)
@@ -949,7 +948,6 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[1,20]):
                 d_eisen = r['d_eis']
                 fid = r['_id']
             num_in_db = len(D._mongodb['webmodformspace'].find({'level':int(n),'weight':int(k)}).distinct('character'))
-            wmf_logger.info("num_in_db={0} num_orbits={1}".format(num_in_db,num_orbits))
             r = {'gamma1_label':label,
                  'one_in_wdb': int(num_in_db)>0,
                  'level':int(n),
