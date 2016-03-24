@@ -984,9 +984,6 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
         if nrange != []:
             if n < nrange[0] or n > nrange[1]:
                 continue
-        if krange != []:
-            if k < krange[0] or k > krange[1]:
-                continue
         for xi in C.find({'level':n}).distinct('cchi'):
             x = conrey_character_from_number(n,xi)
             if x.is_even():
@@ -994,6 +991,10 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
             else:
                 parity = int(-1)
             for r in C.find({'level':int(n),'cchi':xi}).sort([('weight',int(1))]):
+                if krange != []:
+                    if r['weight'] < krange[0] or r['weight'] > krange[1]:
+                continue
+
                 in_wdb = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_orbit_label':r['space_orbit_label']}).count()
                 in_cm= D._modular_symbols.find({'space_orbit_label':r['space_orbit_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
             
