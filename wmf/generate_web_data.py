@@ -1864,4 +1864,4 @@ def fix_dimension_data(D):
             print "{0} dimensions newf are not matching {1} != {2}".format(d['space_label'],d1,d2)
             r['dimension_new_cusp_forms'] = d1
         if r != {}:
-            D._mongodb['webmodformspace'].update({'_id':s['_id']},r)
+            D._mongodb['webmodformspace'].update({'_id':s['_id']},{"$set":r})
