@@ -988,11 +988,11 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
             parity = int(1)
         else:
             parity = int(-1)
-        q = {'space_orbit_label':r['space_orbit_label'],
+        q = {
                'character_parity':parity,
                 'in_wdb':int(1),
                 'in_msdb':int(cm)}
-        C.update({'_id':r['_id']},{"$set":r})    
+        C.update({'space_orbit_label':r['space_orbit_label']},{"$set":r})    
         # For Gamma1 -- total of the above
     wmf_logger.info("Updated the Gamma0 table!")
     for n in D._mongodb['webmodformspace'].distinct('level'):
