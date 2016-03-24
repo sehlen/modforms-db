@@ -1877,6 +1877,10 @@ def fix_problematic_eigenvalues(D):
             loads(r['E'])
         except ValueError:
             ## Delete this record and try to do another computation
-            D._mongodb['webeigenvalues.files'].delete_one({'_id':fid})
+            if hasattr(D._mongodb['webeigenvalues.files'],"remove"):
+                D._mongodb['webeigenvalues.files'].remove({'_id':fid})
+            else:
+                D._mongodb['webeigenvalues.files'].delete_one({'_id':fid})
+            
             D._mongodb['webmodformspace_errors'].insert({'label':label})
             wmf_logger.debug("Deleted {0}.format({0})".format(label))
