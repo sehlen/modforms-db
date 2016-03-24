@@ -980,24 +980,30 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
     C = D._mongodb['dimension_table']
     #cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
     #cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-    for r in D._mongodb['webmodformspace'].find({'version':float(1.3)}).sort([('level',int(1))]):
-        x = conrey_character_from_number(r['level'],r['character'])
-        cm= D._modular_symbols.find({'space_orbit_label':r['space_orbit_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-    
-        if x.is_even():
-            parity = int(1)
-        else:
-            parity = int(-1)
-        q = {
-               'character_parity':parity,
-                'in_wdb':int(1),
-                'in_msdb':int(cm)}
-        dr = C.find_one({'space_orbit_label':r['space_orbit_label']})
-        if not dr is None:
-            fid = dr['_id']
-            u = C.update({'_id':fid},{"$set":q})
-            if r['level'] < 10:
-                wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
+    for n in C.find().distinct('level'):
+        for xi in C.find({'level':n}).distinct('cchi')
+            x = conrey_character_from_number(n,xi)
+            if x.is_even():
+                parity = int(1)
+            else:
+                parity = int(-1)
+            for r in C.find({'level':int(n),'cchi':xi}).sort([('weight',int(1))]):
+                in_wdb = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_orbit_label':r['space_orbit_label']}).count()
+                in_cm= D._modular_symbols.find({'space_orbit_label':r['space_orbit_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
+            
+                q = {
+                    'character_parity':parity,
+                    'in_wdb':in_wdb,
+                    'in_msdb':in_cm}
+                dr = C.find_one({'space_orbit_label':r['space_orbit_label']})
+                if not dr is None:
+                    fid = dr['_id']
+                    u = C.update({'_id':fid},{"$set":q})
+                    if r['level'] < 10:
+                        wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
+                else:
+                    wmf_logger.debug("dimension record of {0} not in database!".format(r['space_orbit_label']))
+                        
         # For Gamma1 -- total of the above
     wmf_logger.info("Updated the Gamma0 table!")
     for n in D._mongodb['webmodformspace'].distinct('level'):
