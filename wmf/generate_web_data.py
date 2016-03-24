@@ -1829,11 +1829,17 @@ def add_oldspace_decompositions(D):
     args = []
     for x in D._mongodb['webmodformspace'].find({'_has_oldspace':int(0)}):
         label = x['space_label']
-        args.append(label)
-    return add_oldspace_par(args)
+        M = WebModFormSpace_computing(label)
+        M.set_oldspace_decomposition()
+        M._collection.update({})
+        M.save_to_db()
+     #   return True
+    #        args.append(label)
+    #return add_oldspace_par(args)
 @parallel(32)
 def add_oldspace_par(label):
     M = WebModFormSpace_computing(label)
     M.set_oldspace_decomposition()
+    M._collection.update({})
     M.save_to_db()
     return True
