@@ -1829,16 +1829,21 @@ def add_oldspace_decompositions(D):
     args = []
     for x in D._mongodb['webmodformspace'].find({'_has_oldspace':int(0)}):
         label = x['space_label']
-        M = WebModFormSpace_computing(label)
-        M.set_oldspace_decomposition()
+        #M.set_oldspace_decomposition()
         #M.save_to_db()
         #   return True
         args.append(label)
-    return list(add_oldspace_par(args))
+    return list(add_oldspace_par(args),db=D)
 @parallel(32)
-def add_oldspace_par(label):
-    M = WebModFormSpace_computing(label)
+def add_oldspace_par(label,db):
+    try:
+        M = WebModFormSpace_computing(label)
+    except RunTimeError as e:
+        D._mongodb['webmodformspace_errors'].insert({'label':label,'error':str(e)})
     M.set_oldspace_decomposition()
     M._collection.update({'space_label':label},{"$set":{'_has_oldspace':int(1)}})
     M.save_to_db()
     return True
+
+def fix_dimension_data(D):
+    dims = D._mongodb['we']
