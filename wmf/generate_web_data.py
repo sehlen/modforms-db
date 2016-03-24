@@ -1846,4 +1846,22 @@ def add_oldspace_par(label,db):
     return True
 
 def fix_dimension_data(D):
-    dims = D._mongodb['we']
+    for d in D._mongodb['dimension_table'].find({"space_label":{"$exists":True}}):
+        s = D._mongodb['webmodformspace'].find_one({"space_label":d['space_label']})
+        if s is None:
+            continue
+        r = {}
+        d1 = d['d_cusp']; d2 = s['dimension_cusp_forms']
+        if  d1 != d2:
+            print "{0} dimensions cusp are not matching {1} != {2}".format(d['space_label'],d1,d2)
+            r['dimension_cusp_forms'] = d1
+        d1 = d['d_mod']; d2 = s['dimension_modular_forms']
+        if  d1 != d2:
+            print "{0} dimensions mod are not matching {1} != {2}".format(d['space_label'],d1,d2)
+            r['dimension_modular_forms'] = d1
+        d1 = d['d_newf']; d2 = s['dimension_new_cusp_forms']
+        if  d1 != d2:
+            print "{0} dimensions newf are not matching {1} != {2}".format(d['space_label'],d1,d2)
+            r['dimension_new_cusp_forms'] = d1
+        if r != {}:
+            D._mongodb['webmodformspace'].update({'_id':s['_id']},r)
