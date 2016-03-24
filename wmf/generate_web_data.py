@@ -985,6 +985,8 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
             if n < nrange[0] or n > nrange[1]:
                 continue
         for xi in C.find({'level':n}).distinct('cchi'):
+            if verbose>0:
+                wmf_logger.debug("xi={0}".format(xi))
             x = conrey_character_from_number(n,xi)
             if x.is_even():
                 parity = int(1)
@@ -995,21 +997,21 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
                     if r['weight'] < krange[0] or r['weight'] > krange[1]:
                         continue
 
-                in_wdb = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_orbit_label':r['space_orbit_label']}).count()
-                in_cm= D._modular_symbols.find({'space_orbit_label':r['space_orbit_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
+                in_wdb = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_label':r['space_label']}).count()
+                in_cm= D._modular_symbols.find({'space_label':r['space_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
             
                 q = {
                     'character_parity':parity,
                     'in_wdb':in_wdb,
                     'in_msdb':in_cm}
-                dr = C.find_one({'orbit_label':r['space_label']})
+                dr = C.find_one({'space_label':r['space_label']})
                 if not dr is None:
                     fid = dr['_id']
                     u = C.update({'_id':fid},{"$set":q})
                     if verbose > 0:
-                        wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
+                        wmf_logger.debug("updated {0} for label={1}".format(u,r['space_label']))
                 else:
-                    wmf_logger.debug("dimension record of {0} not in database!".format(r['space_orbit_label']))
+                    wmf_logger.debug("dimension record of {0} not in database!".format(r['space_label']))
                         
         # For Gamma1 -- total of the above
     wmf_logger.info("Updated the Gamma0 table!")
