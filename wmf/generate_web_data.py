@@ -970,6 +970,46 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
 
     print "Updated table!"
 
+def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
+    r"""
+    Update the dimension table in the collection 'dimension_table'
+    with information about what exists in our webmodform 
+    """
+    from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps
+    from sage.all import  Gamma1
+    C = D._mongodb['dimension_table']
+    #cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
+    #cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
+    for r in D._mongodb['webmodformspace'].find({'level':N,'version':float(1.3)}):
+        x = conrey_character_from_number(r['level'],r['cchi'])
+        if x.is_even():
+            parity = int(1)
+        else:
+            parity = int(-1)
+        q = {'space_orbit_label':r['space_orbit_label'],
+               'character_parity':parity,
+                'in_wdb':int(1),
+                'in_msdb':int(cm)}
+        C.update({'_id':r['_id']},{"$set":r})    
+        # For Gamma1 -- total of the above
+    for n in D._mongodb['webmodformspace'].distinct('level'):
+        orbits = dirichlet_group_conrey_galois_orbits_numbers(n)
+        num_orbits = len(orbits)
+        for k in D._mongodb['webmodformspace'].find({'level':n}).distinct('weight'):
+            label = '{0}.{1}'.format(n,k)
+            r = C.find_one({'gamma1_label':label}); fid = None
+            if r is None:
+                continue
+            fid = r['_id']
+            num_in_db = len(D._mongodb['webmodformspace'].find({'level':int(n),'weight':int(k)}).distinct('character'))
+            r = {
+                 'one_in_wdb': int(num_in_db)>0,
+                 'all_in_db': int(num_in_db) >= (num_orbits)
+                 }
+            C.update({'_id':fid},{"$set":r})
+
+    print "Updated table!"
+
 
 
 def check_all_in_db(D):
