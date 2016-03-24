@@ -970,7 +970,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
 
     print "Updated table!"
 
-def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
+def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_Gamma0=True):
     r"""
     Update the dimension table in the collection 'dimension_table'
     with information about what exists in our webmodform 
@@ -1006,6 +1006,8 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
                         
         # For Gamma1 -- total of the above
     wmf_logger.info("Updated the Gamma0 table!")
+    if only_Gamma0:
+        return 
     for n in D._mongodb['webmodformspace'].distinct('level'):
         orbits = dirichlet_group_conrey_galois_orbits_numbers(n)
         num_orbits = len(orbits)
