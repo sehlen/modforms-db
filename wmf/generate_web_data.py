@@ -1865,3 +1865,17 @@ def fix_dimension_data(D):
             r['dimension_new_cusp_forms'] = d1
         if r != {}:
             D._mongodb['webmodformspace'].update({'_id':s['_id']},{"$set":r})
+            
+def fix_problematic_eigenvalues(D):
+    F = WebNewForm_computing(1,12,1,'a')
+    for x in D._mongodb['webeigenvalues.files']:
+        fid= x['_id']
+        label = x['hecke_orbit_label']
+        r = loads(F.eigenvalues._files.get(fid).read())
+        try: 
+            loads(r['E'])
+        except ValueError:
+            ## Delete this record and try to do another computation
+            D._mongodb['webeigenvalues.files'].delete_one({'_id':fid})
+            D._mongodb['webmodformspace_errors'].insert({'label':label})
+            wmf_logger.debug("Deleted {0}.format({0})".format(label))
