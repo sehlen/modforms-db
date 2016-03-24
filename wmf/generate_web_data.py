@@ -981,7 +981,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
     #cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
     #cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
     for n in C.find().distinct('level'):
-        for xi in C.find({'level':n}).distinct('cchi')
+        for xi in C.find({'level':n}).distinct('cchi'):
             x = conrey_character_from_number(n,xi)
             if x.is_even():
                 parity = int(1)
