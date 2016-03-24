@@ -1002,7 +1002,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
                     'character_parity':parity,
                     'in_wdb':in_wdb,
                     'in_msdb':in_cm}
-                dr = C.find_one({'space_orbit_label':r['space_orbit_label']})
+                dr = C.find_one({'orbit_label':r['space_label']})
                 if not dr is None:
                     fid = dr['_id']
                     u = C.update({'_id':fid},{"$set":q})
