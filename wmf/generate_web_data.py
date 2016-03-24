@@ -995,7 +995,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
         dr = C.find_one({'space_orbit_label':r['space_orbit_label']})
         if not dr is None:
             fid = dr['_id']
-            u = C.update({'_id':fid},{"$set":r})
+            u = C.update({'_id':fid},{"$set":q})
             if r['level'] < 10:
                 wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
         # For Gamma1 -- total of the above
