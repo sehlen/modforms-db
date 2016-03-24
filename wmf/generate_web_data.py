@@ -970,7 +970,8 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
 
     print "Updated table!"
 
-def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_Gamma0=True,verbose=0):
+def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],
+        only_Gamma0=True,verbose=0,check_db=False):
     r"""
     Update the dimension table in the collection 'dimension_table'
     with information about what exists in our webmodform 
@@ -996,14 +997,12 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
                 if krange != []:
                     if r['weight'] < krange[0] or r['weight'] > krange[1]:
                         continue
-
-                in_wdb = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_label':r['space_label']}).count()
-                in_cm= D._modular_symbols.find({'space_label':r['space_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-            
                 q = {
-                    'character_parity':parity,
-                    'in_wdb':in_wdb,
-                    'in_msdb':in_cm}
+                    'character_parity':parity
+                }
+                if check_db:
+                    q['in_wdb'] = D._mongodb['webmodformspace'].find({'version':float(1.3),'space_label':r['space_label']}).count()
+                    q['in_msdb']= D._modular_symbols.find({'space_label':r['space_label'],'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
                 dr = C.find_one({'space_label':r['space_label']})
                 if not dr is None:
                     fid = dr['_id']
@@ -1825,3 +1824,16 @@ def fix_cm_par(label,recompute=True):
     F.set_is_cm()
     F.save_to_db()
     return F.is_cm
+
+def add_oldspace_decompositions(D):
+    args = []
+    for x in D._mongodb['webmodformspace'].find({'_has_oldspace':int(0)}):
+        label = x['space_label']
+        args.append(label)
+    return add_oldspace_par(args)
+@parallel(32)
+def add_oldspace_par(lab):
+    M = WebModFormSpace(label)
+    M.set_oldspace_decomposition()
+    M.save_to_db()
+    return True

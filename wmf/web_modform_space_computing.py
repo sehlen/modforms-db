@@ -317,7 +317,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         """
         if not self.cuspidal == 1:
             return 
-        if not (self.oldspace_decomposition is None or self.oldspace_decomposition == []):
+        if not (self.oldspace_decomposition is None or self.oldspace_decomposition == [] or
+                self.oldspace_decomposition == {}):
             return
         old_dim = self.dimension_cusp_forms - self.dimension_new_cusp_forms
         if old_dim == 0:
@@ -337,7 +338,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                 if Sd > 0:
                     mult = len(divisors(ZZ(d)))
                     check_dim = check_dim + mult * Sd
-                    L.append((q, 0, mult, Sd))
+                    L.append((q, k,1, mult, Sd))
             else:
                 xd = filter(lambda x: x.modulus() == q,self.character.character.decomposition())
                 for xx in xd:
@@ -345,9 +346,9 @@ class WebModFormSpace_computing(WebModFormSpace):
                     if Sd > 0:
                         mult = len(divisors(ZZ(d)))
                         check_dim = check_dim + mult * Sd
-                        L.append((q, xx.number(), mult, Sd))
-                wmf_logger.debug("mult={0},N/d={1},Sd={2}".format(mult, ZZ(N / d), Sd))
-                wmf_logger.debug("check_dim={0}".format(check_dim))
+                        L.append((q, k,xx.number(), mult, Sd))
+                        wmf_logger.debug("mult={0},N/d={1},Sd={2}".format(mult, ZZ(N / d), Sd))
+                        wmf_logger.debug("check_dim={0}".format(check_dim))
             if check_dim == old_dim:
                 break
         if check_dim <> old_dim:
