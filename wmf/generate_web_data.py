@@ -1693,7 +1693,7 @@ def check_twist_info(D,nmax=10,nmin=1):
         if t is not None:
             try:
                 if  len(t)==2:
-                    if not isinstance(t[1][0],str):
+                    if not isinstance(t[1][0],basestring):
                         print type(t[1][0])
                         res.append(r['hecke_orbit_label'])
             except:

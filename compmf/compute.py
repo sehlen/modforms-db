@@ -74,7 +74,7 @@ class ComputeMFData(object):
         r"""
         compute_ambient = True if you want to compute ambient spaces when missing
         """
-        if isinstance(db,str):
+        if isinstance(db,basestring):
             db = FilenamesMFDBLoading(db)
         self._compute_ambient = compute_ambient
         self._files = db  ## Should be instance of, e.g. FilenamesMFDB

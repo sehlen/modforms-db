@@ -73,7 +73,7 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         
         """
-        if isinstance(level,str):  ## It is probable a label
+        if isinstance(level,basestring):  ## It is probable a label
             level,weight,character = map(int,level.split("."))
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))
         self._host = host; self._port=int(port); self._dbname = db
