@@ -997,7 +997,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
             fid = dr['_id']
             u = C.update({'_id':fid},{"$set":r})
             if r['level'] < 10:
-                wmf_logger.deug("updated {0} for label={1}".format(u,r['space_orbit_label']))
+                wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
         # For Gamma1 -- total of the above
     wmf_logger.info("Updated the Gamma0 table!")
     for n in D._mongodb['webmodformspace'].distinct('level'):
