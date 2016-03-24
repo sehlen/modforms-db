@@ -1832,7 +1832,7 @@ def add_oldspace_decompositions(D):
         args.append(label)
     return add_oldspace_par(args)
 @parallel(32)
-def add_oldspace_par(lab):
+def add_oldspace_par(label):
     M = WebModFormSpace_computing(label)
     M.set_oldspace_decomposition()
     M.save_to_db()
