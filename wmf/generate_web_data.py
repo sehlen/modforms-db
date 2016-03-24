@@ -980,7 +980,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
     C = D._mongodb['dimension_table']
     #cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
     #cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
-    for r in D._mongodb['webmodformspace'].find({'level':n,'version':float(1.3)}):
+    for r in D._mongodb['webmodformspace'].find({'version':float(1.3)}):
         x = conrey_character_from_number(r['level'],r['cchi'])
         if x.is_even():
             parity = int(1)
