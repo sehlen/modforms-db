@@ -1833,7 +1833,7 @@ def add_oldspace_decompositions(D):
         #M.save_to_db()
         #   return True
         args.append(label)
-    return list(add_oldspace_par(args),db=D)
+    return list(add_oldspace_par(args,db=D))
 @parallel(32)
 def add_oldspace_par(label,db):
     try:
