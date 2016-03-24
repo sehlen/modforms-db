@@ -1868,6 +1868,7 @@ def fix_dimension_data(D):
             
 def fix_problematic_eigenvalues(D):
     F = WebNewForm_computing(1,12,1,'a')
+    from sage.all import loads
     for x in D._mongodb['webeigenvalues.files'].find():
         fid= x['_id']
         label = x['hecke_orbit_label']
