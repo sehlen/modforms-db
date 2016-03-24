@@ -892,6 +892,10 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
             orbit = map(int,orbit)
             x = orbit[0]
             xc = conrey_character_from_number(n,x).sage_character()
+            if xc.is_even():
+                parity = int(1)
+            else:
+                parity = int(-1)
             for k in range(krange[0],krange[1]+1):
                 label = '{0}.{1}.{2}'.format(n,k,x)
                 space_orbit_label = '{0}.{1}.{2}'.format(n,k,xi)
@@ -918,6 +922,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
                     r = {'space_orbit_label':space_orbit_label,
                          'space_label':label,
                          'character_orbit':orbit,
+                         'character_parity':parity,
                          'level':int(n),
                          'weight':int(k),
                          'cchi':int(x),
