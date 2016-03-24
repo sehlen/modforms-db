@@ -992,6 +992,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
                 'in_msdb':int(cm)}
         C.update({'_id':r['_id']},{"$set":r})    
         # For Gamma1 -- total of the above
+    wmf_logger.info("Updated the Gamma0 table!")
     for n in D._mongodb['webmodformspace'].distinct('level'):
         orbits = dirichlet_group_conrey_galois_orbits_numbers(n)
         num_orbits = len(orbits)
