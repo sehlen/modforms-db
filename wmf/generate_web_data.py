@@ -970,7 +970,7 @@ def update_database_of_dimensions(D,nrange=[1,500],krange=[2,20]):
 
     print "Updated table!"
 
-def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_Gamma0=True):
+def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_Gamma0=True,verbose=0):
     r"""
     Update the dimension table in the collection 'dimension_table'
     with information about what exists in our webmodform 
@@ -981,6 +981,12 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
     #cw= D._mongodb['webmodformspace'].find({'space_orbit_label':space_orbit_label}).count()
     #cm= D._modular_symbols.find({'space_orbit_label':space_orbit_label,'complete':{"$gt":int(data_record_checked_and_complete-1)}}).count()
     for n in C.find().distinct('level'):
+        if nrange != []:
+            if n < nrange[0] or n > nrange[1]:
+                continue
+        if krange != []:
+            if k < krange[0] or k > krange[1]:
+                continue
         for xi in C.find({'level':n}).distinct('cchi'):
             x = conrey_character_from_number(n,xi)
             if x.is_even():
@@ -999,7 +1005,7 @@ def update_existing_database_of_dimensions(D,nrange=[1,500],krange=[2,20],only_G
                 if not dr is None:
                     fid = dr['_id']
                     u = C.update({'_id':fid},{"$set":q})
-                    if r['level'] < 10:
+                    if verbose > 0:
                         wmf_logger.debug("updated {0} for label={1}".format(u,r['space_orbit_label']))
                 else:
                     wmf_logger.debug("dimension record of {0} not in database!".format(r['space_orbit_label']))
