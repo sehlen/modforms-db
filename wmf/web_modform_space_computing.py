@@ -260,13 +260,19 @@ class WebModFormSpace_computing(WebModFormSpace):
                 in_db = False
                 break
         r = C.find_one({'space_label':self.space_label})
+        if self.character.character.is_even():
+            parity = int(1)
+        else:
+            parity = int(-1)
         if not r is None:
-            C.update({'_id':r['_id']},{"$set":{'in_wdb':int(in_db),'in_msdb':int(1)}})
+            C.update({'_id':r['_id']},{"$set":
+                    {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
                  'character_orbit':map(lambda x: int(x.number()),self.character.character.galois_orbit()),
                  'level':int(self.level),
+                 'character_parity':parity,
                  'weight':int(self.weight),
                  'cchi':int(self.character.number),
                  'd_mod':int(self.dimension_modular_forms),
