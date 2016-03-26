@@ -1885,15 +1885,15 @@ def fix_problematic_eigenvalues(D,label=''):
         s = {}
     for x in D._mongodb[coll].find(s):
         fid= x['_id']
-        label = x['hecke_orbit_label']
-        if not D._mongodb[coll_check].find_one({'label':label}) is None:
+        orbit_label = x['hecke_orbit_label']
+        if not D._mongodb[coll_check].find_one({'label':orbit_label}) is None:
             continue
-        wmf_logger.info("Checking label : {0}".format(label))
+        wmf_logger.info("Checking label : {0}".format(orbit_label))
         #r = loads(F.eigenvalues._files.get(fid).read())
         try:
             r = loads(F._files.get(fid).read())
             if not isinstance(r,dict):
-                return label
+                return orbit_label
             ## We also try to fix the records where we have twist info in terms of
             ## WebNewForms instead of labels.
             try: 
@@ -1906,7 +1906,7 @@ def fix_problematic_eigenvalues(D,label=''):
                 newf = dumps(r)
                 F.authorize()
                 F._files.delete(fid)
-                F._files.put(newf)
+                F._files.put(newf,hecke_orbit_label=orbit_label)
                 wmf_logger.info("Changed twists to labels!")
             except Exception as e:
                 wmf_logger.critical({"Error: {0}".format(e)})
