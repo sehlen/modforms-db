@@ -736,10 +736,14 @@ class MongoMF(object):
                 meta = {'cputime':r.get('cputime'),'version':r.get('sage_version')}
                 try:
                     E,v = self.load_from_mongo('ap',fid)
-                except ValueError as e:
-                    clogger.debug("Can not load ap's: {0}".format(e))
+                except ValueError as e: # In this case we have faulty records in the database.
+                    clogger.debug("Can not load ap's with r={0}: ERROR: {1}".format(r,e))
                     clogger.debug("Removing these ap's from database!: match={0}".format(s))
                     self._aps.delete_one({'_id':fid})
+                    return {}
+                except TypeError as e:
+                    clogger.debug("Can not load ap's with r={0}: ERROR: {1}".format(r,e))
+                    #self._aps.delete_one({'_id':fid})
                     return {}
                 #clogger.debug("id={0} and E={1}".format(fid,E))
                 t = (int(N),int(k),int(ci),int(newform))

@@ -62,7 +62,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37020,db='modularforms2',recompute=False,save_to_db=False,**kwds):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False,save_to_db=False,**kwds):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -76,7 +76,7 @@ class WebNewForm_computing(WebNewForm):
         except pymongo.errors.ConnectionFailure as e:
             wmf_logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
-            return
+            raise e
         if isinstance(level,basestring):
             wmf_logger.debug("Calling with newform label:{0}".format(level))
             level,weight,character,label = parse_newform_label(level)

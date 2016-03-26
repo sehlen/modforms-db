@@ -254,7 +254,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         in_db = True
         for x in self.hecke_orbits:
             label = self.hecke_orbits[x].hecke_orbit_label
-            wmf_logger.debug("labe={0}".format(label))
+            wmf_logger.debug("label={0}".format(label))
             if list(WebNewForm_computing.find({'hecke_orbit_label':label,'version':self.version}))==[]:
                 wmf_logger.critical("The hecke orbit {0} is not in the database".format(label))
                 in_db = False
@@ -315,7 +315,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         Get decomposition of the oldspace in S_k(N) into submodules.
 
         """
-        if not self.cuspidal == 1:
+        if self.cuspidal == 0:
             return 
         if not (self.oldspace_decomposition is None or self.oldspace_decomposition == [] or
                 self.oldspace_decomposition == {}):

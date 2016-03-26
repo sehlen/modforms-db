@@ -1916,7 +1916,7 @@ def fix_problematic_eigenvalues(D,label=''):
                 F._files.delete(fid)
                 F._files.put(newf,hecke_orbit_label=orbit_label)
                 
-            except Exception as e:
+            except ArithmeticError as e:
                 wmf_logger.critical({"Error: {0}".format(e)})
             #try: 
             #loads(r['E'])
