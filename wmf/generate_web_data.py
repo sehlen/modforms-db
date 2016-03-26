@@ -1906,6 +1906,7 @@ def fix_problematic_eigenvalues(D,label=''):
                 newf = dumps(r)
                 F._files.delete(fid)
                 F._files.put(newf)
+                wmf_logger.info("Changed twists to labels!")
             except Exception as e:
                 wmf_logger.critical({"Error: {0}".format(e)})
             #try: 
