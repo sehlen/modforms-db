@@ -1876,9 +1876,10 @@ def fix_problematic_eigenvalues(D):
         fid= x['_id']
         label = x['hecke_orbit_label']
         #r = loads(F.eigenvalues._files.get(fid).read())
-        r = loads(F._files.get(fid).read())
-        try: 
-            loads(r['E'])
+        try:
+            r = loads(F._files.get(fid).read())
+            #try: 
+            #loads(r['E'])
         except ValueError:
             ## Delete this record and try to do another computation
             if hasattr(D._mongodb[coll],"remove"):
