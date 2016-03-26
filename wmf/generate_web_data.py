@@ -1835,9 +1835,9 @@ def add_oldspace_decompositions(D):
         args.append((label,D))
     return list(add_oldspace_par(args))
 @parallel(32)
-def add_oldspace_par(label,db):
+def add_oldspace_par(label,D):
     try:
-        M = WebModFormSpace_computing(label)
+        M = WebModFormSpace_computing(label,host=D._host,port=D._port)
     except RuntimeError as e:
         D._mongodb['webmodformspace_errors'].insert({'label':label,'error':str(e)})
     M.set_oldspace_decomposition()
@@ -1869,7 +1869,7 @@ def fix_dimension_data(D):
 def fix_problematic_eigenvalues(D):
     import gridfs
     from gridfs.errors import NoFile
-    F = WebNewForm_computing(1,12,1,'a')
+    F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
     from sage.all import loads
     coll = 'webeigenvalues.files'
     coll = 'webnewforms.files'
@@ -1883,6 +1883,8 @@ def fix_problematic_eigenvalues(D):
         #r = loads(F.eigenvalues._files.get(fid).read())
         try:
             r = loads(F._files.get(fid).read())
+            if not isinstance(r,dict):
+                return label
             #try: 
             #loads(r['E'])
         except ValueError:
