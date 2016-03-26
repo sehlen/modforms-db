@@ -1838,7 +1838,7 @@ def add_oldspace_decompositions(D):
 def add_oldspace_par(label,db):
     try:
         M = WebModFormSpace_computing(label)
-    except RunTimeError as e:
+    except RuntimeError as e:
         D._mongodb['webmodformspace_errors'].insert({'label':label,'error':str(e)})
     M.set_oldspace_decomposition()
     M._collection.update({'space_label':label},{"$set":{'_has_oldspace':int(1)}})
