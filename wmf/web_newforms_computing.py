@@ -562,7 +562,9 @@ class WebNewForm_computing(WebNewForm):
                         twist_candidates.append(F.hecke_orbit_label)
                 except StopIteration: # If we are here then we don't have a twist to self
                     pass
-
+        ## Need to sort and make twist_candidates unique
+        twist_candidates = list(set(twist_candidates))
+        twist_candidates.sort()
         wmf_logger.debug("Candidates=v{0}".format(twist_candidates))
         self.twist_info = (False, twist_candidates)
         if len(twist_candidates) == 0:

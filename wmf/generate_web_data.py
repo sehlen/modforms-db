@@ -1897,17 +1897,25 @@ def fix_problematic_eigenvalues(D,label=''):
             ## We also try to fix the records where we have twist info in terms of
             ## WebNewForms instead of labels.
             try: 
+                if r['twist_info'][0]:
+                    continue
                 f0 = r['twist_info'][1][0]
                 if not isinstance(f0,basestring):
                     l = []
                     for f0 in r['twist_info'][1]:
                         l.append(f0.hecke_orbit_label)
-                    r['twist_info'][1] = l
+                    wmf_logger.info("Changed twists to labels!")
+                else: ## Just make sure it is unique
+                    l = r['twist_info'][1]
+                    wmf_logger.info("Sorting twists!")
+                l = list(set(l))
+                l.sort()
+                r['twist_info'][1] = l
                 newf = dumps(r)
                 F.authorize()
                 F._files.delete(fid)
                 F._files.put(newf,hecke_orbit_label=orbit_label)
-                wmf_logger.info("Changed twists to labels!")
+                
             except Exception as e:
                 wmf_logger.critical({"Error: {0}".format(e)})
             #try: 
