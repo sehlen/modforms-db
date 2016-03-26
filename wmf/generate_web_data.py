@@ -1865,16 +1865,25 @@ def fix_dimension_data(D):
             r['dimension_new_cusp_forms'] = d1
         if r != {}:
             D._mongodb['webmodformspace'].update({'_id':s['_id']},{"$set":r})
-            
-def fix_problematic_eigenvalues(D):
+ 
+def remove_with_id(coll,fid):
+    if hasattr(coll,"remove"):
+        return coll.remove({'_id':fid})
+    else:
+        return coll.delete_one({'_id':fid})
+def fix_problematic_eigenvalues(D,label=''):
     import gridfs
     from gridfs.errors import NoFile
     F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
-    from sage.all import loads
+    from sage.all import loads,dumps
     coll = 'webeigenvalues.files'
     coll = 'webnewforms.files'
     coll_check= 'checked_stuff'
-    for x in D._mongodb[coll].find():
+    if label != '' and isinstance(label,basestring):
+        s = {'hecke_orbit_label':label}
+    else:
+        s = {}
+    for x in D._mongodb[coll].find(s):
         fid= x['_id']
         label = x['hecke_orbit_label']
         if not D._mongodb[coll_check].find_one({'label':label}) is None:
@@ -1885,6 +1894,20 @@ def fix_problematic_eigenvalues(D):
             r = loads(F._files.get(fid).read())
             if not isinstance(r,dict):
                 return label
+            ## We also try to fix the records where we have twist info in terms of
+            ## WebNewForms instead of labels.
+            try: 
+                f0 = r['twist_info'][1][0]
+                if not isinstance(f0,basestring):
+                    l = []
+                    for f0 in r['twist_info'][1]:
+                        l.append(f0.hecke_orbit_label)
+                    r['twist_info'][1] = l
+                newf = dumps(r)
+                F._files.delete(fid)
+                F._files.put(newf)
+            except Exception as e:
+                wmf_logger.critical({"Error: {0}".format(e)})
             #try: 
             #loads(r['E'])
         except ValueError:
