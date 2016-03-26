@@ -74,7 +74,7 @@ class WebNewForm_computing(WebNewForm):
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:
-            logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
+            wmf_logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
             self._db = None
             return
         if isinstance(level,basestring):
