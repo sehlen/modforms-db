@@ -1877,6 +1877,7 @@ def fix_problematic_eigenvalues(D):
     for x in D._mongodb[coll].find():
         fid= x['_id']
         label = x['hecke_orbit_label']
+        wmf_logger.info("Checking label : {0}".format(label))
         #r = loads(F.eigenvalues._files.get(fid).read())
         try:
             r = loads(F._files.get(fid).read())
