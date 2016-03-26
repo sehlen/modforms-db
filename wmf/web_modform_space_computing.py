@@ -104,10 +104,10 @@ class WebModFormSpace_computing(WebModFormSpace):
                 self._rec={}
                 return
         except pymongo.errors.ConnectionFailure as e:
-            wmf_logger.critical("Can not connect to the database and fetch aps and spaces etc. Error: {0}".format(e.message))
+            wmf_logger.critical("Can not connect to the database at {0}:{1}/{2} and fetch aps and spaces etc. Error: {3}".format(self._host,self._port,self._dbname,e.message))
             self._db = None  
             self._rec = {}
-            
+            raise e
     def _repr_(self):
         r"""
         Return string representation of self.
