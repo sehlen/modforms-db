@@ -1891,11 +1891,11 @@ def fix_problematic_eigenvalues(D):
             
             D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll})
             wmf_logger.debug("Deleted {0}".format(label))
-        except Nofile:
+        except NoFile:
             if hasattr(D._mongodb[coll],"remove"):
                 D._mongodb[coll].remove({'_id':fid})
             else:
                 D._mongodb[coll].delete_one({'_id':fid})
             
             D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll,'type':'NoFile'})
-            wmf_logger.debug("Deleted {0}".format(label))
+            wmf_logger.debug("Deleted {0}".format(label))   
