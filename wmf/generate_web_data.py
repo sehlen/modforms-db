@@ -1869,18 +1869,22 @@ def fix_dimension_data(D):
 def fix_problematic_eigenvalues(D):
     F = WebNewForm_computing(1,12,1,'a')
     from sage.all import loads
-    for x in D._mongodb['webeigenvalues.files'].find():
+    coll = 'webeigenvalues.files'
+    coll = 'webnewforms.files'
+    
+    for x in D._mongodb[coll].find():
         fid= x['_id']
         label = x['hecke_orbit_label']
-        r = loads(F.eigenvalues._files.get(fid).read())
+        #r = loads(F.eigenvalues._files.get(fid).read())
+        r = loads(F._files.get(fid).read())
         try: 
             loads(r['E'])
         except ValueError:
             ## Delete this record and try to do another computation
-            if hasattr(D._mongodb['webeigenvalues.files'],"remove"):
-                D._mongodb['webeigenvalues.files'].remove({'_id':fid})
+            if hasattr(D._mongodb[coll],"remove"):
+                D._mongodb[coll].remove({'_id':fid})
             else:
-                D._mongodb['webeigenvalues.files'].delete_one({'_id':fid})
+                D._mongodb[coll].delete_one({'_id':fid})
             
-            D._mongodb['webmodformspace_errors'].insert({'label':label})
-            wmf_logger.debug("Deleted {0}.format({0})".format(label))
+            D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll})
+            wmf_logger.debug("Deleted {0}".format(label))
