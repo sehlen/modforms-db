@@ -1873,10 +1873,12 @@ def fix_problematic_eigenvalues(D):
     from sage.all import loads
     coll = 'webeigenvalues.files'
     coll = 'webnewforms.files'
-    
+    coll_check= 'checked_stuff'
     for x in D._mongodb[coll].find():
         fid= x['_id']
         label = x['hecke_orbit_label']
+        if not D._mongodb[coll_check].find_one({'label':label}) is None:
+            continue
         wmf_logger.info("Checking label : {0}".format(label))
         #r = loads(F.eigenvalues._files.get(fid).read())
         try:
@@ -1900,3 +1902,4 @@ def fix_problematic_eigenvalues(D):
             
             D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll,'type':'NoFile'})
             wmf_logger.debug("Deleted {0}".format(label))   
+        D._mongodb[coll_check].insert({'label':label})
