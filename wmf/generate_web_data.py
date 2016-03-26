@@ -1867,6 +1867,8 @@ def fix_dimension_data(D):
             D._mongodb['webmodformspace'].update({'_id':s['_id']},{"$set":r})
             
 def fix_problematic_eigenvalues(D):
+    import gridfs
+    from gridfs.errors import NoFile
     F = WebNewForm_computing(1,12,1,'a')
     from sage.all import loads
     coll = 'webeigenvalues.files'
@@ -1888,4 +1890,12 @@ def fix_problematic_eigenvalues(D):
                 D._mongodb[coll].delete_one({'_id':fid})
             
             D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll})
+            wmf_logger.debug("Deleted {0}".format(label))
+        except Nofile:
+            if hasattr(D._mongodb[coll],"remove"):
+                D._mongodb[coll].remove({'_id':fid})
+            else:
+                D._mongodb[coll].delete_one({'_id':fid})
+            
+            D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll,'type':'NoFile'})
             wmf_logger.debug("Deleted {0}".format(label))
