@@ -1904,6 +1904,7 @@ def fix_problematic_eigenvalues(D,label=''):
                         l.append(f0.hecke_orbit_label)
                     r['twist_info'][1] = l
                 newf = dumps(r)
+                F.authorize()
                 F._files.delete(fid)
                 F._files.put(newf)
                 wmf_logger.info("Changed twists to labels!")
