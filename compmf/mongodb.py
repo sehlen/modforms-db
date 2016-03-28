@@ -299,7 +299,7 @@ class MongoMF(object):
         r"""
         Check up to which levels and weights we have a complete set of records...
         """
-        from sage.all import flatten,dimension_cusp_forms,Gamma1,set
+        from sage.all import flatten,dimension_cusp_forms,Gamma1
         files = self._modular_symbols
         factors = self._newform_factors
         levels = files.distinct('N')
