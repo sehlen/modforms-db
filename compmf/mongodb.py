@@ -327,12 +327,12 @@ class MongoMF(object):
                 orbits.sort()
                 # This returnes all character numbers from all orbits.
                 if k % 2 == 0:
-                    if set(orbits).issubset(set(even_orbits)):
+                    if not set(even_orbits).issubset(set(orbits)):
                         print "For N={0} and k={1}:".format(N,k)
                         print "orbits in db=",orbits
                         print "even orbits=",even_orbits
                 else:
-                    if set(orbits).issubset(set(odd_orbits)):
+                    if not set(odd_orbits).issubset(set(orbits)):
                         print "For N={0} and k={1}:".format(N,k)                        
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits                        
