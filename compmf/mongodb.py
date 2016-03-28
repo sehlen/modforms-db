@@ -299,7 +299,7 @@ class MongoMF(object):
         r"""
         Check up to which levels and weights we have a complete set of records...
         """
-        from sage.all import flatten,dimension_cusp_forms,Gamma1
+        from sage.all import flatten,dimension_cusp_forms,Gamma1,set
         files = self._modular_symbols
         factors = self._newform_factors
         levels = files.distinct('N')
@@ -327,12 +327,12 @@ class MongoMF(object):
                 orbits.sort()
                 # This returnes all character numbers from all orbits.
                 if k % 2 == 0:
-                    if orbits <> even_orbits:
+                    if set(orbits).issubset(set(even_orbits)):
                         print "For N={0} and k={1}:".format(N,k)
                         print "orbits in db=",orbits
                         print "even orbits=",even_orbits
                 else:
-                    if orbits <> odd_orbits:
+                    if set(orbits).issubset(set(odd_orbits)):
                         print "For N={0} and k={1}:".format(N,k)                        
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits                        
