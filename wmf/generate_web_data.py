@@ -709,13 +709,28 @@ def remove_gridfs_duplicates(D,label_in=None):
 #            if fsq.count()>1:
 
 
-def recompute_existing(D,ncpus=1,llim=10):
+def recompute_existing(D,ncpus=1,llim=10,date):
     llim = int(llim)
+    import dateutil.parser
+    if date != "":
+        d = dateutil.parser.parse(date)
+        s = {"modification_date":{"$exists":False},'version':{"$gt":float(1.2)}}
+        for r in D._mongodb['webmodformspace'].find(s):
+            level = r['level']; weight=r['weight']; character = r['character']
+            args.append((level,weight,character))
+        s = {"modification_date":{"$gt":date},'version':{"$gt":float(1.2)}}
+        for r in D._mongodb['webmodformspace'].find(s):
+            level = r['level']; weight=r['weight']; character = r['character']
+            args.append((level,weight,character))
+    else:
+        s = {'version':{"$gt":float(1.2)}}
+        for r in D._mongodb['webmodformspace'].find(s):
+            level = r['level']; weight=r['weight']; character = r['character']
+            args.append((level,weight,character))
+        
     args = []
     #    for r in D._mongodb['webnewforms'].find({'version':{"$lt":float(1.3)}}).limit(llim):
-    for r in D._mongodb['webmodformspace'].find({'creation_date':{"$exists":False}}):
-        level = r['level']; weight=r['weight']; character = r['character']
-        args.append((level,weight,character))
+
     print "Recomputing {0} spaces!".format(len(args))
     if ncpus>=32:
         l = generate_one_webmodform_space32(args,recompute=True)
