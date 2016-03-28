@@ -709,7 +709,7 @@ def remove_gridfs_duplicates(D,label_in=None):
 #            if fsq.count()>1:
 
 
-def recompute_existing(D,ncpus=1,llim=10,date):
+def recompute_existing(D,ncpus=1,llim=10,date=""):
     llim = int(llim)
     import dateutil.parser
     if date != "":
