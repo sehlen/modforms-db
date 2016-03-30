@@ -1966,6 +1966,7 @@ def reformat_labels_of_newforms(D,dryrun=True,do_db=False):
                 coll.update({"_id":x['_id']},{"$set":{"hecke_orbit_label":new_label}})
     
     F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
+    F.authorize()
     for coll in [F._collection,F._file_collection,F.eigenvalues._collection,F.eigenvalues._file_collection]:
 
         for x in coll.find():
