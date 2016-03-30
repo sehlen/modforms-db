@@ -108,7 +108,7 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("Updated self from db!")
             #self.compute_satake_parameters_numeric()
             #wmf_logger.debug("computed satake parameters!")            
-            self.set_twist_info()
+            #self.set_twist_info()
         else: # reset the computed (possibly wrong) properties of self
             self._coefficients={}
             self._embeddings = {}
@@ -165,7 +165,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_coefficient_field()
         self.set_q_expansion_embeddings()
 
-        #self.set_twist_info()
+        self.set_twist_info()
         self.set_is_cm()
         self.compute_satake_parameters_numeric()
         try:
@@ -177,7 +177,7 @@ class WebNewForm_computing(WebNewForm):
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
         wmf_logger.debug("Will set twise")
-        self.set_twist_info()
+        #self.set_twist_info()
         wmf_logger.debug("Have set twist")
         self.creation_date=datetime.datetime.utcnow()
 ##  Internal functions
@@ -537,6 +537,7 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Possible spaces: {0}".format(possible_spaces))
         coeffs = self.coefficients(range(self.parent.sturm_bound))
         K = self.coefficient_field
+        wmf_logger.critical("self.coefficient_field:{0}".format(K))
         for t in possible_spaces:
             M,xi,d,yi = t
             wmf_logger.debug("Checking level {0}, CHARACTER {1}".format(M,xi))
