@@ -1955,30 +1955,27 @@ def fix_problematic_eigenvalues(D,label=''):
         D._mongodb[coll_check].insert({'label':label})
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
-def reformat_labels_of_newforms(D,dryrun=True):
-    for coll in [D._newform_factors,D._aps]:
-        for x in coll.find(): 
+def reformat_labels_of_newforms(D,dryrun=True,do_db=False):
+    if do_db:
+        for coll in [D._newform_factors,D._aps]:
+            for x in coll.find(): 
+                old_label = x['hecke_orbit_label']
+                new_label = newform_label(*parse_newform_label(old_label))
+                if new_label == old_label:
+                    continue
+                coll.update({"_id":x['_id']},{"$set":{"hecke_orbit_label":new_label}})
+    
+    F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
+    for coll in [F._collection,F._file_collection,F.eigenvalues._collection,F.eigenvalues._file_collection]:
+
+        for x in coll.find():
             old_label = x['hecke_orbit_label']
             new_label = newform_label(*parse_newform_label(old_label))
             if new_label == old_label:
                 continue
-            coll.update({"_id":x['_id']},{"$set":{"hecke_orbit_label":new_label}})
-    
-    F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
-    for x in F._collection.find():
-        old_label = x['hecke_orbit_label']
-        new_label = newform_label(*parse_newform_label(old_label))
-        if new_label == old_label:
-            continue
-        if dryrun:
-            wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
-        else:
-            F._collection.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
-    for x in F._file_collection.find():
-        old_label = x['hecke_orbit_label']
-        new_label = newform_label(*parse_newform_label(old_label))
-        if dryrun:
-            wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
-        else:
-            F._file_collection.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
+            if dryrun:
+                wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
+            else:
+                coll.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
+        wmf_logger.debug("Updated labels in {0}".format(coll))
     
