@@ -1959,7 +1959,9 @@ def reformat_labels_of_newforms(D,dryrun=True):
     F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
     for x in F._collection.find():
         old_label = x['hecke_orbit_label']
-        new_label = newform_label(parse_newform_label)
+        new_label = newform_label(parse_newform_label(old_label))
+        if new_label == old_label:
+            continue
         if dryrun:
             wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
         else:
