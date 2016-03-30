@@ -1953,3 +1953,22 @@ def fix_problematic_eigenvalues(D,label=''):
             D._mongodb['webmodformspace_errors'].insert({'label':label,'coll':coll,'type':'NoFile'})
             wmf_logger.debug("Deleted {0}".format(label))   
         D._mongodb[coll_check].insert({'label':label})
+
+from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
+def reformat_labels_of_newforms(dryrun=True):
+    F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
+    for x in F._collection.find():
+        old_label = x['hecke_orbit_label']
+        new_label = newform_label(parse_newform_label)
+        if dryrun:
+            wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
+        else:
+            F._collection.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
+    for x in F._file_collection.find():
+        old_label = x['hecke_orbit_label']
+        new_label = newform_label(parse_newform_label)
+        if dryrun:
+            wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
+        else:
+            F._file_collection.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
+    
