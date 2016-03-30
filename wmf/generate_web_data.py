@@ -581,7 +581,7 @@ def add_orbit_labels_to_aps(host='localhost',port=int(37010)):
         #    DB._aps.update({'_id':fid},{"$set":{'cchi':cchi.number()}})
         d=r['newform']
         label = orbit_label(d)
-        name = '{0}.{1}.{2}{3}'.format(N,k,cchi,label)
+        name = utils.newform_label(N,k,cchi,label)
         D._aps.update({'_id':fid},{"$set":{'hecke_orbit_label':name}})
         D._aps.update({'_id':fid},{"$unset":{'name':""}})
 
@@ -1955,7 +1955,7 @@ def fix_problematic_eigenvalues(D,label=''):
         D._mongodb[coll_check].insert({'label':label})
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
-def reformat_labels_of_newforms(dryrun=True):
+def reformat_labels_of_newforms(D,dryrun=True):
     F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
     for x in F._collection.find():
         old_label = x['hecke_orbit_label']

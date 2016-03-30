@@ -1326,10 +1326,10 @@ class CompMF(MongoMF):
                     cputime = meta.get("cputime",""),
                     sage_version = meta.get("version",""),
                     ambient_id=ambient_id,
-                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                    hecke_orbit_label=utils.newform_label(N,k,ci,label),
                     v=int(1)))
 
-                hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label)
+                hecke_orbit_label = utils.newform_label(N,k,ci,label)
                 r = self._newform_factors.find_one({'hecke_orbit_label':hecke_orbit_label})
                 if not r is None:
                     fs_fact.delete(r['_id'])
@@ -1343,7 +1343,7 @@ class CompMF(MongoMF):
                                     cputime = meta.get("cputime",""),
                                     sage_version = meta.get("version",""),
                                     ambient_id=ambient_id,
-                                    hecke_orbit_label='{0}.{1}.{2}{3}'.format(N,k,ci,label),
+                                    hecke_orbit_label=hecke_orbit_label,
                                     v=int(1))
                 factors_in_mongo[int(d)] = factor
                 if not facid is None:
@@ -1481,7 +1481,7 @@ class CompMF(MongoMF):
                 # delete if exists
                 s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'is_converted':True}
                 r = self._aps.find_one(s)
-                label = '{0}.{1}.{2}{3}'.format(N,k,ci,label)
+                label = utils.newform_label(N,k,ci,label)
                 clogger.debug("Checking record matching: s={0}".format(s))
                 if not r is None:
                     fs_ap.delete(r['_id'])
@@ -1506,7 +1506,7 @@ class CompMF(MongoMF):
                     clogger.debug("We could insert {0} fname={1} label={2}".format(apid,fname1,label))
                 except ValueError as e: #gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e))
-                    q = self._aps.find({'hecke_orbit_label':'{0}.{1}.{2}{3}'.format(N,k,ci,label)})
+                    q = self._aps.find({'hecke_orbit_label':utils.newform_label(N,k,ci,label)})
                     clogger.critical("We have {0} records in the database!".format(q.count()))
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
                 # Also insert the corresponding v separately (to protect against changes in sage)
