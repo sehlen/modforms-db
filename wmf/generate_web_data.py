@@ -1969,7 +1969,7 @@ def reformat_labels_of_newforms(D,dryrun=True):
             F._collection.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
     for x in F._file_collection.find():
         old_label = x['hecke_orbit_label']
-        new_label = newform_label(parse_newform_label)
+        new_label = newform_label(*parse_newform_label(old_label))
         if dryrun:
             wmf_logger.debug("{0} -> {1}".format(old_label,new_label))
         else:
