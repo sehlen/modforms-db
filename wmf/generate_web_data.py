@@ -1956,10 +1956,17 @@ def fix_problematic_eigenvalues(D,label=''):
 
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
 def reformat_labels_of_newforms(D,dryrun=True):
+    for coll in [D._newform_factors,D._aps]:
+        for x in coll: 
+            old_label = x['hecke_orbit_label']
+            new_label = newform_label(*parse_newform_label(old_label))
+            if new_label == old_label:
+                continue
+            coll.update({"_id":x['_id']},{"$set":{"hecke_orbit_label":new_label}})
+    
     F = WebNewForm_computing(1,12,1,'a',host=D._host,port=D._port)
     for x in F._collection.find():
         old_label = x['hecke_orbit_label']
-        #N,k,i,a=parse_newform_label(old_label)
         new_label = newform_label(*parse_newform_label(old_label))
         if new_label == old_label:
             continue
