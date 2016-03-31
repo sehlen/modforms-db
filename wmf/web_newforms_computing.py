@@ -478,7 +478,7 @@ class WebNewForm_computing(WebNewForm):
         twist_candidates = list()
         KF = self.base_ring
         # We need coefficients up to the Sturm bound so the primes we need are :
-        possible_spaces = []
+        possible_spaces = {}
         ## We first find all possible parameters for spaces which can twist into self.
         character_decomp = {}
         for xx in self.character.character.decomposition():
@@ -504,6 +504,8 @@ class WebNewForm_computing(WebNewForm):
                 DM = dirichlet_character_conrey_galois_orbits_reps(MM,format='characters')  ## These are the spaces which might be in the database
                 xt = conrey_character_from_number(N,1) ## the trivial character mod N
                 for x in DM:
+                    if (MM,x.number()) not in possible_spaces.keys():
+                        possible_spaces[(MM,x.number())] = []
                     for y in D:
                         ## Get the decomposition of left hand side (since multiplication of character with different modulus is not implemented in DirichletGroup_conrey)
                         ## We can in fact not even multiply characters with the same conductor!!!
@@ -532,9 +534,9 @@ class WebNewForm_computing(WebNewForm):
                                     wmf_logger.debug("characters are unequal!")
                                     raise StopIteration
                             wmf_logger.debug("Characters are equal")
-                            t = (MM,x.number(),d,y.number())
-                            if t not in possible_spaces:
-                                possible_spaces.append(t)
+                            t = (d,y.number())
+                            if t not in possible_spaces[(MM,x.number())]:
+                                possible_spaces[(MM,x.number())].append(t)
                         except StopIteration:
                             pass
                     
@@ -543,31 +545,49 @@ class WebNewForm_computing(WebNewForm):
         coeffs = self.coefficients(range(self.parent.sturm_bound))
         K = self.coefficient_field
         wmf_logger.critical("self.coefficient_field:{0}".format(K))
-        for t in possible_spaces:
-            M,xi,d,yi = t
+        for M,xi in possible_spaces.keys():
+            #M,xi,d,yi = t
             wmf_logger.debug("Checking level {0}, CHARACTER {1}".format(M,xi))
             MF = WebModFormSpace_computing(M,k,xi)
             if MF.dimension == 0:
                 wmf_logger.debug("space is empty!")
                 continue
-            y = conrey_character_from_number(d,yi).sage_character()
-            for label in MF.hecke_orbits:
-                F = MF.hecke_orbits[label]
-                wmf_logger.debug("Checking function F={0}".format(F))
-                coeffsF = F.coefficients(range(self.parent.sturm_bound))
-                coeffsF_twist = []
-                for j in range(self.parent.sturm_bound):
-                    coeffsF_twist.append(K(coeffs[j])*K(y(j)))
-                wmf_logger.debug("own coeffs={0}".format(coeffs))
-                wmf_logger.debug("twisted coeffs={0}".format(coeffsF_twist))
-                try:
-                    for j in range(self.parent.sturm_bound):
-                        if coeffsF_twist[j]<>coeffs[j]:
-                            raise StopIteration
+            for (d,yi) in possible_spaces[(M,xi)]:
+                wmf_logger.debug("Twisting by chi({0},{1})".format(d,yi)) 
+                y = conrey_character_from_number(d,yi).sage_character()
+                wmf_logger.debug("Orbits={0}".format(MF.hecke_orbits))            
+                for label in MF.hecke_orbits:
+                    F = MF.hecke_orbits[label]
+                    wmf_logger.debug("Checking function F={0}".format(F))
+                    coeffsF = F.coefficients(range(self.parent.sturm_bound))
+                    coeffsF_twist = []
+                    is_not_twist = False
+                    for j in range(1,self.parent.sturm_bound):
+                        wmf_logger.debug("coeffs[{0}]={1}, chi={2}".format(j,coeffsF[j],y(j)))
+                        if coeffsF[j] == 0:
+                            continue
+                        try:
+                            ## If we can not coerce then they can not be equal
+                            ctwist = K(coeffsF[j]*y(j))
+                            if ctwist != coeffs[j]:
+                                is_not_twist = False
+                                break
+                        except TypeError:
+                            is_not_twist = False
+                            break  # Check another orbit
+                        #coeffsF_twist.append(ctwist)
+                    if is_not_twist: ## Check next orbit
+                        continue 
+                    #wmf_logger.debug("own coeffs={0}".format(coeffs))
+                    #wmf_logger.debug("twisted coeffs={0}".format(coeffsF_twist))
+                    #try:
+                    #    for j in range(self.parent.sturm_bound):
+                    #        if coeffsF_twist[j]<>coeffs[j]:
+                    #            raise StopIteration
                     if F.hecke_orbit_label not in twist_candidates:
                         twist_candidates.append(F.hecke_orbit_label)
-                except StopIteration: # If we are here then we don't have a twist to self
-                    pass
+                    #except StopIteration: # If we are here then we don't have a twist to self
+                    #    pass
         ## Need to sort and make twist_candidates unique
         twist_candidates = list(set(twist_candidates))
         twist_candidates.sort()
