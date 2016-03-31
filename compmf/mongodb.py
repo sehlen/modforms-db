@@ -340,7 +340,7 @@ class MongoMF(object):
                 missing = []
                 if k % 2 == 0:
                     for x in even_orbits:
-                        orbit = set(even_orbits[db])
+                        orbit = set(even_orbits[x])
                         if len( orbitsdb.intersection(orbit)) == 0:
                             missing.append(x)
                 else:
