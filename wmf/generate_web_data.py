@@ -1980,3 +1980,38 @@ def reformat_labels_of_newforms(D,dryrun=True,do_db=False):
                 coll.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
         wmf_logger.debug("Updated labels in {0}".format(coll))
     
+from multiprocessing import Pool
+def long_check_of_aps(D,search={},ncpus=1):
+    args = []
+    pool = Pool(processes=ncpus)
+    for x in D._aps.find(search):
+        N,k,chi,d = x['N'],x['k'],x['cchi'],x['newform']
+        label = x['hecke_orbit_label']
+        if D._mongodb['aps_errors'].append({'label':label}).find_one() is None:
+            args.append((N,k,chi,d,label))
+    chunksize = 20
+    results = pool.imap_unordered(long_check_par,args,chunksize)
+    return results
+
+
+def long_check_par(N,k,chi,d,label):
+        F = D.get_factor(N,k,chi,d)[d]
+        aps = D.get_aps(N,k,chi,d)
+        ev2 = F.eigenvalue(2)
+        try:
+            for a,b in aps:
+                if a != 0:
+                    continue
+                E,v = aps[(a,b)][0:2]
+                if not v.base_ring().is_isomorphic(ev2.parent()):
+                    D._mongodb['aps_errors'].append({'label':label,'ok':False})
+                    wmf_logger.debug("added error: {0}".format(label))
+                    raise StopIteration
+                c2 = E[0,0]*v[0]+E[0,1]*v[1]
+                if c2.minpoly() != ev2.minpoly():
+                    D._mongodb['aps_errors'].append({'label':label,'ok':False})
+                    wmf_logger.debug("added error: {0}".format(label))
+                    raise StopIteration
+            D._mongodb['aps_errors'].append({'label':label,'ok':True})
+        except StopIteration:
+            pass
