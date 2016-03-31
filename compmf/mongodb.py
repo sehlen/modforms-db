@@ -53,7 +53,7 @@ from compmf.character_conversions import (
     sage_character_to_conrey_character
 )
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
-from utils import are_compatible,multiply_mat_vec,convert_matrix_to_extension_fld
+from utils import are_compatible,multiply_mat_vec,convert_matrix_to_extension_fld,newform_label
 from compmf import clogger,data_record_checked_and_complete
 
 class MongoMF(object):
@@ -1342,10 +1342,10 @@ class CompMF(MongoMF):
                     cputime = meta.get("cputime",""),
                     sage_version = meta.get("version",""),
                     ambient_id=ambient_id,
-                    hecke_orbit_label=utils.newform_label(N,k,ci,label),
+                    hecke_orbit_label=newform_label(N,k,ci,label),
                     v=int(1)))
 
-                hecke_orbit_label = utils.newform_label(N,k,ci,label)
+                hecke_orbit_label = newform_label(N,k,ci,label)
                 r = self._newform_factors.find_one({'hecke_orbit_label':hecke_orbit_label})
                 if not r is None:
                     fs_fact.delete(r['_id'])
@@ -1497,7 +1497,7 @@ class CompMF(MongoMF):
                 # delete if exists
                 s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'is_converted':True}
                 r = self._aps.find_one(s)
-                label = utils.newform_label(N,k,ci,label)
+                label = newform_label(N,k,ci,label)
                 clogger.debug("Checking record matching: s={0}".format(s))
                 if not r is None:
                     fs_ap.delete(r['_id'])
@@ -1522,7 +1522,7 @@ class CompMF(MongoMF):
                     clogger.debug("We could insert {0} fname={1} label={2}".format(apid,fname1,label))
                 except ValueError as e: #gridfs.errors.FileExists as e:
                     clogger.critical("Could not insert coefficients for fname={0}: Error:{1}".format(fname1,e))
-                    q = self._aps.find({'hecke_orbit_label':utils.newform_label(N,k,ci,label)})
+                    q = self._aps.find({'hecke_orbit_label':newform_label(N,k,ci,label)})
                     clogger.critical("We have {0} records in the database!".format(q.count()))
                 clogger.debug("inserted aps :{0} ".format((num_factors,apid)))
                 # Also insert the corresponding v separately (to protect against changes in sage)
@@ -1886,8 +1886,8 @@ class CompMF(MongoMF):
                 continue
             t = self.check_if_twist(N,k,ci,d)
             if len(t)>0:
-                labela = utils.newform_label(N,k,ci,d)
-                labelb = utils.newform_label(t[0][0],t[0][1],t[0][2],t[0][3])
+                labela = newform_label(N,k,ci,d)
+                labelb = newform_label(t[0][0],t[0][1],t[0][2],t[0][3])
                 clabel = "{0}.{1}".format(t[1][0],t[1][1])
                 twist_rec = {'hecke_orbit_label':labela,'twist_of':labelb,'by_char':clabel}
                 if verbose>0:
