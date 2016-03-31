@@ -295,7 +295,7 @@ class MongoMF(object):
             print "{0} records with levels in range {1} -- {2}".format(factors.count(),min(levels),max(levels))
 
 
-    def show_how_many_complete(self,nrange=[1,50],krange=[2,12]):
+    def show_how_many_complete(self,nrange=[1,50],krange=[2,12],verbose=0):
         r"""
         Check up to which levels and weights we have a complete set of records...
         """
@@ -310,32 +310,47 @@ class MongoMF(object):
         for N in range(nrange[0],nrange[1]):
             gal_orbits = character_conversions.dirichlet_group_conrey_galois_orbits_numbers(N)
             ##
-            
+            even_orbits = {}
+            for orbit in gal_orbits:
+                if conrey_character_from_number(N,orbit[0]).is_even():
+                    even_orbits[orbit[0]] = orbit
+                else:
+                    odd_orbits[orbit[0]] = orbit
+            if verbose >0 :
+                clogger.debug("Even orbits:{0}".format(even_orbits))
+                clogger.debug("Odd orbits:{0}".format(odd_orbits))
             #print "Galois orbits for {0}: {1}".format(N,gal_orbits)
-            even_orbits = flatten(filter(lambda x:conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
-            even_orbits.sort()
-            odd_orbits = flatten(filter(lambda x: not conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
-            odd_orbits.sort()
+            #even_orbits = flatten(filter(lambda x:conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+            #even_orbits.sort()
+            #odd_orbits = flatten(filter(lambda x: not conrey_character_from_number(N,x[0]).is_even(),gal_orbits))
+            #odd_orbits.sort()
             #print "even orbits for {0} = {1}".format(N,even_orbits)
             for k in range(krange[0],krange[1]):
-                orbits = files.find({'N':N,'k':k,'complete':{"$gt":int(0)}}).distinct('character_galois_orbit')
-                if orbits == []:
+                orbitsdb = files.find({'N':N,'k':k,'complete':{"$gt":int(0)}}).distinct('character_galois_orbit')
+                if orbitsdb == []:
                     if dimension_cusp_forms(Gamma1(N),k)>0:
-                        print "missing space: N={0}, k={1}".format(N,k)
+                        print "missing complete space: N={0}, k={1}".format(N,k)
                     else:
                         continue
-                orbits.sort()
+                orbitsdb.sort()
+                orbitsdb = set(orbitsdb)
+                if verbose >0 :
+                    clogger.debug("Orbits in db:{0}".format(orbitsdb))
                 # This returnes all character numbers from all orbits.
+                missing = []
                 if k % 2 == 0:
-                    if not set(even_orbits).issubset(set(orbits)):
-                        print "For N={0} and k={1}:".format(N,k)
-                        print "orbits in db=",orbits
-                        print "even orbits=",even_orbits
+                    for x in even_orbits:
+                        orbit = set(even_orbits[db])
+                        if len( orbitsdb.intersection(orbit)) == 0:
+                            missing.append(x)
                 else:
-                    if not set(odd_orbits).issubset(set(orbits)):
-                        print "For N={0} and k={1}:".format(N,k)                        
-                        print "orbits in db=",orbits
-                        print "odd orbits=",odd_orbits                        
+                    for x in even_orbits:
+                        orbit = set(even_orbits[db])
+                        if len( orbitsdb.intersection(orbit)) == 0:
+                            missing.append(x)
+                if missing != []:
+                    print "For N={0} and k={1}:".format(N,k)                        
+                    "Orbits (representative) missing from db: {0}".format(missing)
                     #print N,orbits==even_orbits
                     
                 #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
