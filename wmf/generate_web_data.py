@@ -1990,6 +1990,7 @@ def long_check_of_aps(D,search={},ncpus=1):
         if D._mongodb['aps_errors'].find_one({'label':label}) is None:
             args.append((D,N,k,chi,d,label))
     chunksize = 20
+    wmf_logger.debug("args={0}".format(args))
     results = pool.imap_unordered(long_check_par,args,chunksize)
     return list(results)
 
