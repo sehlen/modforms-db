@@ -1994,7 +1994,8 @@ def long_check_of_aps(D,search={},ncpus=1):
     return results
 
 
-def long_check_par(N,k,chi,d,label):
+def long_check_par(t):
+        N,k,chi,d,label = t
         F = D.get_factor(N,k,chi,d)[d]
         aps = D.get_aps(N,k,chi,d)
         ev2 = F.eigenvalue(2)
