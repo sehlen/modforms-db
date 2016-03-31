@@ -1492,12 +1492,12 @@ class CompMF(MongoMF):
                 clogger.debug("meta={0}".format(meta))
                 fname = "gamma0-aplists-{0}".format(self._db.space_name(N,k,ci).split("/")[-1])
                 fname1 = "{0}-{1:0>3}-{2:0>5}-{3:0>5}".format(fname,d,nmin,nmax)
-                label = orbit_label(d)
+                #label = orbit_label(d)
                 clogger.debug("label={0}".format((N,k,ci,d)))
                 # delete if exists
                 s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'is_converted':True}
                 r = self._aps.find_one(s)
-                label = newform_label(N,k,ci,dlabel)
+                label = newform_label(N,k,ci,d)
                 clogger.debug("Checking record matching: s={0}".format(s))
                 if not r is None:
                     fs_ap.delete(r['_id'])

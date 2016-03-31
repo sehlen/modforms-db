@@ -265,7 +265,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         else:
             parity = int(-1)
         if not r is None:
-            C.update({'_id':r['_id']},{"$set":
+            return C.update({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
             r = {'space_orbit_label':self.space_orbit_label,
@@ -281,7 +281,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
                  'in_msdb':int(1)}
-            C.insert(r)
+            return C.insert(r)
         # Check Gamma1 as well...??
         #norbits = M.character.character.parent()._galois_orbits()
         

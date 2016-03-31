@@ -189,8 +189,10 @@ class WebNewForm_computing(WebNewForm):
         We therefore need this routine to distinguish between the two cases...
         """
         if not self._properties['dimension'].has_been_set():
+            wmf_logger.critical("Set dimension!")
             try:
                 self.dimension = self.as_factor().dimension()
+                wmf_logger.critical("Set from factor")
             except ValueError:
                 # check if we have a zero space
                 if self.character.number == 1:
@@ -201,6 +203,8 @@ class WebNewForm_computing(WebNewForm):
                     self.dimension = int(0)
                 else:
                     raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
+            else:
+                wmf_logger.critical("Already Set dimension!")
     def set_aps(self,reload_from_db=False,want_prec=None):
         r"""
         We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
