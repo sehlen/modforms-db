@@ -2020,7 +2020,7 @@ def long_check_par(t):
                     D._mongodb['aps_errors'].insert({'label':label,'ok':False})
                     wmf_logger.debug("added error: {0} base rings are not isom.".format(label))
                     raise StopIteration
-                c2 = E[0,0]*v[0]+E[0,1]*v[1]
+                c2 = sum([E[0,i]*v[i] for i in range(len(v))])
                 pol2 = c2.minpoly()
                 if pol1 != pol2:
                     D._mongodb['aps_errors'].insert({'label':label,'ok':False})
