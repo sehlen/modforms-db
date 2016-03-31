@@ -311,6 +311,7 @@ class MongoMF(object):
             gal_orbits = character_conversions.dirichlet_group_conrey_galois_orbits_numbers(N)
             ##
             even_orbits = {}
+            odd_orbits = {}
             for orbit in gal_orbits:
                 if conrey_character_from_number(N,orbit[0]).is_even():
                     even_orbits[orbit[0]] = orbit
@@ -344,8 +345,8 @@ class MongoMF(object):
                         if len( orbitsdb.intersection(orbit)) == 0:
                             missing.append(x)
                 else:
-                    for x in even_orbits:
-                        orbit = set(even_orbits[db])
+                    for x in odd_orbits:
+                        orbit = set(odd_orbits[db])
                         if len( orbitsdb.intersection(orbit)) == 0:
                             missing.append(x)
                 if missing != []:
