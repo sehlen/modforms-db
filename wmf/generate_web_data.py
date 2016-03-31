@@ -1991,6 +1991,8 @@ def long_check_of_aps(D,search={},ncpus=1):
             args.append((D,N,k,chi,d,label))
     chunksize = 20
     wmf_logger.debug("args={0}".format(args))
+    if ncpus == 1:
+        return [long_check_par(x) for x in args]
     results = pool.imap_unordered(long_check_par,args,chunksize)
     return list(results)
 

@@ -205,6 +205,7 @@ class WebNewForm_computing(WebNewForm):
                     raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
             else:
                 wmf_logger.critical("Already Set dimension!")
+                
     def set_aps(self,reload_from_db=False,want_prec=None):
         r"""
         We set the eigenvalues unless we already have sufficiently many and reload_from_db is False
