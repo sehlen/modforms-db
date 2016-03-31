@@ -2016,3 +2016,4 @@ def long_check_par(t):
             D._mongodb['aps_errors'].insert({'label':label,'ok':True})
         except StopIteration:
             pass
+        return True
