@@ -351,7 +351,7 @@ class MongoMF(object):
                             missing.append(x)
                 if missing != []:
                     print "For N={0} and k={1}:".format(N,k)                        
-                    "Orbits (representative) missing from db: {0}".format(missing)
+                    print "Orbits (representative) missing from db: {0}".format(missing)
                     #print N,orbits==even_orbits
                     
                 #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
