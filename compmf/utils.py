@@ -43,7 +43,12 @@ def orbit_index_from_label(label):
 
 @cached_function
 def newform_label(N,k,i,d):
-    return "{0}.{1}.{2}.{3}".format(N,k,i,orbit_label(d))
+    if isinstance(d,(int,Integer)):
+        return "{0}.{1}.{2}.{3}".format(N,k,i,orbit_label(d))
+    elif isinstance(d,basestring):
+        return "{0}.{1}.{2}.{3}".format(N,k,i,d)
+    else:
+        raise ValueError,"Could not find label from {0}".format(d)
 
 @cached_function
 def are_compatible(modulus,weight,si,si_format='orbit_no'):

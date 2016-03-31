@@ -1497,7 +1497,7 @@ class CompMF(MongoMF):
                 # delete if exists
                 s = {'N' :int(N),'k':int(k),'cchi':int(ci),'newform':int(d),'nmin':int(nmin),'nmax':int(nmax),'is_converted':True}
                 r = self._aps.find_one(s)
-                label = newform_label(N,k,ci,label)
+                label = newform_label(N,k,ci,dlabel)
                 clogger.debug("Checking record matching: s={0}".format(s))
                 if not r is None:
                     fs_ap.delete(r['_id'])
