@@ -4,7 +4,7 @@ Utilities for modform computing classes.
 
 """
 
-from sage.all import cached_function,AlphabeticStrings,QQ,Matrix
+from sage.all import cached_function,AlphabeticStrings,QQ,Matrix,Integer
 from compmf import clogger
 
 @cached_function
