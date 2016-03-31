@@ -1997,6 +1997,8 @@ def long_check_of_aps(D,search={},ncpus=1):
     return list(results)
 
 
+from sage.all import QQ
+
 def long_check_par(t):
         D,N,k,chi,d,label = t
         F = D.get_factors(N,k,chi,d)[d]
@@ -2008,7 +2010,13 @@ def long_check_par(t):
                 if a != 0:
                     continue
                 E,v = aps[(a,b)][0:2]
-                if not v.base_ring().is_isomorphic(ev2.parent()):
+                K1 = v.base_ring(); K2=ev2.parent()
+                t1 = (K1 == QQ and K1 != QQ)
+                t2 = (K1 != QQ and K1 == QQ)
+                t3 = False
+                if (K1 != QQ and K2!= QQ):
+                    t3 = not K1.is_isomorphic(K2)
+                if t1 or t2 or t3:
                     D._mongodb['aps_errors'].insert({'label':label,'ok':False})
                     wmf_logger.debug("added error: {0} base rings are not isom.".format(label))
                     raise StopIteration
