@@ -1988,14 +1988,14 @@ def long_check_of_aps(D,search={},ncpus=1):
         N,k,chi,d = x['N'],x['k'],x['cchi'],x['newform']
         label = x['hecke_orbit_label']
         if D._mongodb['aps_errors'].find_one({'label':label}) is None:
-            args.append((N,k,chi,d,label))
+            args.append((D,N,k,chi,d,label))
     chunksize = 20
     results = pool.imap_unordered(long_check_par,args,chunksize)
-    return results
+    return list(results)
 
 
 def long_check_par(t):
-        N,k,chi,d,label = t
+        D,N,k,chi,d,label = t
         F = D.get_factor(N,k,chi,d)[d]
         aps = D.get_aps(N,k,chi,d)
         ev2 = F.eigenvalue(2)
