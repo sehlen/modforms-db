@@ -1999,6 +1999,7 @@ def long_check_par(t):
         F = D.get_factors(N,k,chi,d)[d]
         aps = D.get_aps(N,k,chi,d)
         ev2 = F.eigenvalue(2)
+        pol1 = ev2.minpoly()
         try:
             for a,b in aps:
                 if a != 0:
@@ -2006,12 +2007,13 @@ def long_check_par(t):
                 E,v = aps[(a,b)][0:2]
                 if not v.base_ring().is_isomorphic(ev2.parent()):
                     D._mongodb['aps_errors'].insert({'label':label,'ok':False})
-                    wmf_logger.debug("added error: {0}".format(label))
+                    wmf_logger.debug("added error: {0} base rings are not isom.".format(label))
                     raise StopIteration
                 c2 = E[0,0]*v[0]+E[0,1]*v[1]
-                if c2.minpoly() != ev2.minpoly():
+                pol2 = c2.minpoly()
+                if pol1 != pol2:
                     D._mongodb['aps_errors'].insert({'label':label,'ok':False})
-                    wmf_logger.debug("added error: {0}".format(label))
+                    wmf_logger.debug("added error: {0} : {1} != {2}".format(label,pol1,pol2))
                     raise StopIteration
             D._mongodb['aps_errors'].insert({'label':label,'ok':True})
         except StopIteration:
