@@ -316,6 +316,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         Get decomposition of the oldspace in S_k(N) into submodules.
 
         """
+        from compmf.character_conversions import sage_character_to_conrey_character
         if self.cuspidal == 0:
             return 
         if not (self.oldspace_decomposition is None or self.oldspace_decomposition == [] or
@@ -327,40 +328,44 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("oldspace  dimension:={0}".format(old_dim))
         N = self.level; k = self.weight
         L = []
-        check_dim = 0  
-        for d in divisors(N):
-            if(d == 1):
-                continue
-            q = ZZ(N).divide_knowing_divisible_by(d)
-            wmf_logger.debug("d={0} q = {1}".format(d,q))
-            if self.character.is_trivial():
+        check_dim = 0
+        if self.character.is_trivial():
+            for d in divisors(N):
+                if(d == 1):
+                    continue
+                q = ZZ(N).divide_knowing_divisible_by(d)
                 Sd = dimension_new_cusp_forms(q, k)
                 wmf_logger.debug("Sd={0}".format(Sd))
                 if Sd > 0:
                     mult = len(divisors(ZZ(d)))
                     check_dim = check_dim + mult * Sd
                     L.append((q, k,1, mult, Sd))
-            else:
-                ## We can't factor the character here, that is for checking twists, not oldforms...
-                ## If the character factors we don't get oldforms from the individual characters.
-                ## first look at the primitive character induced by the character of self
-                #xd = filter(lambda x: x.conductor() == q,self.character.character.decomposition())
-                xx = self.character.character.primitive_character()
-                wmf_logger.debug("xx={0}".format(xx))
-                Sd = dimension_new_cusp_forms(xx.sage_character(), k)
-                if Sd > 0:
-                    mult = 0
-                    for i in divisors(d):
-                        qq = q*i ## self is also a character of this modulus
-                        wmf_logger.debug("qq={0}".format(qq))
-                        if qq < N:
-                            mult += len(divisors(ZZ(N)/ZZ(qq)))
-                    check_dim = check_dim + mult * Sd
-                    L.append((q, k,xx.number(), mult, Sd))
-                    wmf_logger.debug("mult={0},N/d={1},Sd={2}".format(mult, ZZ(N / d), Sd))
-                    wmf_logger.debug("check_dim={0}".format(check_dim))
-            if check_dim == old_dim:
-                break
+        else:
+            q = self.character.character.conductor()
+            ## We now see how many cases we can lift this to before hitting Gamma_0(N)
+            x0 = self.character.character.primitive_character()
+            for d in divisors(ZZ(QQ(N)/QQ(q))):
+                if d == q:
+                    continue
+                wmf_logger.debug("d={0} q = {1}".format(d,q))
+                xx = x0.sage_character().extend(d*q)
+                Sd = dimension_new_cusp_forms(xx, k)
+                #    mult = 0
+                #    for i in divisors(d):
+                #        qq = q*i ## self is also a character of this modulus
+                #        wmf_logger.debug("qq={0}".format(qq))
+                #        if qq < N:
+                #            mult += len(divisors(ZZ(N)/ZZ(qq)))
+                if Sd == 0:
+                    continue
+                xy = sage_character_to_conrey_character(xx)
+                mult = len(divisors(ZZ(QQ(N)/QQ(d*q))))
+                check_dim = check_dim + mult * Sd
+                L.append((q, k,xy.number(), mult, Sd))
+                wmf_logger.debug("mult={0},N/d={1},Sd={2}".format(mult, ZZ(N / d), Sd))
+                wmf_logger.debug("check_dim={0}".format(check_dim))
+                if check_dim == old_dim:
+                    break
         if check_dim <> old_dim:
             wmf_logger.debug("Something wrong!  We did not find any oldforms! check_dim={0} and old_dim={1}".format(check_dim,old_dim))
             raise ArithmeticError
