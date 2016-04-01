@@ -448,7 +448,12 @@ class WebNewForm_computing(WebNewForm):
             A = self.as_factor()
             for p in prime_divisors(self.level):
                 if self.character.is_trivial() or p==self.level:
-                    self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
+                    try:
+                        self._atkin_lehner_eigenvalues[p]= int(A.atkin_lehner_operator(p).matrix()[0,0])
+                    except ArithmeticError as e:
+                        wmf_logger.critical("Could not compute A-L for {0} and p={1}: {2}".format(self.hecke_orbit_label,p,e))
+                        pass ## We can not se the A-L eigenvalue
+                        
 
     def set_twist_info(self, prec=10,insert_in_db=True):
         r"""
