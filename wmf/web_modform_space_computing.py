@@ -341,11 +341,18 @@ class WebModFormSpace_computing(WebModFormSpace):
                     check_dim = check_dim + mult * Sd
                     L.append((q, k,1, mult, Sd))
             else:
-                xd = filter(lambda x: x.modulus() == q,self.character.character.decomposition())
+                xd = filter(lambda x: x.conductor() == q,self.character.character.decomposition())
+                wmf_logger.debug("xd={0}".format(xd))
                 for xx in xd:
-                    Sd = dimension_new_cusp_forms(xx.sage_character(), k)
+                    wmf_logger.debug("xx={0}".format(xx))
+                    Sd = dimension_new_cusp_forms(xx.primitive_character().sage_character(), k)
                     if Sd > 0:
-                        mult = len(divisors(ZZ(d)))
+                        mult = 0
+                        for i in divisors(d):
+                            qq = q*i ## self is also a character of this modulus
+                            wmf_logger.debug("qq={0}".format(qq))
+                            if qq < N:
+                                mult += len(divisors(ZZ(N)/ZZ(qq)))
                         check_dim = check_dim + mult * Sd
                         L.append((q, k,xx.number(), mult, Sd))
                         wmf_logger.debug("mult={0},N/d={1},Sd={2}".format(mult, ZZ(N / d), Sd))
@@ -353,7 +360,8 @@ class WebModFormSpace_computing(WebModFormSpace):
             if check_dim == old_dim:
                 break
         if check_dim <> old_dim:
-            raise ArithmeticError("Something wrong! check_dim=%s" % check_dim)
+            wmf_logger.debug("Something wrong!  We did not find any oldforms! check_dim={0} and old_dim={1}".format(check_dim,old_dim))
+            raise ArithmeticError
         self.oldspace_decomposition = L
 
 
