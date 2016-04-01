@@ -141,6 +141,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.get_hecke_orbits()
         self.get_zetas()
         self.version = float(emf_version)
+        wmf_logger.debug("Setting version to {0}".format(self.version))
         self.creation_date=datetime.datetime.utcnow()
         self.save_to_db()
         self.update_dimension_table()
