@@ -167,7 +167,7 @@ def compute_web_newforms_parallel(labels,ncpus=1):
     return list(results)
 
 def compute_and_save_newform(label):
-    FF=wmf.WebNewForm_computing(label,recompute=True)
+    FF=WebNewForm_computing(label,recompute=True)
     FF.save_to_db()
     return label    
     
