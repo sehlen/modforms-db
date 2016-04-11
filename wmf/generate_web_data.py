@@ -160,8 +160,7 @@ def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1
     return list(l)
 
 
-def compute_web_newforms_parallel(labels,ncpus=1):
-    chunksize = 20
+def compute_web_newforms_parallel(labels,ncpus=1,chunksize=20):
     pool = Pool(processes=ncpus)
     results = pool.imap_unordered(compute_and_save_newform,labels,chunksize)
     return list(results)
