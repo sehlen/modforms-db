@@ -161,17 +161,16 @@ def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1
 
 
 def compute_web_newforms_parallel(labels,ncpus=1):
-    def F(label):
-        FF=wmf.WebNewForm_computing(label,recompute=True)
-        FF.save_to_db()
-        return label
     chunksize = 20
     pool = Pool(processes=ncpus)
-    results = pool.imap_unordered(F,labels,chunksize)
+    results = pool.imap_unordered(compute_and_save_newform,labels,chunksize)
     return list(results)
 
-
-
+def compute_and_save_newform(label):
+    FF=wmf.WebNewForm_computing(label,recompute=True)
+    FF.save_to_db()
+    return label    
+    
 @parallel(32)
 def generate_one_webeigenvalue32(label,prec):
     E = WebEigenvalues(label,prec=prec)
