@@ -85,7 +85,7 @@ class WebNewForm_computing(WebNewForm):
         emf_logger.critical("version={0} kwds={1}".format(self.version,kwds))
         super(WebNewForm_computing,self).__init__(level,weight,character,label,parent,**kwds)
         if not self.is_in_modularforms_db():
-            wmf_logger.debug("Newform with label {0}.{1}.{2}{3} is not in the database!".format(level,weight,character,label))
+            wmf_logger.debug("Newform with label {0}.{1}.{2}.{3} is not in the database!".format(level,weight,character,label))
             return None
         self.hecke_orbit_label = newform_label(self.level,self.weight,self.character.number,self.label)
 

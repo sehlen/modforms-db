@@ -31,6 +31,7 @@ from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,Check
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version
+from multiprocessing import Pool
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
     r"""
@@ -157,6 +158,19 @@ def generate_web_eigenvalues(level_range=[],weight_range=[],chi_range=[],ncpus=1
     print "ncpus=",ncpus
     l = generate_one_webeigenvalue32(args)
     return list(l)
+
+
+def compute_web_newforms_parallel(labels,ncpus=1):
+    def F(label):
+        FF=wmf.WebNewForm_computing(label,recompute=True)
+        FF.save_to_db()
+        return label
+    chunksize = 20
+    pool = Pool(processes=ncpus)
+    results = pool.imap_unordered(F,labels,chunksize)
+    return list(results)
+
+
 
 @parallel(32)
 def generate_one_webeigenvalue32(label,prec):
@@ -1980,7 +1994,7 @@ def reformat_labels_of_newforms(D,dryrun=True,do_db=False):
                 coll.update({'_id':x['_id']},{"$set":{'hecke_orbit_label':new_label}})
         wmf_logger.debug("Updated labels in {0}".format(coll))
     
-from multiprocessing import Pool
+
 def long_check_of_aps(D,search={},ncpus=1):
     args = []
     pool = Pool(processes=ncpus)
