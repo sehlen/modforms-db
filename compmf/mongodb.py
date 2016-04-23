@@ -1595,7 +1595,13 @@ class CompMF(MongoMF):
         for d in range(num_factors):
             recs = aps_in_file.get(d)
             compute = True
-            precs_in_files = recs.keys()
+            if hasattr(recs,keys):
+                precs_in_files = recs.keys()
+            elif isinstance(recs[0],int):
+                precs_in_files = recs
+            else:
+                clogger.critical("No recs in files!")
+                continue
             if not recs is None: 
                 for prec1,prec2 in precs_in_files:
                     if prec2 > pprec:
