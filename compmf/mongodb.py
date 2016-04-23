@@ -1595,7 +1595,7 @@ class CompMF(MongoMF):
         for d in range(num_factors):
             recs = aps_in_file.get(d)
             compute = True
-            if hasattr(recs,keys):
+            if hasattr(recs,'keys'):
                 precs_in_files = recs.keys()
             elif isinstance(recs[0],int):
                 precs_in_files = recs
