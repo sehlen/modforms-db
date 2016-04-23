@@ -1620,7 +1620,12 @@ class CompMF(MongoMF):
             else:
                 insert_in_mongo = True
             if insert_in_mongo:
-                clogger.debug("Inserting aplist in mongo! precs={0} with label={1}.{2}.{3}".format(aps.keys(),N,k,ci))
+                if isinstance(aps,dict):
+                    clogger.debug("Inserting aplist in mongo! precs={0} with label={1}.{2}.{3}".format(aps.keys(),N,k,ci))
+                elif isinstance(aps[0],dict):
+                    clogger.debug("Inserting aplist in mongo! precs={0} with label={1}.{2}.{3}".format(aps[0].keys(),N,k,ci))
+                else:
+                    clogger.debug("Inserting aplist in mongo!  with label={1}.{2}.{3}".format(aps[0].keys(),N,k,ci))
                 insert_aps_into_mongodb(aps)
                 
         # If we have coefficients both in mongo and files we don't do anything.
