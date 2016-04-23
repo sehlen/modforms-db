@@ -1607,6 +1607,8 @@ class CompMF(MongoMF):
                     if prec2 > pprec:
                         compute = False
             if compute:
+                clogger.critical("Doing computing!")
+                
                 self._computedb.compute_aplists(N,k,ci,0,pprec,one_d=d)
             rec_mongo = aps_in_mongo.get(d)
             insert_in_mongo = False
