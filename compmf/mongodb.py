@@ -518,8 +518,20 @@ class MongoMF(object):
         """
 
         if 'mongo' in delete_from:
-            if pymongo.version_tuple[0] < 3:
-                q = self._modular_symbols.find_one({'space_label':label})
+            #if pymongo.version_tuple[0] < 3:
+            if label.count(".")==2:
+                ms = self._files_collections[self._modular_symbols_collection]
+                fid = self._modular_symbols.find_one({'space_label':label})
+                ms.delete(fid)
+            else:
+                aps = self._files_collections[self._aps_collection]
+                fid = self._aps.find_one({'hecke_orbit_label':label})
+                aps.delete(fid)
+                fs = self._files_collections[self._newform_factors_collection]                                   fid = self._newform_factors.find_one({'hecke_orbit_label':label})
+                fs.delete(fid)
+                als = self._files_collections[self._atkin_lehner_collection]
+                fid = self._atkin_lehner.find_one({'hecke_orbit_label':label})
+                als.delete(fid)
             #if not q is None:
                 
                 
@@ -1183,7 +1195,7 @@ class CompMF(MongoMF):
             ### We now have ot see if we have the same character number or something else in the same orbit!
             ci_new = sage_character_to_conrey_character(ambient.character()).number()
             if ci_new <> ci:
-                clogger.debug("Character is different!")
+                clogger.debug("Character is different! loaded:{0} converted: {1}".format(ci,ci_new))
             ci = ci_new
             clogger.debug("Loaded ambient={0}".format(ambient))
             ambient_in_file = 1
