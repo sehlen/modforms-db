@@ -512,12 +512,12 @@ class MongoMF(object):
         return fs.delete(fid)
 
 
-    def delete_form(self,label,from='mongo'):
+    def delete_form(self,label,delete_from='mongo'):
         r"""
         Deletes information about form with label label from files or mongo or both 'all'.
         """
 
-        if 'mongo' in from:
+        if 'mongo' in delete_from:
             if pymongo.version_tuple[0] < 3:
                 q = self._modular_symbols.find_one({'space_label':label})
             #if not q is None:
