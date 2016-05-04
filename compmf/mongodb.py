@@ -526,13 +526,16 @@ class MongoMF(object):
             else:
                 aps = self._files_collections[self._aps_collection]
                 fid = self._aps.find_one({'hecke_orbit_label':label})
-                aps.delete(fid)
+                res = aps.delete(fid)
+                clogger.debug("Deleted aps {0} with id {1}: for {2}".format(res,fid,label))
                 fs = self._files_collections[self._newform_factors_collection]
                 fid = self._newform_factors.find_one({'hecke_orbit_label':label})
-                fs.delete(fid)
+                res = fs.delete(fid)
+                clogger.debug("Deleted factors {0} with id {1}: for {2}".format(res,fid,label))
                 als = self._files_collections[self._atkin_lehner_collection]
                 fid = self._atkin_lehner.find_one({'hecke_orbit_label':label})
-                als.delete(fid)
+                clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
+                res = als.delete(fid)
             #if not q is None:
                 
                 
