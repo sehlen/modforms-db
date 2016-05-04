@@ -1601,8 +1601,9 @@ class CompMF(MongoMF):
                 precs_in_files = recs
             else:
                 clogger.critical("No recs in files! recs={0}".format(recs))
+                precs_in_files = []
                 pass
-            if not recs is None: 
+            if not recs is None and not None in recs: 
                 for prec1,prec2 in precs_in_files:
                     if prec2 > pprec:
                         compute = False
