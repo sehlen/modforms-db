@@ -552,7 +552,7 @@ class MongoMF(object):
             else:
                 N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label)
             nf = orbit_index_from_label(d)
-            dname = self._db.factor(N,k,i,d)
+            dname = self._db.factor(N,k,i,nf)
             print "factor dir=",dname
             
             #if not q is None:
