@@ -1597,7 +1597,7 @@ class CompMF(MongoMF):
             compute = True
             if hasattr(recs,'keys'):
                 precs_in_files = recs.keys()
-            elif isinstance(recs[0],int):
+            elif isinstance(recs,list) and isinstance(recs[0],int):
                 precs_in_files = recs
             else:
                 clogger.critical("No recs in files! recs={0}".format(recs))
