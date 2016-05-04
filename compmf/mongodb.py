@@ -32,7 +32,7 @@ import gridfs
 
 import multiprocessing
 from multiprocessing import Pool
-
+import wmf
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf import character_conversions
