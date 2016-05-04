@@ -527,7 +527,8 @@ class MongoMF(object):
                 aps = self._files_collections[self._aps_collection]
                 fid = self._aps.find_one({'hecke_orbit_label':label})
                 aps.delete(fid)
-                fs = self._files_collections[self._newform_factors_collection]                                   fid = self._newform_factors.find_one({'hecke_orbit_label':label})
+                fs = self._files_collections[self._newform_factors_collection]
+                fid = self._newform_factors.find_one({'hecke_orbit_label':label})
                 fs.delete(fid)
                 als = self._files_collections[self._atkin_lehner_collection]
                 fid = self._atkin_lehner.find_one({'hecke_orbit_label':label})
