@@ -52,6 +52,7 @@ from compmf.character_conversions import (
     conrey_character_from_number,
     sage_character_to_conrey_character
 )
+from compmf.utils import orbit_index_from_label
 from sage.all import nth_prime,prime_pi,parallel,loads,dimension_new_cusp_forms,RR,ceil,load,dumps,save,euler_phi,floor,QQ,Integer
 from utils import are_compatible,multiply_mat_vec,convert_matrix_to_extension_fld,newform_label
 from compmf import clogger,data_record_checked_and_complete
@@ -550,7 +551,7 @@ class MongoMF(object):
                 N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label+".a")                
             else:
                 N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label)
-            nf = compmf.utils.orbit_index_from_label(d)
+            nf = orbit_index_from_label(d)
             dname = self._db.factor(N,k,chi,d)
             print "factor dir=",dname
             
