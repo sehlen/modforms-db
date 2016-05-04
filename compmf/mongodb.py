@@ -521,8 +521,11 @@ class MongoMF(object):
             #if pymongo.version_tuple[0] < 3:
             if label.count(".")==2:
                 ms = self._files_collections[self._modular_symbols_collection]
-                fid = self._modular_symbols.find_one({'space_label':label})
-                ms.delete(fid)
+                q = self._modular_symbols.find_one({'space_label':label})
+                if not q is None:
+                    fid = q['_id']
+                    res = ms.delete(fid)
+                    clogger.debug("Deleted modular symbols {0} with id {1}: for {2}".format(res,fid,label))          
             else:
                 aps = self._files_collections[self._aps_collection]
                 q = self._aps.find_one({'hecke_orbit_label':label})
@@ -542,7 +545,15 @@ class MongoMF(object):
                     fid = q['_id']
                     res = als.delete(fid)
                     clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
-
+        if 'files' in delete_from:
+            if label.count(".")==2:
+                N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label+".a")                
+            else:
+                N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label)
+            nf = compmf.utils.orbit_index_from_label(d)
+            dname = self._db.factor(N,k,chi,d)
+            print "factor dir=",dname
+            
             #if not q is None:
                 
                 
