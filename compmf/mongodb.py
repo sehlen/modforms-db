@@ -516,7 +516,7 @@ class MongoMF(object):
         r"""
         Deletes information about form with label label from files or mongo or both 'all'.
         """
-        if 
+
         if 'mongo' in from:
             if pymongo.version_tuple[0] < 3:
                 q = self._modular_symbols.find_one({'space_label':label})
