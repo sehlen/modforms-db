@@ -525,17 +525,24 @@ class MongoMF(object):
                 ms.delete(fid)
             else:
                 aps = self._files_collections[self._aps_collection]
-                fid = self._aps.find_one({'hecke_orbit_label':label})
-                res = aps.delete(fid)
-                clogger.debug("Deleted aps {0} with id {1}: for {2}".format(res,fid,label))
+                q = self._aps.find_one({'hecke_orbit_label':label})
+                if not q is None:
+                    fid = q['_id']
+                    res = aps.delete(fid)
+                    clogger.debug("Deleted aps {0} with id {1}: for {2}".format(res,fid,label))
                 fs = self._files_collections[self._newform_factors_collection]
-                fid = self._newform_factors.find_one({'hecke_orbit_label':label})
-                res = fs.delete(fid)
-                clogger.debug("Deleted factors {0} with id {1}: for {2}".format(res,fid,label))
+                q = self._newform_factors.find_one({'hecke_orbit_label':label})
+                if not q is None:
+                    fid = q['_id']
+                    res = fs.delete(fid)
+                    clogger.debug("Deleted factors {0} with id {1}: for {2}".format(res,fid,label))
                 als = self._files_collections[self._atkin_lehner_collection]
-                fid = self._atkin_lehner.find_one({'hecke_orbit_label':label})
-                clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
-                res = als.delete(fid)
+                q = self._atkin_lehner.find_one({'hecke_orbit_label':label})
+                if not q is None:
+                    fid = q['_id']
+                    res = als.delete(fid)
+                    clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
+
             #if not q is None:
                 
                 
