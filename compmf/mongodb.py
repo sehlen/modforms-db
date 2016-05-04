@@ -111,6 +111,12 @@ class MongoMF(object):
         self._atkin_lehner = self._mongodb["{0}.files".format(self._atkin_lehner_collection)]
         self._twists = self._mongodb["twists"]
         self._file_collections = [self._modular_symbols_collection,self._newform_factors_collection,self._aps_collection,self._atkin_lehner_collection]
+        self._files_collections = {
+            name: gridfs.GridFS(self._mongodb,name)
+            for name in self._file_collections
+            }
+      
+        
         self._computations = self._mongodb['computations']
         self._galois_orbits = self._mongodb['galois_orbits']
         self._complete_spaces =  self._mongodb["complete_spaces"]
@@ -505,6 +511,19 @@ class MongoMF(object):
         fs = gridfs.GridFS(self._mongodb,col)
         return fs.delete(fid)
 
+
+    def delete_form(self,label,from='mongo'):
+        r"""
+        Deletes information about form with label label from files or mongo or both 'all'.
+        """
+        if 
+        if 'mongo' in from:
+            if pymongo.version_tuple[0] < 3:
+                q = self._modular_symbols.find_one({'space_label':label})
+            #if not q is None:
+                
+                
+    
     def get_parameters_from_input(self,*args,**kwds):
         r"""
         Extract the parameters: Level,weight,conrey_character_no
@@ -1232,7 +1251,7 @@ class CompMF(MongoMF):
                 clogger.debug("Inserted fid={0}".format(fid))
             except gridfs.errors.FileExists as e:
                 clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
-                rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(i)})
+                rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(ci)})
                 if rec is None:
                     clogger.critical("We could nt find the double record!")
                 else:
