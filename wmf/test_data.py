@@ -21,7 +21,7 @@ def test_forms_in_list(l):
     Compare with sage coefficients (therefore possibly slow...)
     """
     for label in l:
-        F = lmfdb.WebNewForm(label)
+        F = WebNewForm(label)
         M = ModularSymbols(F.character.sage_character,F.weight,sign=1)
         S = M.cuspidal_submodule().new_submodule()
         d =  orbit_index_from_label(F.label)
