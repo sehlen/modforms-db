@@ -8,7 +8,7 @@ Move all tests/checks here...
 import pymongo
 import gridfs
 import bson
-from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime,RR
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
@@ -38,10 +38,15 @@ def test_forms_in_list(l):
             print e
             test = 0
             for n in range(nmax):
-                emb1 = F.coefficient(n).complex_embeddings()
-                emb2 = f.padded_list()[n].complex_embeddings()
-                for j in range(F.coefficient(1).parent().absolute_degree()):
-                    test += abs(emb1[j]-emb2[j])
+                c1 = F.coefficient(n)
+                c2 = f.padded_list()[n]
+                if hasattr(c1,'complex_embeddings'):
+                    emb1 = c1.complex_embeddings()
+                    emb2 = c2.complex_embeddings()
+                    for j in range(len(emb1)):
+                        test += abs(emb1[j]-emb2[j])
+                else:
+                    test += abs(RR(c2)-RR(c1))
         if test != 0: #.count(0) != len(test):
             return False,label,F,f,test
     return True
