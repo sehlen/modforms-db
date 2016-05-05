@@ -79,9 +79,9 @@ class MongoMF(object):
         self._verbose = int(verbose)
         self._db_name = db
         from os.path import dirname, join
-        if pymongo.version_tuple[0] < 3:
+        if pymongo.version_tuple[0] < 3 and kwds.get('replicaset'):
             from pymongo import MongoReplicaSetClient
-            self._mongo_conn = MongoReplicaSetClient('{0}:{1}'.format(host,port))
+            self._mongo_conn = MongoReplicaSetClient('{0}:{1}'.format(host,port),replicaSet=kwds.get('replicaset'))
         else:
             from pymongo.mongo_client import MongoClient
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
