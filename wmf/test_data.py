@@ -25,8 +25,15 @@ def reset_expansions(l):
         F._embeddings = {}
         F.set_q_expansion()
         F.set_q_expansion_embeddings()
-        #try:
-        F.save_to_db()
+        try:
+            F.save_to_db()
+            with open("fixed.txt", "a") as fp:
+                fp.write("'"+label+"',")
+        except pymongo.errors.WTimeoutError:
+            wmf_logger.critical("Timed out! label={0}".format(label))
+            with open("failed.txt", "a") as fp:
+                fp.write("'"+label+"',")
+            pass
         
 def test_forms_in_list(l):
     r"""
