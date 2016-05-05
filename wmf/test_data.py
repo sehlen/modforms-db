@@ -25,7 +25,6 @@ def reset_expansions(l):
         F._embeddings = {}
         F.set_q_expansion()
         F.set_q_expansion_embeddings()
-        F._collection.database.write_concern={'w':"majority",'wtimeout':int(10000)}
         try:
             F.save_to_db()
             with open("fixed.txt", "a") as fp:
