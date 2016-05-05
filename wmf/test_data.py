@@ -25,6 +25,7 @@ def reset_expansions(l):
         F._embeddings = {}
         F.set_q_expansion()
         F.set_q_expansion_embeddings()
+        #try:
         F.save_to_db()
         
 def test_forms_in_list(l):

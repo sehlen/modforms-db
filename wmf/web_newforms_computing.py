@@ -100,6 +100,7 @@ class WebNewForm_computing(WebNewForm):
         self._satake = {}
         #self._twist_info = None
         self._as_polynomial_in_E4_and_E6 = None
+        do_save = False
         ## If it is in the database we don't need to compute everything unless we specify recompute=True
         s = {'hecke_orbit_label':self.hecke_orbit_label}
         if self._db._mongodb[self._collection_name].find(s).count()>0 and recompute is False:
@@ -110,6 +111,7 @@ class WebNewForm_computing(WebNewForm):
             #wmf_logger.debug("computed satake parameters!")            
             #self.set_twist_info()
         else: # reset the computed (possibly wrong) properties of self
+            do_save = True
             self._coefficients={}
             self._embeddings = {}
             self.compute_additional_properties()
@@ -118,7 +120,8 @@ class WebNewForm_computing(WebNewForm):
         #    print "db prop:",p.name,p._value
         #if save_to_db or self.version>1.3:
         self.version = float(emf_version)
-        self.save_to_db() # this should be efficient now
+        if do_save:
+            self.save_to_db() # this should be efficient now
 
     def __repr__(self):
         r"""
