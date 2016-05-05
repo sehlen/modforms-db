@@ -30,6 +30,10 @@ def test_forms_in_list(l):
         f = S[d].q_eigenform(nmax+1,names='a')
         try:
             test = sum([ abs(F.coefficient(n+1) - f.coefficients()[n]) for n in range(nmax)])
+        except IndexError as e:
+            print "nmax=",nmax
+            print "len(f.coefficients())=",len(f.coefficients())
+            raise e
         except TypeError as e:
             print e
             test = 0
