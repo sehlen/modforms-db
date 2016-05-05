@@ -17,6 +17,16 @@ from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm
 from multiprocessing import Pool
 from sage.all import ModularSymbols
 from utils import orbit_label,orbit_index_from_label
+
+def reset_expansions(l):
+    for label in l:
+        F = WebNewForm_computing(label)
+        F._coefficients = {}
+        F._embeddings = {}
+        F.set_q_expansion()
+        F.set_q_expansion_embeddings()
+        F.save_to_db()
+        
 def test_forms_in_list(l):
     r"""
     Compare with sage coefficients (therefore possibly slow...)
