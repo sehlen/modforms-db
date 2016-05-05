@@ -28,7 +28,16 @@ def test_forms_in_list(l):
         d =  orbit_index_from_label(F.label)
         nmax = max(F.level+1,20)
         f = S[d].q_eigenform(nmax+1,names='a')
-        test = [F.coefficient(n+1) - f.coefficients()[n] for n in range(nmax)]
+        try:
+            test = [F.coefficient(n+1) - f.coefficients()[n] for n in range(nmax)]
+        except TypeError as e:
+            print e
+            test = 0
+            for n in range(nmax):
+                emb1 = F.coefficient(n+1).complex_embeddings()
+                emb2 = F.coefficients()[n].complex_embeddings()
+                for j in range(F.coefficient(1).absolute_degree()):
+                    test += abs(emb1[j]-emb2[j])
         if test.count(0) != len(test):
             return False,label,F,f
     return True
