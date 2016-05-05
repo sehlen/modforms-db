@@ -80,12 +80,12 @@ class MongoMF(object):
         self._db_name = db
         from os.path import dirname, join
         if pymongo.version_tuple[0] < 3:
-            self._mongodb = pymongo.Connection('{0}:{1}'.format(host,port))[db]
-            self._mongo_conn = pymongo.Connection('{0}:{1}'.format(host,port))
+            from pymongo import MongoReplicaSetClient
+            self._mongo_conn = MongoReplicaSetClient('{0}:{1}'.format(host,port))
         else:
             from pymongo.mongo_client import MongoClient
-            self._mongodb = MongoClient('{0}:{1}'.format(host,port))[db]
             self._mongo_conn = MongoClient('{0}:{1}'.format(host,port))
+        self._mongodb = self._mongo_conn[db]
         pw_filename = join(dirname(dirname(__file__)), "password")
         user = 'editor'
         try:
