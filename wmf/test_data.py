@@ -20,7 +20,7 @@ def test_forms_in_list(l):
     r"""
     Compare with sage coefficients (therefore possibly slow...)
     """
-    for label in list l:
+    for label in l:
         F = lmfdb.WebNewForm(label)
         M = ModularSymbols(F.character.sage_character,F.weight,sign=1)
         S = M.cuspidal_submodule().new_submodule()
