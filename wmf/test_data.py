@@ -29,7 +29,7 @@ def test_forms_in_list(l):
         nmax = max(F.level+1,20)
         f = S[d].q_eigenform(nmax+1,names='a')
         try:
-            test = sum([ abs(F.coefficient(n+1) - f.padded_list()[n]) for n in range(nmax)])
+            test = sum([ abs(F.coefficient(n) - f.padded_list()[n]) for n in range(nmax)])
         except IndexError as e:
             print "nmax=",nmax
             print "len(f.coefficients())=",len(f.coefficients())
@@ -38,7 +38,7 @@ def test_forms_in_list(l):
             print e
             test = 0
             for n in range(nmax):
-                emb1 = F.coefficient(n+1).complex_embeddings()
+                emb1 = F.coefficient(n).complex_embeddings()
                 emb2 = f.padded_list()[n].complex_embeddings()
                 for j in range(F.coefficient(1).parent().absolute_degree()):
                     test += abs(emb1[j]-emb2[j])
