@@ -43,7 +43,7 @@ def test_forms_in_list(l):
                 for j in range(F.coefficient(1).parent().absolute_degree()):
                     test += abs(emb1[j]-emb2[j])
         if test != 0: #.count(0) != len(test):
-            return False,label,F,f
+            return False,label,F,f,test
     return True
 
 
