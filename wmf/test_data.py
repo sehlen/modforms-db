@@ -28,7 +28,7 @@ def test_forms_in_list(l):
         d =  orbit_index_from_label(F.label)
         nmax = max(F.level+1,20)
         f = S[d].q_eigenform(nmax+1,names='a')
-        test = [F.coefficient(n+1) - f.coefficients()[n] for i in range(nmax)]
+        test = [F.coefficient(n+1) - f.coefficients()[n] for n in range(nmax)]
         if test.count(0) != len(test):
             return False,label,F,f
     return True
