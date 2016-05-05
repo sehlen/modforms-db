@@ -27,7 +27,7 @@ def test_forms_in_list(l):
         S = M.cuspidal_submodule().new_submodule()
         d =  orbit_index_from_label(F.label)
         nmax = max(F.level+1,20)
-        f = S[d].e_eigenform(nmax+1,names='a')
+        f = S[d].q_eigenform(nmax+1,names='a')
         test = [F.coefficient(n+1) - f.coefficients()[n] for i in range(nmax)]
         if test.count(0) != len(test):
             return False,label,F,f
