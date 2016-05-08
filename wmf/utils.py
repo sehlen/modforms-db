@@ -134,7 +134,7 @@ def Modf_changevar2(f,NF,Bfacto=10^6):
 
 def Modf_changevar_f(f,NF=None,Bfacto=10^6):
     try:
-        label = f.coefficiewnt_field.lmfdb_label
+        label = f.coefficient_field.lmfdb_label
     except:
         label = ''
     E = f.eigenvalues.E
@@ -142,7 +142,9 @@ def Modf_changevar_f(f,NF=None,Bfacto=10^6):
     return Modf_changevar_Ev(E,v,NF,Bfacto=Bfaco,Klabel=label)
 
 
-def get_lmfdb_label(v,NF=None,Bfacto=10^6):
+def get_lmfdb_label(v,NF=None,Bfacto=10^6,max_degree = 4):
+    if v[0].parent() != QQ and v[0].parent().absolute_degree() > max_degree:
+        return ''
     return Modf_changevar_Ev(E=None,v=v,NF=NF,Bfacto=Bfacto,Klabel='',label_only=True)
 
 
