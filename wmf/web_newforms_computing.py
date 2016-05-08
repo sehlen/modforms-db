@@ -28,8 +28,10 @@ TODO:
 Fix complex characters. I.e. embedddings and galois conjugates in a consistent way.
 
 """
-from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing, is_fundamental_discriminant
+from sage.all import ZZ, QQ, DirichletGroup, CuspForms, Gamma0, ModularSymbols, Newforms, trivial_character, is_squarefree, divisors, RealField, ComplexField, prime_range, I,gcd, Cusp, Infinity, ceil, CyclotomicField, exp, pi, primes_first_n, euler_phi, RR, prime_divisors, Integer, matrix,NumberField,PowerSeriesRing,cached_function,PolynomialRing, is_fundamental_discriminant,
+Infinity
 from sage.rings.power_series_poly import PowerSeries_poly
+from sage.rings.number_field.number_field import refine_embedding
 from sage.all import Parent, SageObject, dimension_new_cusp_forms, vector, dimension_modular_forms, dimension_cusp_forms, EisensteinForms, Matrix, floor, denominator, latex, is_prime, prime_pi, next_prime, previous_prime,primes_first_n, previous_prime, factor, loads,save,dumps,deepcopy,sturm_bound
 import re
 import yaml
@@ -396,6 +398,11 @@ class WebNewForm_computing(WebNewForm):
         """
         if prec <= 0:
             prec = self.prec_needed_for_lfunctions()
+        if self.coefficient_field == QQ:
+            embeddings = [QQ.complex_embedding()]
+        else:
+            embeddings = self.coefficient_field.complex_embeddings()
+        embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
         ## First check if we have sufficient data
         if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec:
@@ -417,10 +424,7 @@ class WebNewForm_computing(WebNewForm):
                 cn = self.coefficient(n)
             except IndexError:
                 break
-            if hasattr(cn, 'complex_embeddings'):
-                embc = cn.complex_embeddings(bitprec)
-            else:
-                embc = [ CF(cn) ] # this is only occuring for Q
+            embc = [CF(e(cn)) for e in embeddings]
             self._embeddings['values'][n]=embc
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
