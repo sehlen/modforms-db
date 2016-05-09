@@ -299,7 +299,7 @@ class WebNewForm_computing(WebNewForm):
         #wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
             t = 100
-            prec_start = ceil(RR(abs(c2.norm())).log()/RR(2).log()/53.0)+1
+            prec_start = ceil(RR(abs(c2.norm())).log()/RR(2).log()/53.0+1.0)+1
             for mul_prec in range(prec_start,prec_start+20):
                 RF = RealField(mul_prec*53)
                 norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
