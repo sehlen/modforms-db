@@ -158,7 +158,9 @@ def check_orbits(S): ### This should essentially check more than Drew's check
 def recompute_space_completely(label):
     
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
-    N,k,ci = parse_newform_label(label)
+    if hasattr(label,'space_label'):
+        label = label.space_label
+    N,k,ci = parse_space_label(label)
     C.compute_and_insert_one_space(N,k,ci)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
     S = WebModFormSpace_computing(N,k,ci, recompute=True, update_from_db=False)
