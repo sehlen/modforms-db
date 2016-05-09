@@ -40,6 +40,14 @@ try:
     from dirichlet_conrey import *
 except:
     emf_logger.critical("Could not import dirichlet_conrey!")
+
+import signal
+class TimeoutException(Exception):   # Custom exception class
+    pass
+
+def timeout_handler(signum, frame):   # Custom signal handler
+    raise TimeoutException
+
 ## DB modules
 
 
@@ -346,8 +354,20 @@ class WebNewForm_computing(WebNewForm):
             wmf_logger.debug("evs={0}".format(self.eigenvalues))
             self.coefficient_field = self.eigenvalues[2].parent()
             self.coefficient_field_degree = self.coefficient_field.absolute_degree()
-            nf_label = get_lmfdb_label([self.eigenvalues[2]])
-            setattr(self.coefficient_field,'lmfdb_label',nf_label)
+
+            # Change the behavior of SIGALRM
+            signal.signal(signal.SIGALRM, timeout_handler)
+
+            # Start the timer. Once 180 seconds are over, a SIGALRM signal is sent.
+            signal.alarm(180)    
+            # This try/except loop ensures that 
+            #   you'll catch TimeoutException when it's sent.
+            try:
+                nf_label = get_lmfdb_label([self.eigenvalues[2]])
+                setattr(self.coefficient_field,'lmfdb_label',nf_label)
+            except TimeoutException:
+                # Reset the alarm
+                signal.alarm(0)
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
         if self.coefficient_field_degree == 1:
