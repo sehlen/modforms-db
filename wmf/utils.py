@@ -192,7 +192,10 @@ def Modf_changevar_Ev(E=None,v=None,NF=None,Bfacto=10^6,Klabel='',label_only=Fal
         # Lazy order
         pKP=gp.nfinit([P,Bfacto])
         # Sign
-        [r1,r2]=pKP[2]
+        try:
+            [r1,r2]=pKP[2]
+        except ValueError:
+            return ''
         query['signature']=str(r1)+','+str(r2)
         DpKP=pKP[3]
         # Is the lazy order maximal ?
@@ -236,7 +239,7 @@ def Modf_changevar_Ev(E=None,v=None,NF=None,Bfacto=10^6,Klabel='',label_only=Fal
                 Klabel=K['label']
                 break
 
-    if Klabel=='':
+    if Klabel=='' and not label_only:
         # Field not found, so we reduce the initial polynomial as we can
         [Q,iso]=gp.polredbest(P,1)
         Q=ZZx(str(Q))
