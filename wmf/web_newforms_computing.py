@@ -303,8 +303,11 @@ class WebNewForm_computing(WebNewForm):
         c2 = self.coefficient(2)
         wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
-            t = c2.complex_embedding()/RR(2)**((self.weight-1.0)/2.0)
-        else:
+            for mul_prec in range(10):
+                l = c2.complex_embeddings(53*mul_prec)/RR(2)**((self.weight-1.0)/2.0)
+                if abs(sum(l) - c2.trace()) < 1e-8: ### arbitrary test needs to be checked:
+                    t = max([abs(x) for x in l])
+        else:  ## for a rational form 53 bits of precision should be ok...
             t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
             raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
