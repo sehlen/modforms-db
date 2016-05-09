@@ -652,7 +652,7 @@ class MongoMF(object):
         if not hasattr(self,'_db'):
             sources = ['mongo']
         from utils import orbit_index_from_label,param_from_label
-        if d == 'all':
+        if d == 'all' or d is None:
             for d in range(self.number_of_factors(N,k,ci)):
                 res1 = self.get_factors(N,k,ci,d,sources=sources)
                 clogger.debug("res1={0}".format(res1))
