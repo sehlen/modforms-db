@@ -364,12 +364,13 @@ class WebNewForm_computing(WebNewForm):
             #   you'll catch TimeoutException when it's sent.
             try:
                 nf_label = get_lmfdb_label([self.eigenvalues[2]])
-                setattr(self.coefficient_field,'lmfdb_label',nf_label)
             except TimeoutException:
-                # Reset the alarm
-                signal.alarm(0)
+                nf_label = ''
+            #Reset the alarm
+            signal.alarm(0)
         except KeyError:
             raise KeyError,"We do not have eigenvalue a(2) for this newform!"
+        setattr(self.coefficient_field,'lmfdb_label',nf_label)
         if self.coefficient_field_degree == 1:
             self.is_rational = True
         else:
