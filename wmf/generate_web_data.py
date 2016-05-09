@@ -2057,16 +2057,20 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
                     if not f.has_updated_from_fs() and f.has_updated_from_db():
                         recompute_completely = True
                         break
-                    #Checking Deligne bound
-                    c2 = f.coefficient(2)
-                    #wmf_logger.critical("parent={0}".format(c2.parent()))
-                    if c2.parent() <> QQ:
-                        t = c2.complex_embedding()/RR(2)**((k-1.0)/2.0)
                     else:
-                        t = RR(c2)/RR(2)**((k-1.0)/2.0)
-                    if abs(t) > 2:
-                        wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
-                        recompute_completely = True
+                        #Checking Deligne bound
+                        try:
+                            c2 = f.coefficient(2)
+                            #wmf_logger.critical("parent={0}".format(c2.parent()))
+                            if c2.parent() <> QQ:
+                                t = c2.complex_embedding()/RR(2)**((k-1.0)/2.0)
+                            else:
+                                t = RR(c2)/RR(2)**((k-1.0)/2.0)
+                                if abs(t) > 2:
+                                    wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
+                                    recompute_completely = True
+                        except:
+                            recompute_completely = True
             else:
                 recompute_completely = True
             if recompute_completely:
