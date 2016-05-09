@@ -92,7 +92,7 @@ def check_spaces_for_recomputation(args):
             if check_if_updated(S):
                 if check_deligne(S):
                     continue
-        recompute_spaces.append(S.space_orbit)
+                    recompute_spaces.append(S.space_label)
     print "Need to recompiute {0} spaces!".format(len(recompute_spaces))
     ## Then do the recomputations. We can even try with parallell...
     return recompute_spaces
