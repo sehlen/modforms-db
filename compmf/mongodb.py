@@ -605,7 +605,7 @@ class MongoMF(object):
         Get dimension of cusp forms in S_k(N,i).
 
         """
-        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
+        N,k,ci = self.get_parameters_from_input(N,k,ci)
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)},projection=['dimc'])
         if r is None:
             return -1
@@ -616,7 +616,7 @@ class MongoMF(object):
         Get dimension of cusp forms in S_k(N,i).
 
         """
-        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
+        N,k,ci = self.get_parameters_from_input(N,k,ci)
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)},projection=['dimn'])
         if r is None:
             return -1
