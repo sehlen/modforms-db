@@ -116,7 +116,11 @@ def check_one_space(S):
 def check_deligne(S):
     from sage.all import RealField
     for f in S.hecke_orbits.values():
-        c2 = f.coefficient(2)
+        try:
+            c2 = f.coefficient(2)
+        except StopIteration:
+            wmf_logger.info("Newform does not have coefficient 2")
+            return False
         t = 1000
         if c2.parent() <> QQ:
             for mul_prec in range(1,20):
