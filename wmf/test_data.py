@@ -84,21 +84,28 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
                 args.append(r['space_label'])
     return args
 
-def check_spaces_for_recomputation(args):
+def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
     recompute_spaces = []
     for label in args:
         S = WebModFormSpace_computing(label, recompute=False)
-        if check_orbits(S):
-            if check_if_updated(S):
-                if check_deligne(S):
-                    continue
+        if check_one_space(S):
+            continue
         recompute_spaces.append(S.space_label)
     print "Need to recomiute {0} spaces!".format(len(recompute_spaces))
     ## Then do the recomputations. We can even try with parallell...
+    if do_recompute:
+        pool = Pool(processes=kwds.get('ncpus',1))
+        chunksize=kwds.get('chunksize',20)
+        results = pool.imap_unordered(recompute_space_completely,recompute_spaces,chunksize)
+        return list(results)
     return recompute_spaces
 
-
-                                        
+def check_one_space(S):
+    if check_orbit(S):
+        if check_if_updated(S):
+            if check_deligne(S):
+                return True
+    return False
     
 def check_deligne(S):
     from sage.all import RealField
