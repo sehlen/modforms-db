@@ -2075,6 +2075,7 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
                 recompute_completely = True
             if recompute_completely:
                 C.compute_and_insert_one_space(N,k,1)
-                cid = D.register_computation(level=N,weight=k,cchi=k,typec='wmf')
+                cid = D.register_computation(level=N,weight=k,cchi=1,typec='wmf')
                 S = WebModFormSpace_computing(N,k,1, recompute=True, update_from_db=False)
                 D.register_computation_closed(cid)
+

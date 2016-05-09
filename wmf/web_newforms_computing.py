@@ -303,7 +303,7 @@ class WebNewForm_computing(WebNewForm):
         c2 = self.coefficient(2)
         wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
-            for mul_prec in range(10):
+            for mul_prec in range(1,10):
                 RF = RealField(mul_prec*53)
                 l = c2.complex_embeddings(53*mul_prec)/RF(2)**((RF(self.weight)-RF(1))/RF(2))
                 if abs(sum(l) - c2.trace()) < 1e-8: ### arbitrary test needs to be checked:
