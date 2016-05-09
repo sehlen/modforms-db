@@ -299,16 +299,21 @@ class WebNewForm_computing(WebNewForm):
         #wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
             t = 100
-            for mul_prec in range(1,10):
+            prec_start = ceil(RR(c2.norm()).log()/RR(2).log()/53.0)+1
+            for mul_prec in range(prec_start,20):
                 RF = RealField(mul_prec*53)
                 norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
                 l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
                 err = abs(sum(l) - c2.trace()/norm)
                 if  err < 1e-8: ### arbitrary test needs to be checked:
                     t = max([abs(x) for x in l])
+                    wmf_logger.info("Using pprec={0} got err={1} and t={2} \n l={3}".format(mul_prec*53,err,t,l))
                     break
+            if mul_prec == 19:
+                wmf_logger.critical("Tried precision: {0} and still got err={1} and t={2}".format(mul_prec*53,err,t))
         else:  ## for a rational form 53 bits of precision should be ok...
-            t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+            RF = RealField(2*53)            
+            t = RF(c2)/RF(2)**((RF(self.weight)-RF(1))/RF(2))
         if abs(t) > 2:
             raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
         for n in range(1,m):
