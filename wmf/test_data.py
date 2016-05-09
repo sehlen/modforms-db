@@ -91,7 +91,7 @@ def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
         if check_one_space(S):
             continue
         recompute_spaces.append(S.space_label)
-    print "Need to recomiute {0} spaces!".format(len(recompute_spaces))
+    print "Need to recompute {0} spaces!".format(len(recompute_spaces))
     ## Then do the recomputations. We can even try with parallell...
     if do_recompute:
         pool = Pool(processes=kwds.get('ncpus',1))
@@ -101,11 +101,17 @@ def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
     return recompute_spaces
 
 def check_one_space(S):
-    if check_orbits(S):
-        if check_if_updated(S):
-            if check_deligne(S):
-                return True
-    return False
+    success = True
+    if not check_orbits(S):
+        wmf_logger.info("space failed orbit check!")
+        success= False
+    if not check_if_updated(S):
+        wmf_logger.info("space is not updated!")
+        success= False        
+    if not check_deligne(S):
+        wmf_logger.info("space does not satisfy deligne's bound!")
+        success= False        
+    return success
     
 def check_deligne(S):
     from sage.all import RealField
@@ -156,7 +162,7 @@ def check_orbits(S): ### This should essentially check more than Drew's check
     try:
         for label in S.hecke_orbits:
             F = S.hecke_orbits[label]
-            if F.as_factor().dimension() != F.dimension():
+            if F.as_factor().dimension() != F.dimension:
                 F.set_dimensions()
             dim_here += F.dimension()
         if dim_here != dim_true:
@@ -176,4 +182,5 @@ def recompute_space_completely(label):
     C.check_record(N,k,ci,check_content=True,recheck=True)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
     S = WebModFormSpace_computing(N,k,ci, recompute=True, update_from_db=False)
+    S.save_to_db()
     D.register_computation_closed(cid)
