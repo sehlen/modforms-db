@@ -201,23 +201,21 @@ class WebNewForm_computing(WebNewForm):
         The dimension of this galois orbit is not necessarily equal to the degree of the number field, when we have a character....
         We therefore need this routine to distinguish between the two cases...
         """
-        if not self._properties['dimension'].has_been_set():
-            wmf_logger.critical("Set dimension!")
-            try:
-                self.dimension = self.as_factor().dimension()
-                wmf_logger.critical("Set from factor")
-            except ValueError:
-                # check if we have a zero space
-                if self.character.number == 1:
-                    dim = dimension_new_cusp_forms(self.level,self.weight)
-                else:
-                    dim = dimension_new_cusp_forms(self.character.sage_character,self.weight)
-                if dim == 0:
-                    self.dimension = int(0)
-                else:
-                    raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
+        #if not self._properties['dimension'].has_been_set(): if we call this routine we want it to be computed
+        wmf_logger.critical("Set dimension!")
+        try:
+            self.dimension = self.as_factor().dimension()
+            wmf_logger.critical("Set from factor")
+        except ValueError:
+            # check if we have a zero space
+            if self.character.number == 1:
+                dim = dimension_new_cusp_forms(self.level,self.weight)
             else:
-                wmf_logger.critical("Already Set dimension!")
+                dim = dimension_new_cusp_forms(self.character.sage_character,self.weight)
+            if dim == 0:
+                self.dimension = int(0)
+            else:
+                raise ValueError,"Ambient space is not zero dimensional so this function {0} is just not computed!".format(self.hecke_orbit_label)
                 
     def set_aps(self,reload_from_db=False,want_prec=None):
         r"""

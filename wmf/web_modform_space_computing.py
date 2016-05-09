@@ -86,6 +86,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         #    return 
         self.setup_modular_symbols_db()
         if kwds.get('recompute',True):
+            self.hecke_orbits
             self.compute_additional_properties()
         else:
             self.update_dimension_table()
@@ -302,6 +303,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         current_dim = 0; i = 0
         dim = self.dimension_new_cusp_forms
         wmf_logger.debug("Dimension={0}".format(dim))
+        self.hecke_orbits = {}
         while current_dim < dim and i<dim: ## 
             label = orbit_label(i)
             wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
