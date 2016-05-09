@@ -296,6 +296,7 @@ class WebNewForm_computing(WebNewForm):
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         self.coefficients(range(1,m))
         ### Include small sanity check
+        from test_data import check_deligne_one_form
         check_deligne_one_form(self)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
