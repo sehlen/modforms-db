@@ -82,6 +82,8 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
             for r in D._mongodb['webmodformspace'].find({'level':N,'weight':k,'version':float(1.3)}):
                 args.append(r['space_label'])
+    return args
+
 def check_spaces_for_recomputation(args):
     recompute_spaces = []
     for label in args:
@@ -153,9 +155,9 @@ def check_orbits(S): ### This should essentially check more than Drew's check
         return False
     return True
 
-def recompute_completely(label):
+def recompute_space_completely(label):
     
-    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
     N,k,ci = parse_newform_label(label)
     C.compute_and_insert_one_space(N,k,ci)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
