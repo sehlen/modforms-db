@@ -121,7 +121,7 @@ def check_deligne(S):
         if c2.parent() <> QQ:
             for mul_prec in range(1,20):
                 RF = RealField(mul_prec*53)
-                norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
+                norm = RF(2)**((RF(S.weight)-RF(1))/RF(2))
                 l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
                 err = abs(sum(l) - c2.trace()/norm)
                 if  err < 1e-8:
