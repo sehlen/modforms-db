@@ -117,7 +117,7 @@ def check_deligne(S):
     from sage.all import RealField
     for f in S.hecke_orbits.values():
         if not check_deligne_one_form(f):
-
+            return False
 
 def check_deligne_one_form(f):
     for p in prime_range(f.max_cn()):
