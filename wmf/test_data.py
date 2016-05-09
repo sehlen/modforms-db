@@ -166,7 +166,12 @@ def check_orbits(S): ### This should essentially check more than Drew's check
     try:
         for label in S.hecke_orbits:
             F = S.hecke_orbits[label]
-            if F.as_factor().dimension() != F.dimension:
+            FF = WebNewForm_computing(F.hecke_orbit_label)
+            fact = FF.as_factor()
+            if fact.character() != F.character.sage_character:
+                wmf_logger.critical("The character is wrong!")
+                return False
+            if fact.dimension() != F.dimension:
                 F.set_dimensions()
             dim_here += F.dimension()
         if dim_here != dim_true:
