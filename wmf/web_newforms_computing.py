@@ -315,7 +315,7 @@ class WebNewForm_computing(WebNewForm):
                     t = max([abs(x) for x in l])
                     break
             if mul_prec == 19:
-                wmf_logger.critical("Tried precision: {0} and still got err={1} and t={2}".format(mul_prec*53,err,t)
+                wmf_logger.critical("Tried precision: {0} and still got err={1} and t={2}".format(mul_prec*53,err,t))
         else:  ## for a rational form 53 bits of precision should be ok...
             t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
