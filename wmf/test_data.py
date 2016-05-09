@@ -15,7 +15,7 @@ from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm
 from multiprocessing import Pool
-from sage.all import ModularSymbols
+from sage.all import ModularSymbols, ceil
 from utils import orbit_label,orbit_index_from_label
 
 def reset_expansions(l):
