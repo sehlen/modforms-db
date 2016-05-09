@@ -305,7 +305,7 @@ class WebNewForm_computing(WebNewForm):
         if c2.parent() <> QQ:
             for mul_prec in range(1,10):
                 RF = RealField(mul_prec*53)
-                l = c2.complex_embeddings(53*mul_prec)/RF(2)**((RF(self.weight)-RF(1))/RF(2))
+                l = [x/RF(2)**((RF(self.weight)-RF(1))/RF(2)) for x in c2.complex_embeddings(53*mul_prec)]
                 if abs(sum(l) - c2.trace()) < 1e-8: ### arbitrary test needs to be checked:
                     t = max([abs(x) for x in l])
         else:  ## for a rational form 53 bits of precision should be ok...
