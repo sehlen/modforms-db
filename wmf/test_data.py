@@ -79,7 +79,7 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
     D = MongoMF()
     args = []
     for N in xrange(start_level, max_level+1):
-        for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
+        for k in [w for w in xrange(start_weight, max_weight+1)]:
             for r in D._mongodb['webmodformspace'].find({'level':N,'weight':k,'version':float(1.3)}):
                 args.append(r['space_label'])
     return args
