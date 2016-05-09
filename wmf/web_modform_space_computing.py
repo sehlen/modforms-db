@@ -87,7 +87,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         #    return 
         self.setup_modular_symbols_db()
         if kwds.get('recompute',True):
-            self._clear_cache()            
+            self._clear_cache_()            
             self.compute_additional_properties()
         else:
             self.update_dimension_table()
@@ -301,7 +301,7 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         """
         from web_newforms_computing import WebNewForm_computing
-        WebNewForm_computing._clear_cache()
+        WebNewForm_computing._clear_cache_()
         current_dim = 0; i = 0
         dim = self.dimension_new_cusp_forms
         wmf_logger.debug("Dimension={0}".format(dim))
