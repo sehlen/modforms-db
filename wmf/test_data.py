@@ -77,40 +77,67 @@ bober_errors = ['11.11.10.b', '11.11.2.a', '11.12.1.a', '11.5.10.a', '11.7.10.b'
 def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
     C = CompMF('/mnt/data/stromberg/modforms-db')
     D = MongoMF()
+    args = []
     for N in xrange(start_level, max_level+1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
-            S = WebModFormSpace_computing(N,k,1, recompute=False)
-            if S.dimension == 0 and dimension_new_cusp_forms(N,k) == 0:
-                continue
-            recompute_completely = False
-            if S.has_updated_from_db() and S.has_updated_from_fs():
-                for f in S.hecke_orbits.values():
-                    if not f.has_updated_from_fs() and f.has_updated_from_db():
-                        recompute_completely = True
-                        break
-                    else:
-                        #Checking Deligne bound
-                        try:
-                            c2 = f.coefficient(2)
-                            #wmf_logger.critical("parent={0}".format(c2.parent()))
-                            if c2.parent() <> QQ:
-                                t = c2.complex_embedding()/RR(2)**((k-1.0)/2.0)
-                            else:
-                                t = RR(c2)/RR(2)**((k-1.0)/2.0)
-                                if abs(t) > 2:
-                                    wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
-                                    recompute_completely = True
-                        except:
-                            recompute_completely = True
-            else:
-                recompute_completely = True
-            if recompute_completely:
-                recompute_completely("{0}.{1}.{2}".format(N,k,ci))
+            for r in D._mongodb['webmodformspace'].find({'level':N,'weight':k,'version':float(1.3)}):
+                args.append(r['space_label'])
+def check_spaces_for_recomputation(args):
+    recompute_spaces = []
+    for label in args:
+        S = WebModFormSpace_computing(label, recompute=False)
+        if check_orbits(S):
+            if check_if_updated(S):
+                if check_deligne(S):
+                    continue
+        recompute_spaces.append(S.space_orbit)
+    print "Need to recompiute {0} spaces!".format(len(recompute_spaces))
+    ## Then do the recomputations. We can even try with parallell...
+    return recompute_spaces
 
-def check_orbits(S): ### This should do the same as Drew's check.
+
+                                        
+    
+def check_deligne(S):
+    from sage.all import RealField
+    for f in S.hecke_orbits.values():
+        c2 = f.coefficient(2)
+        t = 1000
+        if c2.parent() <> QQ:
+            for mul_prec in range(1,20):
+                RF = RealField(mul_prec*53)
+                norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
+                l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
+                err = abs(sum(l) - c2.trace()/norm)
+                if  err < 1e-8:
+                    ### arbitrary test to ensure that the precision is sufficient
+                    ###  Should be checked in theory...
+                    t = max([abs(x) for x in l])
+                    break
+        else:  ## for a rational form 53 bits of precision should be ok...
+            t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+        if abs(t) > 2.0:
+            wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
+
+            return False
+                
+def check_if_updated(S):
+    r"""
+    Return False if S or one of its orbits have not updated from db / fs
+    """
+    if not S.has_updated_from_db() and S.has_updated_from_fs():
+        return False
+    for f in S.hecke_orbits.values():
+        if not f.has_updated_from_fs() and f.has_updated_from_db():
+            return False
+    return True
+                
+def check_orbits(S): ### This should essentially check more than Drew's check
     r"""
     Check consistency of orbits in the space S.
+    Return True if the orbits are all there and have correct dimensions.
     """
+    from sage.all import dimension_new_cusp_forms
     dim_true = dimension_new_cusp_forms(S.character.sage_character,S.weight)
     if S.dimension_new_cusp_forms != dim_true:
         S.set_dimensions()
@@ -127,8 +154,10 @@ def check_orbits(S): ### This should do the same as Drew's check.
     return True
 
 def recompute_completely(label):
+    
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
     N,k,ci = parse_newform_label(label)
-    C.compute_and_insert_one_space(N,k,1)
-    cid = D.register_computation(level=N,weight=k,cchi=k,typec='wmf')
-    S = WebModFormSpace_computing(N,k,1, recompute=True, update_from_db=False)
+    C.compute_and_insert_one_space(N,k,ci)
+    cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
+    S = WebModFormSpace_computing(N,k,ci, recompute=True, update_from_db=False)
     D.register_computation_closed(cid)

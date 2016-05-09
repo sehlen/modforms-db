@@ -301,7 +301,7 @@ class WebNewForm_computing(WebNewForm):
         self.coefficients(range(1,m))
         ### Include small sanity check
         c2 = self.coefficient(2)
-        wmf_logger.critical("parent={0}".format(c2.parent()))
+        #wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
             t = 100
             for mul_prec in range(1,10):
