@@ -309,7 +309,7 @@ class WebNewForm_computing(WebNewForm):
                 norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
                 l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
                 err = abs(sum(l) - c2.trace()/norm)
-                if  < 1e-8: ### arbitrary test needs to be checked:
+                if  err < 1e-8: ### arbitrary test needs to be checked:
                     t = max([abs(x) for x in l])
                     break
         else:  ## for a rational form 53 bits of precision should be ok...
