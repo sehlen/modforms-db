@@ -156,7 +156,8 @@ def check_orbits(S): ### This should essentially check more than Drew's check
     return True
 
 def recompute_space_completely(label):
-    
+    C = CompMF('/mnt/data/stromberg/modforms-db')
+    D = MongoMF()
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
     if hasattr(label,'space_label'):
         label = label.space_label
