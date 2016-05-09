@@ -118,6 +118,7 @@ def check_deligne(S):
     for f in S.hecke_orbits.values():
         if not check_deligne_one_form(f):
             return False
+    return True
 
 def check_deligne_one_form(f):
     for p in prime_range(f.max_cn()):
