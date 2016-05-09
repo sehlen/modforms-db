@@ -2046,8 +2046,8 @@ def long_check_par(t):
 def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1):
     C = CompMF('/mnt/data/stromberg/modforms-db')
     D = MongoMF()
-    for N in range(start_level, max_level+1):
-        for k in range(start_weight, max_weight+1):
+    for N in xrange(start_level, max_level+1):
+        for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
             S = WebModFormSpace_computing(N,k,1, recompute=False)
             if S.dimension == 0 and dimension_new_cusp_forms(N,k) == 0:
                 continue
