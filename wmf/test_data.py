@@ -125,16 +125,16 @@ def check_deligne_one_form(f):
         try:
             cp = f.coefficient(p)
         except StopIteration:
-            wmf_logger.info("Newform does not have coefficient 2")
+            wmf_logger.info("Newform does not have coefficient {0}".format(p))
             return False
         if cp.norm()==0:
             continue
         t = 1000
         if cp.parent() <> QQ:
-            prec_start = ceil(RR(abs(cp.norm())+2).log()/RR(2).log()/53.0)+1
+            prec_start = ceil(RR(abs(cp.norm())+2).log()/RR(p).log()/53.0)+1
             for mul_prec in range(prec_start,prec_start+20):
                 RF = RealField(mul_prec*53)
-                norm = RF(2)**((RF(f.weight)-RF(1))/RF(2))
+                norm = RF(p)**((RF(f.weight)-RF(1))/RF(2))
                 l = [x/norm for x in cp.complex_embeddings(53*mul_prec)]
                 err = abs(sum(l) - cp.trace()/norm)
                 if  err < 1e-8:
@@ -143,7 +143,7 @@ def check_deligne_one_form(f):
                     t = max([abs(x) for x in l])
                     break
         else:  ## for a rational form 53 bits of precision should be ok...
-            t = RR(c2)/RR(2)**((f.weight-1.0)/2.0)
+            t = RR(cp)/RR(p)**((f.weight-1.0)/2.0)
         if abs(t) > 2.0:
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
 
