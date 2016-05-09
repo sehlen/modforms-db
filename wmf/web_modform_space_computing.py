@@ -41,6 +41,7 @@ from compmf import MongoMF
 
 from wmf import wmf_logger,WebNewForm_computing,orbit_index_from_label,orbit_label
 
+from sage.structure.unique_representation import CachedRepresentation
 
 class WebModFormSpace_computing(WebModFormSpace):
     r"""
@@ -86,7 +87,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         #    return 
         self.setup_modular_symbols_db()
         if kwds.get('recompute',True):
-            self.hecke_orbits
+            self._clear_cache()            
             self.compute_additional_properties()
         else:
             self.update_dimension_table()
@@ -300,6 +301,7 @@ class WebModFormSpace_computing(WebModFormSpace):
 
         """
         from web_newforms_computing import WebNewForm_computing
+        WebNewForm_computing._clear_cache()
         current_dim = 0; i = 0
         dim = self.dimension_new_cusp_forms
         wmf_logger.debug("Dimension={0}".format(dim))

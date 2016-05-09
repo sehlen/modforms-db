@@ -121,6 +121,8 @@ class WebNewForm_computing(WebNewForm):
             #self.set_twist_info()
         else: # reset the computed (possibly wrong) properties of self
             do_save = True
+            self._clear_cache()
+       
             self._coefficients={}
             self._embeddings = {}
             self.compute_additional_properties()
