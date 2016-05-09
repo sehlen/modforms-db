@@ -146,12 +146,15 @@ def check_orbits(S): ### This should essentially check more than Drew's check
     if S.dimension_new_cusp_forms != dim_true:
         return False
     dim_here = 0
-    for label in S.hecke_orbits:
-        F = S.hecke_orbits[label]
-        if F.as_factor().dimension() != F.dimension():
-            F.set_dimensions()
-        dim_here += F.dimension()
-    if dim_here != dim_true:
+    try:
+        for label in S.hecke_orbits:
+            F = S.hecke_orbits[label]
+            if F.as_factor().dimension() != F.dimension():
+                F.set_dimensions()
+            dim_here += F.dimension()
+        if dim_here != dim_true:
+            return False
+    except:
         return False
     return True
 
@@ -163,6 +166,7 @@ def recompute_space_completely(label):
         label = label.space_label
     N,k,ci = parse_space_label(label)
     C.compute_and_insert_one_space(N,k,ci)
+    C.check_record(N,k,ci,check_content=True,recheck=True)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
     S = WebModFormSpace_computing(N,k,ci, recompute=True, update_from_db=False)
     D.register_computation_closed(cid)

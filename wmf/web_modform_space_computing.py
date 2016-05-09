@@ -306,12 +306,13 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.hecke_orbits = {}
         while current_dim < dim and i<dim: ## 
             label = orbit_label(i)
-            wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
+            #wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
             F = WebNewForm_computing(self.level,self.weight,self.character.number,label,recompute=True, update_from_db=False)
             current_dim += F.dimension
             i+=1
             wmf_logger.debug("current_dim={0}".format(current_dim))
-            self.hecke_orbits[label]=F
+            if F.dimension > 0:
+                self.hecke_orbits[label]=F
                        
     def set_oldspace_decomposition(self):
         r"""
