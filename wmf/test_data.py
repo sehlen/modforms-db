@@ -130,7 +130,7 @@ def check_deligne(S):
                     t = max([abs(x) for x in l])
                     break
         else:  ## for a rational form 53 bits of precision should be ok...
-            t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
+            t = RR(c2)/RR(2)**((S.weight-1.0)/2.0)
         if abs(t) > 2.0:
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
 
