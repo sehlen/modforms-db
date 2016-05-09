@@ -585,9 +585,7 @@ class MongoMF(object):
             - get_record (False) -- if True return the database record instead of the space.
         """
         ambient_id = kwds.get('ambient_id',None)
-        if isinstance(N,basestring):
-            N,k,ci = param_from_label(N)
-        N = int(N); k = int(k); ci = int(ci)
+        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
         if ambient_id is None:
             s = {'N':N,'k':k,'cchi':ci}
             f = self._modular_symbols.find_one(s)
@@ -607,8 +605,7 @@ class MongoMF(object):
         Get dimension of cusp forms in S_k(N,i).
 
         """
-        if isinstance(N,basestring):
-            N,k,ci = param_from_label(N)
+        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)},projection=['dimc'])
         if r is None:
             return -1
@@ -619,8 +616,7 @@ class MongoMF(object):
         Get dimension of cusp forms in S_k(N,i).
 
         """
-        if isinstance(N,basestring):
-            N,k,ci = param_from_label(N)
+        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
         r = self._modular_symbols.find_one({'N':int(N),'k':int(k),'cchi':int(ci)},projection=['dimn'])
         if r is None:
             return -1
@@ -630,8 +626,8 @@ class MongoMF(object):
         r"""
         Return the number of factors.
         """
-        if isinstance(N,basestring):
-            N,k,ci = param_from_label(N)
+        
+        N,k,ci = self.get_parameters_from_input(N,k,ci,**kwds)
         s = {'N':int(N),'k':int(k),'cchi':int(ci)}
         nf = self._newform_factors.find(s).count()
         if nf > 0:
@@ -665,8 +661,12 @@ class MongoMF(object):
             return res
         if isinstance(N,basestring):
             N,k,ci,d = param_from_label(N)
+        else:
+            N= int(N); k=int(k); ci=int(ci)
         if isinstance(d,basestring):
             d = orbit_index_from_label(d)
+        else:
+            d = int(d)
         if sources == ['mongo']:
             ## Fetch the record in the database corresponding to cchi=i or the Galois orbit of
             ## chi_N,i  (in Conrey's character naming scheme)
@@ -730,6 +730,7 @@ class MongoMF(object):
             N,k,ci,d = param_from_label(N)
         if isinstance(d,basestring):
             d = orbit_index_from_label(d)
+        N = int(N); k=int(k); ci=int(ci); d=int(d)
         res = None
         if sources == ['mongo']:
             ## Fetch the record in the database corresponding to cchi=i or the Galois orbit of
@@ -1308,6 +1309,7 @@ class CompMF(MongoMF):
         ambient_id = kwds.get('ambient_id',None)
         compute = kwds.get('compute',self._do_computations)
         clogger.debug("in compute_factors")
+        N = int(N); k=int(k); ci=int(ci)
         if ambient_id is None:
             ambient_id = self.compute_ambient(N,k,ci,**kwds)
         on = conrey_character_number_to_conrey_galois_orbit_number(N,ci)[1]
