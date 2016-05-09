@@ -2042,3 +2042,33 @@ def long_check_par(t):
         except StopIteration:
             pass
         return True
+
+def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1):
+    C = CompMF()
+    D = MongoMF()
+    for N in range(start_level, max_level+1):
+        for k in range(start_weight, max_weight+1):
+            S = WebModFormSpace(N,k,1)
+            recompute_completely = False
+            if S.has_updated_from_db() and S.has_updated_from_fs():
+                for f in S.hecke_orbits:
+                    if not f.has_updated_from_fs() and f.has_updated_from_db():
+                        recompute_completely = True
+                        break
+                    #Checking Deligne bound
+                    c2 = f.coefficient(2)
+                    #wmf_logger.critical("parent={0}".format(c2.parent()))
+                    if c2.parent() <> QQ:
+                        t = c2.complex_embedding()/RR(2)**((k-1.0)/2.0)
+                    else:
+                        t = RR(c2)/RR(2)**((k-1.0)/2.0)
+                    if abs(t) > 2:
+                        wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
+                        recompute_completely = True
+            else:
+                recompute_completely = True
+            if recompute_completely:
+                C.compute_and_insert_one_space(N,k,1)
+                cid = D.register_computation(level=N,weight=k,cchi=k,typec='wmf')
+                S = WebModFormSpace_computing(N,k,1, recompute=True, update_from_db=False)
+                D.register_computation_closed(cid)
