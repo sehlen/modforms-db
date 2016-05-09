@@ -303,11 +303,15 @@ class WebNewForm_computing(WebNewForm):
         c2 = self.coefficient(2)
         wmf_logger.critical("parent={0}".format(c2.parent()))
         if c2.parent() <> QQ:
+            t = 100
             for mul_prec in range(1,10):
                 RF = RealField(mul_prec*53)
-                l = [x/RF(2)**((RF(self.weight)-RF(1))/RF(2)) for x in c2.complex_embeddings(53*mul_prec)]
-                if abs(sum(l) - c2.trace()) < 1e-8: ### arbitrary test needs to be checked:
+                norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
+                l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
+                err = abs(sum(l) - c2.trace()/norm)
+                if  < 1e-8: ### arbitrary test needs to be checked:
                     t = max([abs(x) for x in l])
+                    break
         else:  ## for a rational form 53 bits of precision should be ok...
             t = RR(c2)/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
