@@ -313,7 +313,7 @@ class WebNewForm_computing(WebNewForm):
                 err = abs(sum(l) - c2.trace()/norm)
                 if  err < 1e-8: ### arbitrary test needs to be checked:
                     t = max([abs(x) for x in l])
-                    wmf_logger.info("Using pprec={0} got err={1} and t={2}".format(mul_prec*53,err,t))
+                    wmf_logger.info("Using pprec={0} got err={1} and t={2} \n l={3}".format(mul_prec*53,err,t),l)
                     break
             if mul_prec == 19:
                 wmf_logger.critical("Tried precision: {0} and still got err={1} and t={2}".format(mul_prec*53,err,t))
