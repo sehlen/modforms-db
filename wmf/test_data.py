@@ -116,14 +116,22 @@ def check_one_space(S):
 def check_deligne(S):
     from sage.all import RealField
     for f in S.hecke_orbits.values():
+        if not check_deligne_one_form(f):
+
+
+def check_deligne_one_form(f):
+    for p in prime_range(f.max_cn()):
         try:
-            c2 = f.coefficient(2)
+            cp = f.coefficient(p)
         except StopIteration:
             wmf_logger.info("Newform does not have coefficient 2")
             return False
+        if cp.norm()==0:
+            continue
         t = 1000
         if c2.parent() <> QQ:
-            for mul_prec in range(1,20):
+            prec_start = ceil(RR(abs(c2.norm())+2).log()/RR(2).log()/53.0)+1
+            for mul_prec in range(prec_start,prec_start+20):
                 RF = RealField(mul_prec*53)
                 norm = RF(2)**((RF(S.weight)-RF(1))/RF(2))
                 l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
@@ -139,7 +147,11 @@ def check_deligne(S):
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
 
             return False
-                
+    if p==f.max_cn()-1:
+        return False
+    return True
+    
+        
 def check_if_updated(S):
     r"""
     Return False if S or one of its orbits have not updated from db / fs

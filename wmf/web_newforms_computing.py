@@ -218,6 +218,7 @@ class WebNewForm_computing(WebNewForm):
         
         """
         from sage.all import previous_prime,prime_pi
+        from test_data import check_deligne_one_form
         if want_prec is None:
             want_prec = 0
         want_prec = max(self.prec_needed_for_lfunctions(),want_prec)
@@ -295,27 +296,7 @@ class WebNewForm_computing(WebNewForm):
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         self.coefficients(range(1,m))
         ### Include small sanity check
-        c2 = self.coefficient(2)
-        #wmf_logger.critical("parent={0}".format(c2.parent()))
-        if c2.parent() <> QQ:
-            t = 100
-            prec_start = ceil(RR(abs(c2.norm())+2).log()/RR(2).log()/53.0)+1
-            for mul_prec in range(prec_start,prec_start+20):
-                RF = RealField(mul_prec*53)
-                norm = RF(2)**((RF(self.weight)-RF(1))/RF(2))
-                l = [x/norm for x in c2.complex_embeddings(53*mul_prec)]
-                err = abs(sum(l) - c2.trace()/norm)
-                if  err < 1e-8: ### arbitrary test needs to be checked:
-                    t = max([abs(x) for x in l])
-                    wmf_logger.info("Using pprec={0} got err={1} and t={2} \n l={3}".format(mul_prec*53,err,t,l))
-                    break
-            if mul_prec == 19:
-                wmf_logger.critical("Tried precision: {0} and still got err={1} and t={2}".format(mul_prec*53,err,t))
-        else:  ## for a rational form 53 bits of precision should be ok...
-            RF = RealField(2*53)            
-            t = RF(c2)/RF(2)**((RF(self.weight)-RF(1))/RF(2))
-        if abs(t) > 2:
-            raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
+        check_deligne_one_form(self)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
         self.q_expansion = res.add_bigoh(n+1)
@@ -1067,3 +1048,5 @@ class WebNewForm_computing(WebNewForm):
                 wmf_logger.debug("Twist of f={0}".format(FT))
         return FT
 
+
+    
