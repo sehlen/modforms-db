@@ -101,7 +101,7 @@ def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
     return recompute_spaces
 
 def check_one_space(S):
-    if check_orbit(S):
+    if check_orbits(S):
         if check_if_updated(S):
             if check_deligne(S):
                 return True
