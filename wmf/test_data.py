@@ -212,7 +212,7 @@ def check_coefficient_of_form(F,nrange=[]):
         if hasattr(c1,'norm'):
             if c1.norm() == c2.norm() and c1.trace() == c2.trace():
                 wmf_logger.debug("Norms and traces are equal so might be isomorphic parents!")
-        wmf_logger.debug("Coefficients {0} differs!")
+        wmf_logger.debug("Coefficients {0} differs!".format(i))
         return False
     return True
     
