@@ -84,6 +84,18 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
                 args.append(r['space_label'])
     return args
 
+def spaces_from_form_labels(labels):
+    res = []
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_newform_label
+  
+    for label in labels:
+        N,k,i,d=parse_newform_label(label)
+        space_label = "{0}.{1}.{2}".format(N,k,i)
+        if space_label not in res:
+            res.append(space_label)
+    res.sort()
+    return res
+
 def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
     recompute_spaces = []
     for label in args:
@@ -99,6 +111,23 @@ def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
         results = pool.imap_unordered(recompute_space_completely,recompute_spaces,chunksize)
         return list(results)
     return recompute_spaces
+
+# def check_forms_for_recomputation(args,do_recompute=False,**kwds):
+#     recompute_spaces = []
+#     for label in args:
+#         F = WebNewForm_computing(label, recompute=False)
+#         if check_one_form(S):
+#             continue
+#         recompute_forms.append(S.space_label)
+#     print "Need to recompute {0} spaces!".format(len(recompute_spaces))
+#     ## Then do the recomputations. We can even try with parallell...
+#     if do_recompute:
+#         pool = Pool(processes=kwds.get('ncpus',1))
+#         chunksize=kwds.get('chunksize',20)
+#         results = pool.imap_unordered(recompute_form_completely,recompute_forms,chunksize)
+#         return list(results)
+#     return recompute_forms
+
 
 def check_one_space(S):
     success = True
