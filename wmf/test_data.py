@@ -15,7 +15,7 @@ from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm
 from multiprocessing import Pool
-from sage.all import ModularSymbols, ceil, RealField
+from sage.all import ModularSymbols, ceil, RealField, previous_prime
 from utils import orbit_label,orbit_index_from_label
 
 def reset_expansions(l):
@@ -148,7 +148,7 @@ def check_deligne_one_form(f):
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
 
             return False
-    if p==f.max_cn()-1:
+    if p is None or p >= previous_prime(f.max_cn()):
         return False
     return True
     
