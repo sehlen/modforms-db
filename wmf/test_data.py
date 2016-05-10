@@ -121,6 +121,7 @@ def check_deligne(S):
     return True
 
 def check_deligne_one_form(f):
+    print f.max_cn() <= 2
     if f.max_cn()<=2:
         return False
     for p in prime_range(f.max_cn()):
