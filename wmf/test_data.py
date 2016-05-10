@@ -150,6 +150,7 @@ def check_deligne_one_form(f):
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
 
             return False
+    print f.max_cn()
     if p >= previous_prime(f.max_cn()):
         return False
     return True
