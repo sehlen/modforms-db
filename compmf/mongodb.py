@@ -2579,13 +2579,13 @@ class CheckingDB(CompMF):
                 return  {'modular_symbols':True,'aps':True,'factors':True}
         clogger.debug("Checking N,k,ci={0} at check_level:{1}".format((N,k,ci),check_level))
         ambient_id = None
-        ci = sage_character_to_conrey_character(ambient.character()).number()
         M = self.get_ambient(N,k,ci,compute=False)
         if M is None:
             res['modular_symbols']=False
             numf = 0
             dimn = -1
         else:
+            ci = sage_character_to_conrey_character(M.character()).number()
             self.check_characters_ambient(N,k,ci)
             if check_content and not 'modsym.ambient' in str(M.__class__):
                 clogger.warning("Space is reconstructed with wrong class!")
