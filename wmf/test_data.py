@@ -121,6 +121,8 @@ def check_deligne(S):
     return True
 
 def check_deligne_one_form(f):
+    if f.dimension==0 and dimension_new_cusp_forms(f.character.sage_character,f.weight)==0:
+        return True
     if f.max_cn()<2:
         return False
     for p in prime_range(f.max_cn()):
@@ -133,7 +135,8 @@ def check_deligne_one_form(f):
             continue
         t = 1000
         if cp.parent() <> QQ:
-            prec_start = ceil(RR(abs(cp.norm())+2).log()/RR(p).log()/53.0)+1
+            prec_start = ceil(RR(abs(cp.norm())).log()/RR(p).log()/53.0)+1
+            print prec_start
             for mul_prec in range(prec_start,prec_start+20):
                 RF = RealField(mul_prec*53)
                 norm = RF(p)**((RF(f.weight)-RF(1))/RF(2))
@@ -148,7 +151,6 @@ def check_deligne_one_form(f):
             t = RR(cp)/RR(p)**((f.weight-1.0)/2.0)
         if abs(t) > 2.0:
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
-
             return False
     if f.max_cn() < 2 or p >= previous_prime(f.max_cn()):
         return False
