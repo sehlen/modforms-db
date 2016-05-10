@@ -110,7 +110,10 @@ def check_one_space(S):
         success= False        
     if not check_deligne(S):
         wmf_logger.info("space does not satisfy deligne's bound!")
-        success= False        
+        success= False
+    if not check_coefficients(S):
+        wmf_logger.info("a form in the space does not have correct coefficients!")
+        success = False
     return success
     
 def check_deligne(S):
@@ -194,6 +197,11 @@ def check_orbits(S): ### This should essentially check more than Drew's check
     except Exception as e:
         wmf_logger.critical("The orbit check failed because of {0}".format(e))
         return False
+    return True
+def check_coefficients(S):
+    for f in S:
+        if not check_coefficient_of_form(f):
+            return False
     return True
 
 def check_coefficient_of_form(F,nrange=[]):
