@@ -525,23 +525,23 @@ class MongoMF(object):
                 q = self._modular_symbols.find_one({'space_label':label})
                 if not q is None:
                     fid = q['_id']
-                    res = ms.delete_one(fid)
+                    res = ms.delete(fid)
                     clogger.debug("Deleted modular symbols {0} with id {1}: for {2}".format(res,fid,label))          
             else:
                 aps = self._files_collections[self._aps_collection]
                 for q in self._aps.find({'hecke_orbit_label':label}):
                     fid = q['_id']
-                    res = aps.delete_one(fid)
+                    res = aps.delete(fid)
                     clogger.debug("Deleted aps {0} with id {1}: for {2}".format(res,fid,label))
                 fs = self._files_collections[self._newform_factors_collection]
                 for q in self._newform_factors.find({'hecke_orbit_label':label}):
                     fid = q['_id']
-                    res = fs.delete_one(fid)
+                    res = fs.delete(fid)
                     clogger.debug("Deleted factors {0} with id {1}: for {2}".format(res,fid,label))
                 als = self._files_collections[self._atkin_lehner_collection]
                 for q in self._atkin_lehner.find_one({'hecke_orbit_label':label}):
                     fid = q['_id']
-                    res = als.delete_one(fid)
+                    res = als.delete(fid)
                     clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
         if 'files' in delete_from:
             if label.count(".")==2:
