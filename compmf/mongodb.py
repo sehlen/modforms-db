@@ -1269,7 +1269,7 @@ class CompMF(MongoMF):
             except Exception as e:
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             clogger.debug("Inserting in {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
-            if fs_ms.find({'filename':fname}).count() > 0:
+            if files_ms.find({'filename':fname}).count() > 0:
                 clogger.debug("Record {0} already exists!".format(fname))
                 fs_ms.delete(files_ms.find_one({'filename':fname})['_id'])
             try:
