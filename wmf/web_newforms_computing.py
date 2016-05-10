@@ -595,7 +595,7 @@ class WebNewForm_computing(WebNewForm):
                     try:
                         coeffsF = F.coefficients(range(self.parent.sturm_bound))
                     except IndexError:
-                        wmf_logger.debug("Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label))
+                        wmf_logger.debug("Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,F.hecke_orbit_label))
                         #raise ValueError,"Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label)
                         F=WebNewForm_computing(F.hecke_orbit_label,recompute=True)
                         coeffsF = F.coefficients(range(self.parent.sturm_bound))
