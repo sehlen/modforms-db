@@ -592,7 +592,13 @@ class WebNewForm_computing(WebNewForm):
                 for label in MF.hecke_orbits:
                     F = MF.hecke_orbits[label]
                     wmf_logger.debug("Checking function F={0}".format(F))
-                    coeffsF = F.coefficients(range(self.parent.sturm_bound))
+                    try:
+                        coeffsF = F.coefficients(range(self.parent.sturm_bound))
+                    except IndexError:
+                        wmf_logger.debug("Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label))
+                        #raise ValueError,"Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label)
+                        F=WebNewForm_computing(F.hecke_orbit_label,recompute=True)
+                        coeffsF = F.coefficients(range(self.parent.sturm_bound))
                     coeffsF_twist = []
                     is_not_twist = False
                     for j in range(1,self.parent.sturm_bound):
