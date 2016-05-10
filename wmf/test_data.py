@@ -196,6 +196,25 @@ def check_orbits(S): ### This should essentially check more than Drew's check
         return False
     return True
 
+def check_coefficient_of_form(F,nrange=[]):
+    r"""
+    Compare the coefficients of self with those of the form F.
+    """
+
+    if nrange == []:
+        nrange = range(2,max(F.character.character.conductor()+1,F.max_cn()))
+    f = F.as_factor().q_eigenform(max(nrange)+1,names='a')
+    for i in nrange:
+        c1 = f.padded_list()[i]
+        c2 = F.coefficient(i)
+        if c1 == c2:
+            continue
+        if hasattr(c1,'norm'):
+            if c1.norm() == c2.norm() and c1.trace() == c2.trace():
+                wmf_logger.debug("Norms and traces are equal so might be isomorphic parents!")
+        return False
+        
+    
 def recompute_space_completely(label):
     C = CheckingDB('/mnt/data/stromberg/modforms-db')
     D = MongoMF()
