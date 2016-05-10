@@ -242,9 +242,10 @@ def check_coefficient_of_form(F,nrange=[]):
     if nrange == []:
         nrange = range(2,max(F.character.character.conductor()+1,F.max_cn()))
     if hasattr(F,'as_factor'):
-        f = F.as_factor().q_eigenform(max(nrange)+1,names='a')
+        f = F.as_factor()
     else:
-        f = WebNewForm_computing(F.hecke_orbit_label)
+        f = WebNewForm_computing(F.hecke_orbit_label).as_factor()
+    f = f.q_eigenform(max(nrange)+1,names='a')
     for i in nrange:
         c1 = f.padded_list()[i]
         c2 = F.coefficient(i)
