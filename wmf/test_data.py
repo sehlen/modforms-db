@@ -186,7 +186,7 @@ def check_orbits(S): ### This should essentially check more than Drew's check
                 return False
             if fact.dimension() != F.dimension:
                 F.set_dimensions()
-            dim_here += F.dimension()
+            dim_here += F.dimension
         if dim_here != dim_true:
             wmf_logger.info("The sum of dimensions doesn't add up!")
             return False
