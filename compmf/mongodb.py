@@ -1269,7 +1269,7 @@ class CompMF(MongoMF):
             except Exception as e:
                 clogger.debug("Could not dump the ambient space with {0}! : {1}".format((N,k,i),e))
             clogger.debug("Inserting in {0}! ambient={1}:{2}".format(fs_ms,(N,k,ci),ambient))
-            if files_ms.find({'filename':fname}).count() > 0:
+            if fs_ms.find({'filename':fname}).count() > 0:
                 clogger.debug("Record {0} already exists!".format(fname))
                 fs_ms.delete(files_ms.find_one({'filename':fname})['_id'])
             try:
@@ -1288,7 +1288,7 @@ class CompMF(MongoMF):
                 clogger.debug("Inserted fid={0}".format(fid))
             except gridfs.errors.FileExists as e:
                 clogger.debug("We can not insert the same record twice! Error:{0}".format(e))
-                rec = files_ms.find_one({'N':int(N),'k':int(k),'chi':int(ci)})
+                rec = fs_ms.find_one({'N':int(N),'k':int(k),'chi':int(ci)})
                 if rec is None:
                     clogger.critical("We could nt find the double record!")
                 else:
