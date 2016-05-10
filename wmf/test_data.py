@@ -121,7 +121,7 @@ def check_deligne(S):
     return True
 
 def check_deligne_one_form(f):
-    if f.max_cn()<=2:
+    if f.max_cn()<2:
         return False
     for p in prime_range(f.max_cn()):
         try:
@@ -150,7 +150,7 @@ def check_deligne_one_form(f):
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
 
             return False
-    if f.max_cn() >= 3 or p >= previous_prime(f.max_cn()):
+    if f.max_cn() < 2 or p >= previous_prime(f.max_cn()):
         return False
     return True
     
