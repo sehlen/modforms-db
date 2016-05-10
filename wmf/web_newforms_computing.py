@@ -118,6 +118,7 @@ class WebNewForm_computing(WebNewForm):
        
             self._coefficients={}
             self._embeddings = {}
+            self._embeddings_timeout = kwds.get('embeddings_timeout',0)
             self.compute_additional_properties()
             
         #for p in self._db_properties:
@@ -410,7 +411,18 @@ class WebNewForm_computing(WebNewForm):
             embeddings = [QQ.complex_embedding()]
         else:
             embeddings = self.coefficient_field.complex_embeddings()
-        embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
+        ### Since this may take a lot of time we should have the option of
+        ### setting a timeout (and get back and finish the computation later)
+        if self._embeddings_timeout > 0:
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(180)
+            try:
+                embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
+            except TimeoutException:
+                wmf_logger.critical("Timeout exception after {0} for {1}. Please compute the embeddings later!".format(self._embeddings_timeout,self.hecke_orbit_label))
+                return
+        else:
+            embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
         ## First check if we have sufficient data
         if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec:
