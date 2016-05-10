@@ -228,7 +228,8 @@ def check_orbits(S): ### This should essentially check more than Drew's check
         return False
     return True
 def check_coefficients(S):
-    for f in S:
+    for label in S.hecke_orbits:
+        f = S.hecke_orbits[label]
         if not check_coefficient_of_form(f):
             return False
     return True
