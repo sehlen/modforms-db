@@ -149,7 +149,7 @@ def check_deligne_one_form(f):
         else:  ## for a rational form 53 bits of precision should be ok...
             t = RR(cp)/RR(p)**((f.weight-1.0)/2.0)
         if abs(t) > 2.0:
-            wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
+            wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/{1}^(k-1)/2)={2} for c({1})={3} Please check!".format(f.hecke_orbit_label,p,t,cp))
             return False
     return True
     
