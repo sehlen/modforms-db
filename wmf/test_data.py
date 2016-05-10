@@ -136,7 +136,6 @@ def check_deligne_one_form(f):
         t = 1000
         if cp.parent() <> QQ:
             prec_start = ceil(RR(abs(cp.norm())).log()/RR(p).log()/53.0)+1
-            print prec_start
             for mul_prec in range(prec_start,prec_start+20):
                 RF = RealField(mul_prec*53)
                 norm = RF(p)**((RF(f.weight)-RF(1))/RF(2))
@@ -152,8 +151,6 @@ def check_deligne_one_form(f):
         if abs(t) > 2.0:
             wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,p,t))
             return False
-    if f.max_cn() < 2 or p >= previous_prime(f.max_cn()):
-        return False
     return True
     
         
