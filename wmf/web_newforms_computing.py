@@ -118,6 +118,7 @@ class WebNewForm_computing(WebNewForm):
        
             self._coefficients={}
             self._embeddings = {}
+            self._embeddings_timeout = kwds.get('embeddings_timeout',0)
             self.compute_additional_properties()
             
         #for p in self._db_properties:
@@ -409,8 +410,19 @@ class WebNewForm_computing(WebNewForm):
         if self.coefficient_field == QQ:
             embeddings = [QQ.complex_embedding()]
         else:
-            embeddings = self.coefficient(2).parent().complex_embeddings()
-        embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
+            embeddings = self.coefficient_field.complex_embeddings()
+        ### Since this may take a lot of time we should have the option of
+        ### setting a timeout (and get back and finish the computation later)
+        if self._embeddings_timeout > 0:
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(180)
+            try:
+                embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
+            except TimeoutException:
+                wmf_logger.critical("Timeout exception after {0} for {1}. Please compute the embeddings later!".format(self._embeddings_timeout,self.hecke_orbit_label))
+                return
+        else:
+            embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
         ## First check if we have sufficient data
         if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec:
@@ -580,7 +592,13 @@ class WebNewForm_computing(WebNewForm):
                 for label in MF.hecke_orbits:
                     F = MF.hecke_orbits[label]
                     wmf_logger.debug("Checking function F={0}".format(F))
-                    coeffsF = F.coefficients(range(self.parent.sturm_bound))
+                    try:
+                        coeffsF = F.coefficients(range(self.parent.sturm_bound))
+                    except IndexError:
+                        wmf_logger.debug("Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,F.hecke_orbit_label))
+                        raise ValueError,"Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label)
+                        #F=WebNewForm_computing(F.hecke_orbit_label,recompute=True)
+                        #coeffsF = F.coefficients(range(self.parent.sturm_bound))
                     coeffsF_twist = []
                     is_not_twist = False
                     for j in range(1,self.parent.sturm_bound):

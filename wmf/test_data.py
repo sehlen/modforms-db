@@ -83,6 +83,18 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1):
                 args.append(r['space_label'])
     return args
 
+def spaces_from_form_labels(labels):
+    res = []
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_newform_label
+  
+    for label in labels:
+        N,k,i,d=parse_newform_label(label)
+        space_label = "{0}.{1}.{2}".format(N,k,i)
+        if space_label not in res:
+            res.append(space_label)
+    res.sort()
+    return res
+
 def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
     recompute_spaces = []
     for label in args:
@@ -99,6 +111,23 @@ def check_spaces_for_recomputation(args,do_recompute=False,**kwds):
         return list(results)
     return recompute_spaces
 
+# def check_forms_for_recomputation(args,do_recompute=False,**kwds):
+#     recompute_spaces = []
+#     for label in args:
+#         F = WebNewForm_computing(label, recompute=False)
+#         if check_one_form(S):
+#             continue
+#         recompute_forms.append(S.space_label)
+#     print "Need to recompute {0} spaces!".format(len(recompute_spaces))
+#     ## Then do the recomputations. We can even try with parallell...
+#     if do_recompute:
+#         pool = Pool(processes=kwds.get('ncpus',1))
+#         chunksize=kwds.get('chunksize',20)
+#         results = pool.imap_unordered(recompute_form_completely,recompute_forms,chunksize)
+#         return list(results)
+#     return recompute_forms
+
+
 def check_one_space(S):
     success = True
     if not check_orbits(S):
@@ -109,7 +138,10 @@ def check_one_space(S):
         success= False        
     if not check_deligne(S):
         wmf_logger.info("space does not satisfy deligne's bound!")
-        success= False        
+        success= False
+    if not check_coefficients(S):
+        wmf_logger.info("a form in the space does not have correct coefficients!")
+        success = False
     return success
     
 def check_deligne(S):
@@ -192,6 +224,36 @@ def check_orbits(S): ### This should essentially check more than Drew's check
             return False
     except Exception as e:
         wmf_logger.critical("The orbit check failed because of {0}".format(e))
+        return False
+    return True
+def check_coefficients(S):
+    for label in S.hecke_orbits:
+        f = S.hecke_orbits[label]
+        if not check_coefficient_of_form(f):
+            return False
+    return True
+
+def check_coefficient_of_form(F,nrange=[]):
+    r"""
+    Compare the coefficients of self with those of the form F.
+    """
+
+    if nrange == []:
+        nrange = range(2,max(F.character.character.conductor()+1,F.max_cn()))
+    if hasattr(F,'as_factor'):
+        f = F.as_factor()
+    else:
+        f = WebNewForm_computing(F.hecke_orbit_label).as_factor()
+    f = f.q_eigenform(max(nrange)+1,names='a')
+    for i in nrange:
+        c1 = f.padded_list()[i]
+        c2 = F.coefficient(i)
+        if c1 == c2:
+            continue
+        if hasattr(c1,'norm'):
+            if c1.norm() == c2.norm() and c1.trace() == c2.trace():
+                wmf_logger.debug("Norms and traces are equal so might be isomorphic parents!")
+        wmf_logger.debug("Coefficients {0} differs!".format(i))
         return False
     return True
 
