@@ -27,6 +27,7 @@ import gridfs
 import bson
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
+from wmf.test_data import check_deligne_one_form, recompute_space_completely
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
@@ -2043,39 +2044,25 @@ def long_check_par(t):
             pass
         return True
 
-def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1):
-    C = CompMF('/mnt/data/stromberg/modforms-db')
+def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db'):
+    C = CompMF(path)
     D = MongoMF()
+    recompute_completely = []
     for N in xrange(start_level, max_level+1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
             S = WebModFormSpace_computing(N,k,1, recompute=False)
             if S.dimension == 0 and dimension_new_cusp_forms(N,k) == 0:
                 continue
-            recompute_completely = False
             if S.has_updated_from_db() and S.has_updated_from_fs():
                 for f in S.hecke_orbits.values():
                     if not f.has_updated_from_fs() and f.has_updated_from_db():
-                        recompute_completely = True
+                        recompute_completely.append(S.label)
                         break
                     else:
-                        #Checking Deligne bound
-                        try:
-                            c2 = f.coefficient(2)
-                            #wmf_logger.critical("parent={0}".format(c2.parent()))
-                            if c2.parent() <> QQ:
-                                t = c2.complex_embedding()/RR(2)**((k-1.0)/2.0)
-                            else:
-                                t = RR(c2)/RR(2)**((k-1.0)/2.0)
-                                if abs(t) > 2:
-                                    wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(f.hecke_orbit_label,2,t))
-                                    recompute_completely = True
-                        except:
-                            recompute_completely = True
+                        if not check_deligne_one_form(f):
+                            recompute_completely.append(S.label)
             else:
-                recompute_completely = True
-            if recompute_completely:
-                C.compute_and_insert_one_space(N,k,1)
-                cid = D.register_computation(level=N,weight=k,cchi=1,typec='wmf')
-                S = WebModFormSpace_computing(N,k,1, recompute=True, update_from_db=False)
-                D.register_computation_closed(cid)
+                recompute_completely.append(S.label)
+    recompute_space_completely(recompute_completely)
+                
 

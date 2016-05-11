@@ -409,7 +409,7 @@ class WebNewForm_computing(WebNewForm):
         if self.coefficient_field == QQ:
             embeddings = [QQ.complex_embedding()]
         else:
-            embeddings = self.coefficient_field.complex_embeddings()
+            embeddings = self.coefficient(2).parent().complex_embeddings()
         embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
         ## First check if we have sufficient data
