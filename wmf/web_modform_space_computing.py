@@ -53,7 +53,7 @@ class WebModFormSpace_computing(WebModFormSpace):
 
 
     """
-    def __init__(self, level=1, weight=12, character=1, cuspidal=1, prec=10, bitprec=53, update_from_db=True,host='localhost',port=37010,db='modularforms2',**kwds):
+    def __init__(self, level=1, weight=12, character=1, cuspidal=1, prec=10, bitprec=53, update_from_db=True,host='',port=0,db='modularforms2',**kwds):
         r"""
         Init self.
 
@@ -77,6 +77,10 @@ class WebModFormSpace_computing(WebModFormSpace):
         if isinstance(level,basestring):  ## It is probable a label
             level,weight,character = map(int,level.split("."))
         wmf_logger.debug("WebModFormSpace with k,N,chi={0}".format( (weight,level,character)))
+        if host == '' or port == 0:
+            ## Use default provided by lmfdb settings
+            c = connect_to_modularforms_db() 
+            host,port = c.client.address
         self._host = host; self._port=int(port); self._dbname = db
         
         super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db,**kwds)

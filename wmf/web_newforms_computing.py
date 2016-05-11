@@ -71,7 +71,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='localhost',port=37010,db='modularforms2',recompute=False,save_to_db=False,**kwds):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='',port=0,db='modularforms2',recompute=False,save_to_db=False,**kwds):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -80,6 +80,11 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
+        if host == '' or port == 0:
+            ## Use default provided by lmfdb settings
+            c = connect_to_modularforms_db() 
+            host,port = c.client.address
+        self._host = host; self._port=int(port); self._dbname = db
         try: 
             self._db = MongoMF(host,port,db)
         except pymongo.errors.ConnectionFailure as e:
@@ -227,7 +232,7 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("self.prec={0}".format(self.prec))
         wmf_logger.debug("Eigenvalues prec={0}".format(self.eigenvalues.prec))        
         wmf_logger.debug("Eigenvalues ={0}".format(self.eigenvalues))
-        needed_prime = previous_prime(max(self._min_prec,self.prec_needed_for_lfunctions()))
+        needed_prime = previous_prime(max(self._min_prec,want_prec))
         have_prime = max(self.eigenvalues.primes()) if self.eigenvalues.primes()<>[] else 0
         if needed_prime <= have_prime and reload_from_db is False:
             return 
@@ -596,7 +601,7 @@ class WebNewForm_computing(WebNewForm):
                         coeffsF = F.coefficients(range(self.parent.sturm_bound))
                     except IndexError:
                         wmf_logger.debug("Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,F.hecke_orbit_label))
-                        raise ValueError,"Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,self.hecke_orbit_label)
+                        raise ValueError,"Need more coefficients {0} for form {1}".format(self.parent.sturm_bound,F.hecke_orbit_label)
                         #F=WebNewForm_computing(F.hecke_orbit_label,recompute=True)
                         #coeffsF = F.coefficients(range(self.parent.sturm_bound))
                     coeffsF_twist = []
