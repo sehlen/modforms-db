@@ -2060,9 +2060,9 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
                         break
                     else:
                         if not check_deligne_one_form(f):
-                            recompute_completely.append(S.label)
+                            recompute_completely.append(S.hecke_orbit_label)
             else:
-                recompute_completely.append(S.label)
+                recompute_completely.append(S.hecke_orbit_label)
     recompute_space_completely(recompute_completely)
                 
 
