@@ -2056,7 +2056,7 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
             if S.has_updated_from_db() and S.has_updated_from_fs():
                 for f in S.hecke_orbits.values():
                     if not f.has_updated_from_fs() and f.has_updated_from_db():
-                        recompute_completely.append(S.label)
+                        recompute_completely.append(S.hecke_orbit_label)
                         break
                     else:
                         if not check_deligne_one_form(f):
