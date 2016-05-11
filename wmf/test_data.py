@@ -258,8 +258,8 @@ def check_coefficient_of_form(F,nrange=[]):
     return True
 
 @parallel(ncpus=8)
-def recompute_space_completely(label):
-    C = CheckingDB('/mnt/data/stromberg/modforms-db')
+def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db'):
+    C = CheckingDB(path)
     D = MongoMF()
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
     if hasattr(label,'space_label'):

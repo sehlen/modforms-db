@@ -2063,6 +2063,6 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
                             recompute_completely.append(S.space_label)
             else:
                 recompute_completely.append(S.space_label)
-    list(recompute_space_completely(recompute_completely))
+    list(recompute_space_completely([(r, path=path) for r in recompute_completely)])
                 
 
