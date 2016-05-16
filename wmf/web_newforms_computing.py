@@ -445,7 +445,7 @@ class WebNewForm_computing(WebNewForm):
                 if abs(ec)>maxemb:
                     maxemb = ec
                     maxemb_index = j
-            while abs(embc[embc_refined.index(maxemb)] - maxemb) > eps:
+            while abs(embc[j] - maxemb) > eps:
                 embc = embc_refined
                 bitprec_working =  bitprec_working + bitprec
                 embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
