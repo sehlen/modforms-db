@@ -414,12 +414,13 @@ class WebNewForm_computing(WebNewForm):
         else:
             embeddings = self.coefficient_field.complex_embeddings()
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
-        bitprec_working = 2*bitprec
-        embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
         ## First check if we have sufficient data
         if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec and not recompute:
             return 0 ## We should already have sufficient data.
         ## Else we compute new embeddings.
+        bitprec_working = 2*bitprec
+        embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
+        eps = 2**(-bitprec)
         CF = ComplexField(bitprec)
         # First check if we need higher precision, in which case we reset all coefficients:
         if self._embeddings.get('bitprec',0) < bitprec:
