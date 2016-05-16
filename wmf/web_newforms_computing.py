@@ -398,7 +398,7 @@ class WebNewForm_computing(WebNewForm):
         self._prec_needed_for_lfunctions = int(20) + int(RR(5)*ceil(RR(self.weight)*RR(self.level).sqrt()))
         return self._prec_needed_for_lfunctions 
     
-    def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26):
+    def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26, recompute=False):
         r""" Compute all embeddings of self into C which are in the same space as self.
         Return 0 if we didn't compute anything new, otherwise return 1.
         """
@@ -408,25 +408,15 @@ class WebNewForm_computing(WebNewForm):
             embeddings = [QQ.complex_embedding()]
         else:
             embeddings = self.coefficient_field.complex_embeddings()
-        ### Since this may take a lot of time we should have the option of
-        ### setting a timeout (and get back and finish the computation later)
-        if self._embeddings_timeout > 0:
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(180)
-            try:
-                embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
-            except TimeoutException:
-                wmf_logger.critical("Timeout exception after {0} for {1}. Please compute the embeddings later!".format(self._embeddings_timeout,self.hecke_orbit_label))
-                return
-        else:
-            embeddings=map(lambda x: refine_embedding(x,Infinity), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
+        bitprec_working = 2*bitprec
+        embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
         ## First check if we have sufficient data
-        if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec:
+        if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec and not recompute:
             return 0 ## We should already have sufficient data.
         ## Else we compute new embeddings.
         CF = ComplexField(bitprec)
-        # First wee if we need higher precision, in which case we reset all coefficients:
+        # First check if we need higher precision, in which case we reset all coefficients:
         if self._embeddings.get('bitprec',0) < bitprec:
             self._embeddings['values']={}
             self._embeddings['prec']=int(0)
@@ -441,8 +431,15 @@ class WebNewForm_computing(WebNewForm):
                 cn = self.coefficient(n)
             except IndexError:
                 break
-            embc = [CF(e(cn)) for e in embeddings]
-            self._embeddings['values'][n]=embc
+            embc = [e(cn) for e in embeddings]
+            embc_refined = [e(cn) for e in embeddings_refined]
+            maxemb = max(embc_refined)
+            while abs(embc[embc_refined.index(minemb)] - maxemb) > eps:
+                embc = embc_refined
+                bitprec_working =  bitprec_working + bitprec
+                embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
+                embc_refined = [e(cn) for e in embeddings_refined]
+            self._embeddings['values'][n] = map(lambda x: CF(x),embc)
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
         if abs(t) > 2:
