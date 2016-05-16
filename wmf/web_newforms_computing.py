@@ -578,7 +578,7 @@ class WebNewForm_computing(WebNewForm):
         for M,xi in possible_spaces.keys():
             #M,xi,d,yi = t
             wmf_logger.debug("Checking level {0}, CHARACTER {1}".format(M,xi))
-            MF = WebModFormSpace_computing(M,k,xi)
+            MF = WebModFormSpace_computing(M,k,xi, recompute=False)
             if MF.dimension == 0:
                 wmf_logger.debug("space is empty!")
                 continue
