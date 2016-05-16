@@ -2045,8 +2045,6 @@ def long_check_par(t):
         return True
 
 def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db'):
-    C = CompMF(path)
-    D = MongoMF()
     recompute_completely = []
     for N in xrange(start_level, max_level+1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
