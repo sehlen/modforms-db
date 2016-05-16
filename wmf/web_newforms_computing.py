@@ -439,10 +439,10 @@ class WebNewForm_computing(WebNewForm):
                 break
             embc = [e(cn) for e in embeddings]
             embc_refined = [e(cn) for e in embeddings_refined]
-            maxemb=abs(embc_refined[0])
+            maxemb = embc_refined[0]
             maxemb_index = 0
             for j, ec in enumerate(embc_refined):
-                if abs(ec)>maxemb:
+                if abs(ec) > maxemb:
                     maxemb = ec
                     maxemb_index = j
             while abs(embc[maxemb_index] - maxemb) > eps:
