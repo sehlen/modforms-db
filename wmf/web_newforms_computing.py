@@ -420,7 +420,7 @@ class WebNewForm_computing(WebNewForm):
         ## Else we compute new embeddings.
         bitprec_working = 2*bitprec
         embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
-        eps = 2**(-bitprec)
+        eps = 2**(-display_bitprec)
         CF = ComplexField(bitprec)
         # First check if we need higher precision, in which case we reset all coefficients:
         if self._embeddings.get('bitprec',0) < bitprec:
