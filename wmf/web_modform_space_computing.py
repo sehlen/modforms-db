@@ -140,7 +140,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         wmf_logger.debug("Got sturm bound!")
         self.set_oldspace_decomposition()
         wmf_logger.debug("Got oldspace decomposition!")
-        self.get_hecke_orbits()
+        self.get_hecke_orbits(recompute=recompute)
         self.get_zetas()
         self.version = float(emf_version)
         wmf_logger.debug("Setting version to {0}".format(self.version))
@@ -295,7 +295,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             self.sturm_bound = sturm_bound(self.level,self.weight)
 
 
-    def get_hecke_orbits(self):
+    def get_hecke_orbits(self, recompute=True):
         r"""
         Get the collection of WebNewforms (Hecke orbits) in self. 
 
@@ -309,7 +309,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         while current_dim < dim and i<dim: ## 
             label = orbit_label(i)
             #wmf_logger.debug("WebNewForm({0},{1},{2},{3})".format(self.level,self.weight,self.character.number,label))
-            F = WebNewForm_computing(self.level,self.weight,self.character.number,label,recompute=True, update_from_db=False)
+            F = WebNewForm_computing(self.level,self.weight,self.character.number,label,recompute=recompute, update_from_db=False)
             current_dim += F.dimension
             i+=1
             wmf_logger.debug("current_dim={0}".format(current_dim))
