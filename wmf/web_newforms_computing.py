@@ -440,11 +440,16 @@ class WebNewForm_computing(WebNewForm):
             embc = [e(cn) for e in embeddings]
             embc_refined = [e(cn) for e in embeddings_refined]
             maxemb = max(embc_refined)
-            while abs(embc[embc_refined.index(maxemb)] - maxemb) > eps:
-                embc = embc_refined
-                bitprec_working =  bitprec_working + bitprec
-                embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
-                embc_refined = [e(cn) for e in embeddings_refined]
+            try:
+                while abs(embc[embc_refined.index(maxemb)] - maxemb) > eps:
+                    embc = embc_refined
+                    bitprec_working =  bitprec_working + bitprec
+                    embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
+                    embc_refined = [e(cn) for e in embeddings_refined]
+            except ValueError as e:
+                print embc
+                print embc_refined
+                print maxemb
             self._embeddings['values'][n] = map(lambda x: CF(x),embc)
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
