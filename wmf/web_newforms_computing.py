@@ -185,9 +185,6 @@ class WebNewForm_computing(WebNewForm):
         self.set_absolute_polynomial()
         if self.level==1:
             self.explicit_formulas['as_polynomial_in_E4_and_E6'] = self.as_polynomial_in_E4_and_E6()
-        wmf_logger.debug("Will set twise")
-        #self.set_twist_info()
-        wmf_logger.debug("Have set twist")
         self.creation_date=datetime.datetime.utcnow()
 ##  Internal functions
 ##
