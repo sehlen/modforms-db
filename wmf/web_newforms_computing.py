@@ -440,7 +440,7 @@ class WebNewForm_computing(WebNewForm):
             embc = [e(cn) for e in embeddings]
             embc_refined = [e(cn) for e in embeddings_refined]
             maxemb=abs(embc_refined[0])
-            maxemb_index
+            maxemb_index = 0
             for j, ec in enumerate(embc_refined):
                 if abs(ec)>maxemb:
                     maxemb = ec
