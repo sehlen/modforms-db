@@ -437,7 +437,7 @@ class WebNewForm_computing(WebNewForm):
         #it should be fine for all
         maxcoeff = self.coefficient(1)
         maxcoeff_index = 0
-        for j, c in enumerate((self.coefficient(n) for n in xrange(2,self._embeddings['prec'],prec+1))):
+        for j, c in enumerate((self.coefficient(n) for n in xrange(self._embeddings['prec'],prec+1))):
             if abs(c) > abs(maxcoeff):
                 maxcoeff = c
                 maxcoeff_index = j
