@@ -438,10 +438,13 @@ class WebNewForm_computing(WebNewForm):
         maxcoeff = self.coefficient(2)
         maxcoeff_index = 0
         if self.coefficient(2).parent().absolute_degree()>1:
+            mc = max(abs(x) for x in maxcoeff.list())
             for j, c in enumerate((self.coefficient(n) for n in xrange(self._embeddings['prec'],prec+1))):
-                if c != 0 and c.norm() > maxcoeff.norm():
+                mcn = max(abs(x) for x in x.list())
+                if c != 0 and mcn > mc:
                     maxcoeff = c
                     maxcoeff_index = j
+                    mc = mcn
             emf_logger.debug("Maximal coefficient has index {0} and norm {1}".format(maxcoeff_index, maxcoeff.norm()))
             embc = [e(maxcoeff) for e in embeddings]
             embc_refined = [e(maxcoeff) for e in embeddings_refined]
