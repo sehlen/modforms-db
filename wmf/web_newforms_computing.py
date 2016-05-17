@@ -446,14 +446,15 @@ class WebNewForm_computing(WebNewForm):
                     maxemb = ec
                     maxemb_index = j
             while abs(embc[maxemb_index] - maxemb) > eps:
+                emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
                 embc = embc_refined
                 bitprec_working =  bitprec_working + bitprec
-                emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
-                                     (bitprec_working, n, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
-                emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
+
                 embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
                 embc_refined = [e(cn) for e in embeddings_refined]
                 maxemb = embc_refined[maxemb_index]
+                emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
+                                     (bitprec_working, n, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
             self._embeddings['values'][n] = map(lambda x: CF(x),embc)
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
