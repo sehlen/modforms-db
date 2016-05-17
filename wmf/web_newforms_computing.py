@@ -456,12 +456,12 @@ class WebNewForm_computing(WebNewForm):
                     maxemb_index = j
             emf_logger.debug("Maximal embedding is {0}:{1}".format(maxemb_index, maxemb))
             while abs(embc[maxemb_index] - maxemb) > eps:
-                embc = embc_refined
-                embeddings = embeddings_refined
-                bitprec_working =  bitprec_working + bitprec
                 emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
                                          (bitprec_working, maxcoeff_index, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
                 emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
+                embc = embc_refined
+                embeddings = embeddings_refined
+                bitprec_working =  bitprec_working + bitprec
                 embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
                 embc_refined = [e(maxcoeff) for e in embeddings_refined]
                 maxemb = embc_refined[maxemb_index]
