@@ -115,9 +115,8 @@ class WebNewForm_computing(WebNewForm):
         #self._twist_info = None
         self._as_polynomial_in_E4_and_E6 = None
         do_save = False
-        ## If it is in the database we don't need to compute everything unless we specify recompute=True
-        s = {'hecke_orbit_label':self.hecke_orbit_label}
-        if not self.has_updated_from_db() or recompute: # reset the computed (possibly wrong) properties of self
+        if not (self.has_updated_from_db() and update_from_db)\
+               or recompute: # reset the computed (possibly wrong) properties of self
             do_save = True
             self._clear_cache_()
        
