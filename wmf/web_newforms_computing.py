@@ -297,6 +297,7 @@ class WebNewForm_computing(WebNewForm):
         q = QR.gen()
         res = 0*q**0
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
+        wmf_logger.debug("Want {0} coefficients for q-exp".format(m))
         self.coefficients(range(1,m))
         ### Include small sanity check
         ### -- not now since this can be very slow and somehow should be checked after we computed the embeddings separatedly
@@ -437,9 +438,10 @@ class WebNewForm_computing(WebNewForm):
         maxcoeff = self.coefficient(1)
         maxcoeff_index = 0
         for j, c in enumerate((self.coefficient(n) for n in xrange(2,self._embeddings['prec'],prec+1))):
-            if abs(c) > maxcoeff:
+            if abs(c) > abs(maxcoeff):
                 maxcoeff = c
                 maxcoeff_index = j
+        emf_logger.debug("Maximal coefficient has index {0} and absolute value {1}".format(maxcoeff_index, abs(maxcoeff)))
         embc = [e(maxcoeff) for e in embeddings]
         embc_refined = [e(maxcoeff) for e in embeddings_refined]
         maxemb = embc_refined[0]
@@ -448,6 +450,7 @@ class WebNewForm_computing(WebNewForm):
             if abs(ec) > maxemb:
                 maxemb = ec
                 maxemb_index = j
+        emf_logger.debug("Maximal embedding is {0}:{1}".format(maxemb_index, maxemb))
         while abs(embc[maxemb_index] - maxemb) > eps:
             embc = embc_refined
             embeddings = embeddings_refined
