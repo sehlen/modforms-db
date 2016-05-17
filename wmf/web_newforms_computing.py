@@ -440,12 +440,12 @@ class WebNewForm_computing(WebNewForm):
             j-=1
         embc = [e(cn) for e in embeddings]
         embc_refined = [e(cn) for e in embeddings_refined]
+        maxemb = embc_refined[0]
+        maxemb_index = 0    
         for j, ec in enumerate(embc_refined):
             if abs(ec) > maxemb:
                 maxemb = ec
                 maxemb_index = j
-        maxemb = embc_refined[0]
-        maxemb_index = 0    
         while abs(embc[maxemb_index] - maxemb) > eps:
             embc = embc_refined
             bitprec_working =  bitprec_working + bitprec
