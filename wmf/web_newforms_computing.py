@@ -430,16 +430,17 @@ class WebNewForm_computing(WebNewForm):
         # See if we have need of more coefficients
         wmf_logger.debug("we already  have {0} embedded coeffs".format(self._embeddings['prec']))
         wmf_logger.debug("Computing new embeddings !")
-        #find non-vanishing coefficient of highest index
+        #find largest non-vanishing coefficient
         #we assume that if we refine the embeddings for that one,
         #it should be fine for all
-        cn = 0
-        j = prec
-        while cn == 0:
-            cn = self.coefficient(j)
-            j-=1
-        embc = [e(cn) for e in embeddings]
-        embc_refined = [e(cn) for e in embeddings_refined]
+        maxcoeff = self.coefficient(1)
+        maxcoeff_index = 0
+        for j, c in enumerate((self.coefficient(n) for n in xrange(2,self._embeddings['prec'],prec+1))):
+            if abs(c) > maxcoeff:
+                maxcoeff = c
+                maxcoeff_index = j
+        embc = [e(maxcoeff) for e in embeddings]
+        embc_refined = [e(maxcoeff) for e in embeddings_refined]
         maxemb = embc_refined[0]
         maxemb_index = 0    
         for j, ec in enumerate(embc_refined):
@@ -448,12 +449,13 @@ class WebNewForm_computing(WebNewForm):
                 maxemb_index = j
         while abs(embc[maxemb_index] - maxemb) > eps:
             embc = embc_refined
+            embeddings = embeddings_refined
             bitprec_working =  bitprec_working + bitprec
             emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
-                                     (bitprec_working, n, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
-            emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))            
+                                     (bitprec_working, maxcoeff_index, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
+            emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
             embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
-            embc_refined = [e(cn) for e in embeddings_refined]
+            embc_refined = [e(maxcoeff_index) for e in embeddings_refined]
             maxemb = embc_refined[maxemb_index]
         for n in xrange(self._embeddings['prec'],prec+1):
             try:
