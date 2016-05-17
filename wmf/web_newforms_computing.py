@@ -439,7 +439,7 @@ class WebNewForm_computing(WebNewForm):
         maxcoeff_index = 0
         if self.coefficient(2).parent().absolute_degree()>1:
             mc = max(abs(x) for x in maxcoeff.list())
-            for j, c in enumerate((self.coefficient(n) for n in xrange(self._embeddings['prec'],prec+1))):
+            for j, c in enumerate((self.coefficient(n) for n in xrange(max(2,self._embeddings['prec']),prec+1))):
                 mcn = max(abs(x) for x in c.list())
                 if c != 0 and mcn > mc:
                     maxcoeff = c
