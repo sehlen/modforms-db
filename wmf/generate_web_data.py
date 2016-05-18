@@ -2067,9 +2067,13 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
 def update_webnewforms_prec_in_fs_meta(query={}):
     from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
     from copy import copy
-    for f in WebNewForm.find(query):
-        if not f.prec == 0:
-            continue
+    files = self.connect_to_db(self._collection_name + '.files')
+    for r in files.find({'prec': {'$exists': False}}):
+        l = WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']})
+        if l.count() == 0:
+            files.delete_one(r['_id'])
+        else:
+            f = l[0]
         f.update_from_db(ignore_precision=True, update_from_fs=False)
         file_key = copy(f.file_key_dict())
         del file_key['prec']
