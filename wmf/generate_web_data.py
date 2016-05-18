@@ -2068,12 +2068,17 @@ def update_webnewforms_prec_in_fs_meta(query={}):
     from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
     from copy import copy
     for f in WebNewForm.find(query):
+        if not f.prec == 0:
+            continue
         f.update_from_db(ignore_precision=True, update_from_fs=False)
         file_key = copy(f.file_key_dict())
         del file_key['prec']
-        prec = f.get_db_record()['prec']
-        f.authorize()
-        f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
+        try:
+            prec = f.get_db_record()['prec']
+            f.authorize()
+            f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
+        except:
+            continue
         
         
                 
