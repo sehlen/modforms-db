@@ -2070,7 +2070,8 @@ def update_webnewforms_prec_in_fs_meta(query={}):
         file_key = copy(f.file_key_dict())
         del file_key['prec']
         prec = f.get_db_record()['prec']
-        f._file_collection.update(file_key, {'prec': f.prec})
+        f.authorize()
+        f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         
         
                 
