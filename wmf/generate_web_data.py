@@ -2089,7 +2089,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         except Exception as e:
             wmf_logger.critical("Could not update {}, file_key = {}, Error = {}".format(r['hecke_orbit_label'], file_key, e))
-            new_key = file_key.update('prec': prec)
+            new_key = file_key.update({'prec': prec})
             #if f._file_collection.exists(new_key):
             #    #maybe delete these? 
             #    pass
