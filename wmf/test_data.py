@@ -269,6 +269,7 @@ def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db', ho
     if hasattr(label,'space_label'):
         label = label.space_label
     N,k,ci = parse_space_label(label)
+    C.delete_form(label)
     C.compute_and_insert_one_space(N,k,ci)
     C.check_record(N,k,ci,check_content=True,recheck=True)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
