@@ -2075,7 +2075,8 @@ def update_webnewforms_prec_in_fs_meta(query={}):
     for r in files.find(query):
         l = list(WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']}))
         if len(l) == 0:
-            files.delete_one(r['_id'])
+            wmf_logger.debug('Loose record {}?'.format{r})
+            #files.delete_one({'_id': r['_id']})
         else:
             f = l[0]
         f.update_from_db(ignore_precision=True, update_from_fs=False)
@@ -2088,6 +2089,10 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         except Exception as e:
             wmf_logger.critical("Could not update {}, file_key = {}, Error = {}".format(r['hecke_orbit_label'], file_key, e))
+            new_key = file_key.update('prec': prec)
+            #if f._file_collection.exists(new_key):
+            #    #maybe delete these? 
+            #    pass
             continue
         
         
