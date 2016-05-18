@@ -284,7 +284,7 @@ def check_stored_one_space(level, weight, character):
         raise NotImplementedError("Do this for non-trivial character!")
     if dim == 0:
         # not checking dimension 0 spaces
-        return True
+        return (True,'')
     S=WebModFormSpace(level, weight, character, update_from_db=True)
     if not S.has_updated_from_db() or not S.has_updated_from_fs():
         return (False, "Space {} has not updated".format(S))
