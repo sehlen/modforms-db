@@ -2075,7 +2075,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
     for r in files.find(query):
         l = list(WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']}))
         if len(l) == 0:
-            wmf_logger.debug('Loose record {}?'.format{r})
+            wmf_logger.debug('Loose record {}?'.format(r))
             #files.delete_one({'_id': r['_id']})
         else:
             f = l[0]
