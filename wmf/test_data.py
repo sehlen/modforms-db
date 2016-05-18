@@ -292,7 +292,7 @@ def check_stored_one_space(level, weight, character):
     dim_sum = 0
     if not dim==dimS:
         return (False, 'Dimension of {} = {}, should be {}'.format(S, dimS, dim))
-    for f in S.hecke_orbits:
+    for f in S.hecke_orbits.values():
         if not f.has_updated_from_db() or not f.has_updated_from_fs():
             return (False, "Form {} has not updated".format(f))
         dim_sum += f.dimension
