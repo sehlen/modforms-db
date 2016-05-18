@@ -2098,6 +2098,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             #    #maybe delete these? 
             #    pass
             continue
+    return loose_records, errors
 
 def webnewform_files_without_precision(list_all = False):
     query = {'prec': {'$exists': False}}
