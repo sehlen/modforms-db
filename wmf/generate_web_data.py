@@ -2069,6 +2069,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
         f.update_from_db(ignore_precision=True, update_from_fs=False)
         file_key = copy(f.file_key_dict())
         del file_key['prec']
+        prec = f.get_db_record()['prec']
         f._file_collection.update(file_key, {'prec': f.prec})
         
         
