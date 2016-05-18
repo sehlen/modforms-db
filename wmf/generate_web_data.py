@@ -2063,5 +2063,14 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
                 recompute_completely.append(S.space_label)
     #emf_logger.debug(recompute_completely)
     list(recompute_space_completely(((r, path, host, port) for r in recompute_completely)))
+
+def update_webnewforms_prec_in_fs_meta(query={}):
+    for f in WebNewForm.find(query):
+        f.update_from_db(ignore_precision=True, update_from_fs=False)
+        file_key = copy(f.file_key_dict())
+        del file_key['prec']
+        f._file_collection.update(file_key, {'prec': f.prec})
+        
+        
                 
 
