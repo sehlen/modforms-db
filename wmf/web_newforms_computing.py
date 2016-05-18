@@ -71,7 +71,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='',port=0,db='modularforms2',recompute=False,save_to_db=False,**kwds):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='',port=0,db='modularforms2',recompute=False,save_to_db=False,update_from_db=True,**kwds):
         r"""
         Init self as form with given label in S_k(N,chi)
 
