@@ -2044,7 +2044,7 @@ def long_check_par(t):
             pass
         return True
 
-def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db'):
+def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db', host='localhost', port=37010):
     recompute_completely = []
     for N in xrange(start_level, max_level+1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
@@ -2062,6 +2062,6 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
             else:
                 recompute_completely.append(S.space_label)
     #emf_logger.debug(recompute_completely)
-    list(recompute_space_completely([(r, path) for r in recompute_completely]))
+    list(recompute_space_completely(((r, path, host, port) for r in recompute_completely)))
                 
 

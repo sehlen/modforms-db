@@ -260,11 +260,11 @@ def check_coefficient_of_form(F,nrange=[]):
     return True
 
 @parallel(p_iter='multiprocessing', ncpus=16)
-def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db'):
+def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db', host='localhost', port=37010):
     from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
     from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
-    C = CheckingDB(path)
-    D = MongoMF()
+    C = CheckingDB(path, host=host, port=port)
+    D = MongoMF(host=host, port=port)
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
     if hasattr(label,'space_label'):
         label = label.space_label
