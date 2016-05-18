@@ -2086,7 +2086,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             file_key['prec'] = {'$exists': False}
             f.authorize()
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
-        except Error as e:
+        except Exception as e:
             wmf_logger.critical("Could not update {}, file_key = {}, Error = {}".format(r['hecke_orbit_label'], file_key, e))
             continue
         
