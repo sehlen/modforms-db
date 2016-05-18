@@ -2068,6 +2068,8 @@ def update_webnewforms_prec_in_fs_meta(query={}):
     from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
     from copy import copy
     files = WebNewForm.connect_to_db(WebNewForm._collection_name + '.files')
+    loose_records = []
+    errors = []
     if not query.has_key('prec'):
         query.update({'prec': {'$exists': False}})
     else:
@@ -2076,6 +2078,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
         l = list(WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']}))
         if len(l) == 0:
             wmf_logger.debug('Loose record {}?'.format(r))
+            loose_records.append(r)
             #files.delete_one({'_id': r['_id']})
         else:
             f = l[0]
@@ -2089,12 +2092,27 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         except Exception as e:
             wmf_logger.critical("Could not update {}, file_key = {}, Error = {}".format(r['hecke_orbit_label'], file_key, e))
-            new_key = file_key.update({'prec': prec})
+            errors.append(r)
+            #new_key = file_key.update({'prec': prec})
             #if f._file_collection.exists(new_key):
             #    #maybe delete these? 
             #    pass
             continue
-        
-        
-                
 
+def webnewform_files_without_precision(list_all = False):
+    query = {'prec': {'$exists': False}}
+    files = WebNewForm.connect_to_db(WebNewForm._collection_name + '.files')
+    count = files.find(query).count()
+    print count
+    if list_all:
+        return files.find(query)
+        
+def add_duplicate_records(query):
+    for f in WebNewForm.find(query):
+        if len(f.available_prec()) == 1:
+            f.update_from_db()
+            if f.prec > 100:
+                try:
+                    f.create_duplicate_record()
+                except:
+                    continue
