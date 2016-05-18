@@ -278,15 +278,18 @@ def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db'):
 
 @parallel(ncpus=8)
 def check_stored_one_space(level, weight, character):
+    if character == 1:
+        dim = dimension_new_cusp_forms(level, weight)
+    else:
+        raise NotImplementedError("Do this for non-trivial character!")
+    if dim == 0:
+        # not checking dimension 0 spaces
+        return True
     S=WebModFormSpace(level, weight, character, update_from_db=True)
     if not S.has_updated_from_db() or not S.has_updated_from_fs():
         return (False, "Space {} has not updated".format(S))
     dimS = S.dimension_new_cusp_forms
     dim_sum = 0
-    if character == 1:
-        dim = dimension_new_cusp_forms(level, weight)
-    else:
-        raise NotImplementedError("Do this for non-trivial character!")
     if not dim==dimS:
         return (False, 'Dimension of {} = {}, should be {}'.format(S, dimS, dim))
     for f in S.hecke_orbits:
@@ -299,6 +302,6 @@ def check_stored_one_space(level, weight, character):
 
 def check_all_stored(level_range, weight_range, trivial_character=True):
     if trivial_character:
-        check_stored_one_space(((N,k,1) for N in level_range for k in weight_range))
+        return list(check_stored_one_space(((N,k,1) for N in level_range for k in weight_range)))
     else:
         raise NotImplementedError
