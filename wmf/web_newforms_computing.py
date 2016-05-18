@@ -458,7 +458,7 @@ class WebNewForm_computing(WebNewForm):
                 while abs(embc[maxemb_index] - maxemb) > eps:
                     emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
                                                          (bitprec_working, maxcoeff_index, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
-                                    emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
+                    emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
                     embc = embc_refined
                     embeddings = embeddings_refined
                     bitprec_working =  bitprec_working + bitprec
