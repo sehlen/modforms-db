@@ -2072,7 +2072,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
         query.update({'prec': {'$exists': False}})
     else:
         query['prec'].update({'$exists': False})
-    for r in files.find():
+    for r in files.find(query):
         l = list(WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']}))
         if len(l) == 0:
             files.delete_one(r['_id'])
