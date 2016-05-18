@@ -2083,6 +2083,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
         del file_key['prec']
         try:
             prec = f.get_db_record()['prec']
+            file_key['prec'] = {'$exists': False}
             f.authorize()
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         except:
