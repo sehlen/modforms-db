@@ -25,9 +25,11 @@ AUTHORS:
 import pymongo
 import gridfs
 import bson
+from copy import copy
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
@@ -2065,8 +2067,6 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
     list(recompute_space_completely(((r, path, host, port) for r in recompute_completely)))
 
 def update_webnewforms_prec_in_fs_meta(query={}):
-    from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
-    from copy import copy
     files = WebNewForm.connect_to_db(WebNewForm._collection_name + '.files')
     loose_records = []
     errors = []
