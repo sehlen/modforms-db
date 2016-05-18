@@ -13,7 +13,7 @@ from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
-from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm
+from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm, WebModFormSpace
 #from multiprocessing import Pool
 from sage.all import ModularSymbols, ceil, RealField, previous_prime
 from utils import orbit_label,orbit_index_from_label
