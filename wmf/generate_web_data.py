@@ -2065,6 +2065,7 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
     list(recompute_space_completely(((r, path, host, port) for r in recompute_completely)))
 
 def update_webnewforms_prec_in_fs_meta(query={}):
+    from lmfdb.modular_forms.elliptic_modular_forms.backend.webnewforms import *
     for f in WebNewForm.find(query):
         f.update_from_db(ignore_precision=True, update_from_fs=False)
         file_key = copy(f.file_key_dict())
