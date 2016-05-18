@@ -2087,6 +2087,7 @@ def update_webnewforms_prec_in_fs_meta(query={}):
             f.authorize()
             f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
         except:
+            emf_logger.critical("Could not update {}".format(r['hecke_orbit_label']))
             continue
         
         
