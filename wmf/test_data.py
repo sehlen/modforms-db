@@ -133,13 +133,13 @@ def check_one_space(S):
     if not check_orbits(S):
         wmf_logger.info("space failed orbit check!")
         success= False
-    if not check_if_updated(S):
+    elif not check_if_updated(S):
         wmf_logger.info("space is not updated!")
         success= False        
-    if not check_deligne(S):
+    elif not check_deligne(S):
         wmf_logger.info("space does not satisfy deligne's bound!")
         success= False
-    if not check_coefficients(S):
+    elif not check_coefficients(S):
         wmf_logger.info("a form in the space does not have correct coefficients!")
         success = False
     return success
