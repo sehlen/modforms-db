@@ -2108,12 +2108,12 @@ def webnewform_files_without_precision(list_all = False):
     if list_all:
         return files.find(query)
         
-def add_duplicate_records(query):
+def add_smaller_records(query):
     for f in WebNewForm.find(query):
         if len(f.available_prec()) == 1:
             f.update_from_db()
             if f.prec > 100:
                 try:
-                    f.create_duplicate_record()
+                    f.create_smaller_record()
                 except:
                     continue
