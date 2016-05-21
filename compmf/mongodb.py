@@ -1107,7 +1107,7 @@ class CompMF(MongoMF):
                 min_prec = 500 ### We want at least this many coefficients
             else:
                 min_prec = 100
-            pprec = precision_needed_for_L(N,k,pprec=min_prec)
+            pprec = max([precision_needed_for_L(N,k), min_prec])
             clogger.debug("Computing aps to prec {0} for ci = {1}".format(pprec,ci))
             ap = self.compute_aps(N,k,ci,pprec,**kwds)
             clogger.debug("Got {0}".format(ap))
