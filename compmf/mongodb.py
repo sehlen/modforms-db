@@ -30,8 +30,8 @@ from string import join
 import pymongo
 import gridfs
 
-#import multiprocessing
-#from multiprocessing import Pool
+import multiprocessing
+from multiprocessing import Pool
 import wmf
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData

@@ -106,7 +106,10 @@ class WebNewForm_computing(WebNewForm):
 
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self.prec = 0
-        self._min_prec = 100 ### We want at least this many coefficients
+        if self.character.number == 1 and self.level < 100:
+            self._min_prec = 1000 ### We want at least this many coefficients
+        else:
+            self._min_prec = 100 ### We want at least this many coefficients
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
         self._available_precisions = []
@@ -131,6 +134,9 @@ class WebNewForm_computing(WebNewForm):
         self.version = float(emf_version)
         if do_save:
             self.save_to_db() # this should be efficient now
+
+        self.update_from_db()
+        self.create_small_record()
 
     def __repr__(self):
         r"""
