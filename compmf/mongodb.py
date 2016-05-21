@@ -1101,7 +1101,13 @@ class CompMF(MongoMF):
         # Necessary number of coefficients for L-function computations.
         if not factor_ids is None and factor_ids <> []:
             # ?
-            pprec = precision_needed_for_L(N,k,pprec=100)
+            if ci == 1 and N < 100:
+                min_prec = 1000 ### We want at least this many coefficients
+            elif N < 25:
+                min_prec = 500 ### We want at least this many coefficients
+            else:
+                min_prec = 100
+            pprec = precision_needed_for_L(N,k,pprec=min_prec)
             clogger.debug("Computing aps to prec {0} for ci = {1}".format(pprec,ci))
             ap = self.compute_aps(N,k,ci,pprec,**kwds)
             clogger.debug("Got {0}".format(ap))
