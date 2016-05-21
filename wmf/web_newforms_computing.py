@@ -108,8 +108,10 @@ class WebNewForm_computing(WebNewForm):
         self.prec = 0
         if self.character.number == 1 and self.level < 100:
             self._min_prec = 1000 ### We want at least this many coefficients
+        elif self.level < 25:
+            self._min_prec = 500 ### We want at least this many coefficients
         else:
-            self._min_prec = 100 ### We want at least this many coefficients
+            self._min_prec = 100
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
         self._available_precisions = []
