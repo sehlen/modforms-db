@@ -2117,3 +2117,22 @@ def add_smaller_records(query):
                     f.create_smaller_record()
                 except:
                     continue
+                
+def delete_ranges_from_mongo(level_range, weight_range):
+    for N in level_range:
+        for k in weight_range:
+            for c in xrange(1,N):
+                for l in xrange(C.number_of_factors(N,k,c)):
+                    C.delete_form(newform_label(N,k,c,l))
+                C.delete_form("{N}.{k}.{c}".format(N=N,k=k,c=c))
+
+@parallel(ncpus=12)
+def compute_space_gamma1(N,k,c):
+    if gcd(N,c) == 1:
+        S = WebModFormSpace_computing(N,k,c,update_from_db=False, recompute=True)
+
+
+def compute_spaces_gamma_1(level_range, weight_range):
+    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in xrange(1,N) if gcd(c,N)==1))
+                
+                
