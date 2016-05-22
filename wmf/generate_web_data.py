@@ -26,7 +26,7 @@ import pymongo
 import gridfs
 import bson
 from copy import copy
-from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even, gcd
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
