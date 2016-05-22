@@ -128,6 +128,8 @@ class WebNewForm_computing(WebNewForm):
             self._coefficients={}
             self._embeddings = {}
             self._embeddings_timeout = kwds.get('embeddings_timeout',0)
+            for W in WebEigenvalues.find({'hecke_orbit_label':self.hecke_orbit_label}, only_gridfs=True):
+                W.delete_from_db()
             self.compute_additional_properties()
             
         #for p in self._db_properties:
@@ -270,7 +272,7 @@ class WebNewForm_computing(WebNewForm):
             if E.nrows() <> prime_pi(pprec):
                 raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
             self._available_precisions.append(pprec)
-            evs = WebEigenvalues(self.hecke_orbit_label,pprec)
+            evs = WebEigenvalues(self.hecke_orbit_label,pprec, update_from_db=False)
             evs.version = self.version
             evs.E = E
             wmf_logger.critical("E = {0}".format(E))
