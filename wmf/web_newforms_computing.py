@@ -129,6 +129,7 @@ class WebNewForm_computing(WebNewForm):
             self._embeddings = {}
             self._embeddings_timeout = kwds.get('embeddings_timeout',0)
             for W in WebEigenvalues.find({'hecke_orbit_label':self.hecke_orbit_label}, gridfs_only=True):
+                W.authorize()
                 W.delete_from_db()
             self.compute_additional_properties()
             
