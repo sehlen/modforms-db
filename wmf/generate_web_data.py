@@ -25,9 +25,11 @@ AUTHORS:
 import pymongo
 import gridfs
 import bson
-from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even
+from copy import copy
+from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even, gcd
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
+from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
@@ -2044,7 +2046,7 @@ def long_check_par(t):
             pass
         return True
 
-def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db'):
+def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db', host='localhost', port=37010):
     recompute_completely = []
     for N in xrange(start_level, max_level+1):
         for k in [w for w in xrange(start_weight, max_weight+1) if is_even(w)]:
@@ -2062,6 +2064,75 @@ def complete_and_recompute_data_for_Gamma0(max_level, max_weight, start_level=1,
             else:
                 recompute_completely.append(S.space_label)
     #emf_logger.debug(recompute_completely)
-    list(recompute_space_completely([(r, path) for r in recompute_completely]))
-                
+    list(recompute_space_completely(((r, path, host, port) for r in recompute_completely)))
 
+def update_webnewforms_prec_in_fs_meta(query={}):
+    files = WebNewForm.connect_to_db(WebNewForm._collection_name + '.files')
+    loose_records = []
+    errors = []
+    if not query.has_key('prec'):
+        query.update({'prec': {'$exists': False}})
+    else:
+        query['prec'].update({'$exists': False})
+    for r in files.find(query):
+        l = list(WebNewForm.find({'hecke_orbit_label': r['hecke_orbit_label']}))
+        if len(l) == 0:
+            wmf_logger.debug('Loose record {}?'.format(r))
+            loose_records.append(r)
+            #files.delete_one({'_id': r['_id']})
+        else:
+            f = l[0]
+        f.update_from_db(ignore_precision=True, update_from_fs=False)
+        file_key = copy(f.file_key_dict())
+        del file_key['prec']
+        try:
+            prec = f.get_db_record()['prec']
+            file_key['prec'] = {'$exists': False}
+            f.authorize()
+            f._file_collection.update_one(file_key, {'$set': {'prec': prec}})
+        except Exception as e:
+            wmf_logger.critical("Could not update {}, file_key = {}, Error = {}".format(r['hecke_orbit_label'], file_key, e))
+            errors.append(r)
+            #new_key = file_key.update({'prec': prec})
+            #if f._file_collection.exists(new_key):
+            #    #maybe delete these? 
+            #    pass
+            continue
+    return loose_records, errors
+
+def webnewform_files_without_precision(list_all = False):
+    query = {'prec': {'$exists': False}}
+    files = WebNewForm.connect_to_db(WebNewForm._collection_name + '.files')
+    count = files.find(query).count()
+    print count
+    if list_all:
+        return files.find(query)
+        
+def add_smaller_records(query):
+    for f in WebNewForm.find(query):
+        if len(f.available_prec()) == 1:
+            f.update_from_db()
+            if f.prec > 100:
+                try:
+                    f.create_smaller_record()
+                except:
+                    continue
+                
+def delete_ranges_from_mongo(level_range, weight_range):
+    for N in level_range:
+        for k in weight_range:
+            for c in xrange(1,N):
+                for l in xrange(C.number_of_factors(N,k,c)):
+                    C.delete_form(newform_label(N,k,c,l))
+                C.delete_form("{N}.{k}.{c}".format(N=N,k=k,c=c))
+
+@parallel(ncpus=12)
+def compute_space_gamma1(N,k,c):
+    if gcd(N,c) == 1:
+        S = WebModFormSpace_computing(N,k,c,update_from_db=False, recompute=True)
+
+
+def compute_spaces_gamma_1(level_range, weight_range):
+    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in xrange(1,N) if gcd(c,N)==1))
+                
+                

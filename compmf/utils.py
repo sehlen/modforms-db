@@ -66,9 +66,9 @@ def are_compatible(modulus,weight,si,si_format='orbit_no'):
 
 def label_from_param(N,k,i,d=None):
     if not d is None:
-        return "{0}.{1}.{2}{3}".format(N,k,i,orbit_label(d))
+        return "{0}.{1}.{2}.{3}".format(N,k,i,orbit_label(d))
     else:
-        return "{0}.{1}.{2}{3}".format(N,k,i)
+        return "{0}.{1}.{2}".format(N,k,i)
 
 def param_from_label(lab):
     t = lab.split(".")

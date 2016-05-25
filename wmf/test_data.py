@@ -13,7 +13,7 @@ from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
-from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm
+from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm, WebModFormSpace
 #from multiprocessing import Pool
 from sage.all import ModularSymbols, ceil, RealField, previous_prime
 from utils import orbit_label,orbit_index_from_label
@@ -133,13 +133,13 @@ def check_one_space(S):
     if not check_orbits(S):
         wmf_logger.info("space failed orbit check!")
         success= False
-    if not check_if_updated(S):
+    elif not check_if_updated(S):
         wmf_logger.info("space is not updated!")
         success= False        
-    if not check_deligne(S):
+    elif not check_deligne(S):
         wmf_logger.info("space does not satisfy deligne's bound!")
         success= False
-    if not check_coefficients(S):
+    elif not check_coefficients(S):
         wmf_logger.info("a form in the space does not have correct coefficients!")
         success = False
     return success
@@ -260,18 +260,49 @@ def check_coefficient_of_form(F,nrange=[]):
     return True
 
 @parallel(p_iter='multiprocessing', ncpus=16)
-def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db'):
+def recompute_space_completely(label, path='/mnt/data/stromberg/modforms-db', host='localhost', port=37010):
     from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
     from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
-    C = CheckingDB(path)
-    D = MongoMF()
+    C = CheckingDB(path, host=host, port=port)
+    D = MongoMF(host=host, port=port)
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_space_label
     if hasattr(label,'space_label'):
         label = label.space_label
     N,k,ci = parse_space_label(label)
+    C.delete_form(label)
     C.compute_and_insert_one_space(N,k,ci)
     C.check_record(N,k,ci,check_content=True,recheck=True)
     cid = D.register_computation(level=N,weight=k,cchi=ci,typec='wmf')
     S = WebModFormSpace_computing(N,k,ci, recompute=True, update_from_db=False)
     #S.save_to_db()
     D.register_computation_closed(cid)
+
+@parallel(ncpus=8)
+def check_stored_one_space(level, weight, character):
+    if character == 1:
+        dim = dimension_new_cusp_forms(level, weight)
+    else:
+        raise NotImplementedError("Do this for non-trivial character!")
+    if dim == 0:
+        # not checking dimension 0 spaces
+        return (True,'')
+    S=WebModFormSpace(level, weight, character, update_from_db=True)
+    if not S.has_updated_from_db() or not S.has_updated_from_fs():
+        return (False, "Space {} has not updated".format(S))
+    dimS = S.dimension_new_cusp_forms
+    dim_sum = 0
+    if not dim==dimS:
+        return (False, 'Dimension of {} = {}, should be {}'.format(S, dimS, dim))
+    for f in S.hecke_orbits.values():
+        if not f.has_updated_from_db() or not f.has_updated_from_fs():
+            return (False, "Form {} has not updated".format(f))
+        dim_sum += f.dimension
+    if not dim_sum == dimS:
+        return (False, "Dimensions do not add up for S = {}, got {} should be {}".format(S, dim_sum, dimS))
+    return (True,'')
+
+def check_all_stored(level_range, weight_range, trivial_character=True):
+    if trivial_character:
+        return list(check_stored_one_space(((N,k,1) for N in level_range for k in weight_range)))
+    else:
+        raise NotImplementedError

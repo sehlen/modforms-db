@@ -71,7 +71,7 @@ class WebNewForm_computing(WebNewForm):
     Class for representing a (cuspidal) newform on the web.
     TODO: Include the computed data in the original database so we won't have to compute here at all.
     """
-    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='',port=0,db='modularforms2',recompute=False,save_to_db=False,**kwds):
+    def __init__(self,level=1, weight=12, character=1, label='a', parent=None,host='',port=0,db='modularforms2',recompute=False,save_to_db=False,update_from_db=True,prec=10,**kwds):
         r"""
         Init self as form with given label in S_k(N,chi)
 
@@ -97,7 +97,7 @@ class WebNewForm_computing(WebNewForm):
         # update the version to current one 
         self.version = emf_version
         emf_logger.critical("version={0} kwds={1}".format(self.version,kwds))
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent,**kwds)
+        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent=parent,prec=prec,**kwds)
         if not self.is_in_modularforms_db():
             wmf_logger.debug("Newform with label {0}.{1}.{2}.{3} is not in the database!".format(level,weight,character,label))
             return None
@@ -106,7 +106,12 @@ class WebNewForm_computing(WebNewForm):
 
         wmf_logger.debug("WebNewForm_computing with N,k,chi,label={0}".format( (self.level,self.weight,self.character,self.label)))
         self.prec = 0
-        self._min_prec = 100 ### We want at least this many coefficients
+        if self.character.number == 1 and self.level < 100:
+            self._min_prec = 1000 ### We want at least this many coefficients
+        elif self.level < 25:
+            self._min_prec = 500 ### We want at least this many coefficients
+        else:
+            self._min_prec = 100
         self._as_factor = None
         self._prec_needed_for_lfunctions = None
         self._available_precisions = []
@@ -115,15 +120,17 @@ class WebNewForm_computing(WebNewForm):
         #self._twist_info = None
         self._as_polynomial_in_E4_and_E6 = None
         do_save = False
-        ## If it is in the database we don't need to compute everything unless we specify recompute=True
-        s = {'hecke_orbit_label':self.hecke_orbit_label}
-        if not self.has_updated_from_db() or recompute: # reset the computed (possibly wrong) properties of self
+        if not (self.has_updated_from_db() and update_from_db)\
+               or recompute: # reset the computed (possibly wrong) properties of self
             do_save = True
             self._clear_cache_()
        
             self._coefficients={}
             self._embeddings = {}
             self._embeddings_timeout = kwds.get('embeddings_timeout',0)
+            for W in WebEigenvalues.find({'hecke_orbit_label':self.hecke_orbit_label}, gridfs_only=True):
+                W.authorize()
+                W.delete_from_db()
             self.compute_additional_properties()
             
         #for p in self._db_properties:
@@ -132,6 +139,9 @@ class WebNewForm_computing(WebNewForm):
         self.version = float(emf_version)
         if do_save:
             self.save_to_db() # this should be efficient now
+
+        self.update_from_db()
+        self.create_small_record()
 
     def __repr__(self):
         r"""
@@ -263,14 +273,14 @@ class WebNewForm_computing(WebNewForm):
             if E.nrows() <> prime_pi(pprec):
                 raise ValueError,"The ap record for {0} does not contain correct number of eigenvalues as indicated! Please check manually!"
             self._available_precisions.append(pprec)
-            evs = WebEigenvalues(self.hecke_orbit_label,pprec)
+            evs = WebEigenvalues(self.hecke_orbit_label,pprec, update_from_db=False)
             evs.version = self.version
             evs.E = E
             wmf_logger.critical("E = {0}".format(E))
             evs.v = v
             #wmf_logger.debug("ap={0}".format(E*v))
             evs.meta = meta
-            evs.init_dynamic_properties()
+            #evs.init_dynamic_properties()
             t = evs.save_to_db(update=True)
             if not t is True:
                 wmf_logger.critical("Could not update webeigenvalues!")
@@ -297,10 +307,12 @@ class WebNewForm_computing(WebNewForm):
         q = QR.gen()
         res = 0*q**0
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
+        wmf_logger.debug("Want {0} coefficients for q-exp".format(m))
         self.coefficients(range(1,m))
         ### Include small sanity check
-        from test_data import check_deligne_one_form
-        check_deligne_one_form(self)
+        ### -- not now since this can be very slow and somehow should be checked after we computed the embeddings separatedly
+        #from test_data import check_deligne_one_form
+        #check_deligne_one_form(self)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
         self.q_expansion = res.add_bigoh(n+1)
@@ -413,13 +425,13 @@ class WebNewForm_computing(WebNewForm):
             embeddings = [QQ.complex_embedding()]
         else:
             embeddings = self.coefficient_field.complex_embeddings()
+            bitprec_working = 2*bitprec
+            embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
         wmf_logger.debug("computing embeddings of q-expansions : has {0} embedded coeffs. Want : {1} with bitprec={2}".format(len(self._embeddings),prec,bitprec))
         ## First check if we have sufficient data
         if self._embeddings.get('prec',0) >= prec and self._embeddings.get('bitprec',0) >= bitprec and not recompute:
             return 0 ## We should already have sufficient data.
         ## Else we compute new embeddings.
-        bitprec_working = 2*bitprec
-        embeddings_refined = map(lambda x: refine_embedding(x, bitprec_working), embeddings)
         eps = 2**(-display_bprec)
         CF = ComplexField(bitprec)
         # First check if we need higher precision, in which case we reset all coefficients:
@@ -428,32 +440,49 @@ class WebNewForm_computing(WebNewForm):
             self._embeddings['prec']=int(0)
             self._embeddings['bitprec']=int(bitprec)
         # See if we have need of more coefficients
-        nstart = len(self._embeddings['values'])
         wmf_logger.debug("we already  have {0} embedded coeffs".format(self._embeddings['prec']))
         wmf_logger.debug("Computing new embeddings !")
-        deg = self.coefficient_field.absolute_degree()
-        for n in range(self._embeddings['prec'],prec+1):
+        #find largest non-vanishing coefficient
+        #we assume that if we refine the embeddings for that one,
+        #it should be fine for all
+        if len(embeddings)>1:
+            maxcoeff = self.coefficient(2)
+            maxcoeff_index = 0
+            if self.coefficient(2).parent().absolute_degree()>1:
+                mc = max(abs(x) for x in maxcoeff.list())
+                for j, c in enumerate((self.coefficient(n) for n in xrange(max(2,self._embeddings['prec']),prec+1))):
+                    mcn = max(abs(x) for x in c.list())
+                    if c != 0 and mcn > mc:
+                        maxcoeff = c
+                        maxcoeff_index = j
+                        mc = mcn
+                emf_logger.debug("Maximal coefficient has index {0} and norm {1}".format(maxcoeff_index, maxcoeff.norm()))
+                embc = [e(maxcoeff) for e in embeddings]
+                embc_refined = [e(maxcoeff) for e in embeddings_refined]
+                maxemb = embc_refined[0]
+                maxemb_index = 0    
+                for j, ec in enumerate(embc_refined):
+                    if abs(ec) > maxemb:
+                        maxemb = ec
+                        maxemb_index = j
+                emf_logger.debug("Maximal embedding is {0}:{1}".format(maxemb_index, maxemb))
+                while abs(embc[maxemb_index] - maxemb) > eps:
+                    emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
+                                                         (bitprec_working, maxcoeff_index, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
+                    emf_logger.debug("Err={0}".format(abs(embc[maxemb_index] - maxemb)))
+                    embc = embc_refined
+                    embeddings = embeddings_refined
+                    bitprec_working =  bitprec_working + bitprec
+                    embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
+                    embc_refined = [e(maxcoeff) for e in embeddings_refined]
+                    maxemb = embc_refined[maxemb_index]
+        for n in xrange(self._embeddings['prec'],prec+1):
             try:
                 cn = self.coefficient(n)
             except IndexError:
                 break
             embc = [e(cn) for e in embeddings]
-            embc_refined = [e(cn) for e in embeddings_refined]
-            maxemb = embc_refined[0]
-            maxemb_index = 0
-            for j, ec in enumerate(embc_refined):
-                if abs(ec) > maxemb:
-                    maxemb = ec
-                    maxemb_index = j
-            while abs(embc[maxemb_index] - maxemb) > eps:
-                emf_logger.debug("Refining embeddings to {0} because error for coefficient {1} is {2:.3}>{3:.3}.".format\
-                                     (bitprec_working, n, float(abs(embc[maxemb_index] - maxemb)), float(eps)))
-                embc = embc_refined
-                bitprec_working =  bitprec_working + bitprec
 
-                embeddings_refined = map(lambda x: refine_embedding(x,bitprec_working), embeddings)
-                embc_refined = [e(cn) for e in embeddings_refined]
-                maxemb = embc_refined[maxemb_index]
             self._embeddings['values'][n] = map(lambda x: CF(x),embc)
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
