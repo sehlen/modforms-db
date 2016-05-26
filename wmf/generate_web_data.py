@@ -2147,6 +2147,8 @@ def delete_duplicate_records_in_dimension_table():
 
 def rewrite_dimension_table():
     #need to load the file rewrite.py from data_mgmt/utilities in lmfdb
+    #but it still somehow does not work because it does not find rewrite_collection
+    #anywhere, c/p doe work and I leave it here for reference.
     old_collection_name = "dimension_table"
     new_collection_name = "dimension_table_cleanup"
     db = WebModFormSpace.connect_to_db()
@@ -2160,5 +2162,5 @@ def rewrite_dimension_table():
             rec['character_orbit'] = sorted(rec['character_orbit'])
             rec['character_orbit_rep'] = min(rec['character_orbit'])
         return rec
-    rewrite_collection(old_collection_name, new_collection_name, rewrite_dimension_table)
+    rewrite_collection(db, old_collection_name, new_collection_name, rewrite_dimension_record)
     
