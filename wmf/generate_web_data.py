@@ -2135,7 +2135,7 @@ def compute_space_gamma1(N,k,c):
     
 
 def compute_spaces_gamma_1(level_range, weight_range):
-    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))
+    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N)))
                 
 
 def delete_duplicate_records_in_dimension_table():
