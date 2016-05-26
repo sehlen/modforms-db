@@ -28,6 +28,8 @@ import bson
 from copy import copy
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even, gcd
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
+from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps, conrey_character_number_to_conrey_galois_orbit_number
+from lmfdb.modular_forms.elliptic_modular_forms import WebModFormSpace
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebNewForm
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
@@ -2130,9 +2132,35 @@ def delete_ranges_from_mongo(level_range, weight_range):
 def compute_space_gamma1(N,k,c):
     if gcd(N,c) == 1:
         S = WebModFormSpace_computing(N,k,c,update_from_db=False, recompute=True)
-
+    
 
 def compute_spaces_gamma_1(level_range, weight_range):
-    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in xrange(1,N) if gcd(c,N)==1))
+    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))
                 
-                
+
+r"""
+def delete_duplicate_records_in_dimension_table():
+    D = WebModFormSpace.connect_to_db(S._dimension_table_name)
+    for s in D.aggregate([{'$group': {'_id': {'character_orbit': '$character_orbit', 'level': '$level', 'weight': '$weight'}, 'count': {'$sum': int(1) }, 'space_label': {'$push': '$space_label'} }}, {'$match': {'count': {'$gt': int(1)}}}], allowDiskUse=True):
+        for label in s['space_label']:
+            if WebModFormSpace.count({'space_label': label}) == 0:
+                D.delete_one({'space_label': label})
+"""
+
+def rewrite_dimension_table():
+    from lmfdb.data_mgmt.rewrite import rewrite_collection
+    old_collection_name = "dimension_table"
+    new_collection_name = "dimension_table_cleanup"
+    db = WebModFormSpace.connect_to_db()
+    def rewrite_dimension_record(rec):
+        if rec.has_key('character_orbit'):
+            level = rec['level']
+            weight = rec['weight']
+            ci = rec['cchi']
+            on = conrey_character_number_to_conrey_galois_orbit_number(level,ci)[1]
+            rec['space_orbit_label'] = "{0}.{1}.{2}".format(level,weight,on)
+            rec['character_orbit'] = sorted(rec['character_orbit'])
+            rec['character_orbit_rep'] = min(rec['character_orbit'])
+        return rec
+    rewrite_collection(old_collection_name, new_collection_name, rewrite_dimension_table)
+    
