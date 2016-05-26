@@ -482,7 +482,7 @@ class WebNewForm_computing(WebNewForm):
             except IndexError:
                 break
             embc = [e(cn) for e in embeddings]
-            
+
             self._embeddings['values'][n] = map(lambda x: CF(x),embc)
         c2 = self._embeddings['values'][2][0]
         t = RR(c2.abs())/RR(2)**((self.weight-1.0)/2.0)
