@@ -2135,11 +2135,11 @@ def compute_space_gamma1(N,k,c):
     
 
 def compute_spaces_gamma_1(level_range, weight_range):
-    return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N)))
+    return list(compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))))
                 
 
-def delete_duplicate_records_in_dimension_table():
-    D = WebModFormSpace.connect_to_db(S._dimension_table_name)
+def delete_duplicate_records_in_dimension_table(dimension_table_name=None):
+    D = WebModFormSpace.connect_to_db(S._dimension_table_name if dimension_table_name is None else dimension_table_name)
     for s in D.aggregate([{'$group': {'_id': {'character_orbit': '$character_orbit', 'level': '$level', 'weight': '$weight'}, 'count': {'$sum': int(1) }, 'space_label': {'$push': '$space_label'} }}, {'$match': {'count': {'$gt': int(1)}}}], allowDiskUse=True):
         for label in s['space_label']:
             if WebModFormSpace.count({'space_label': label}) == 0:
@@ -2161,6 +2161,19 @@ def rewrite_dimension_table():
             rec['space_orbit_label'] = "{0}.{1}.{2}".format(level,weight,on)
             rec['character_orbit'] = sorted(rec['character_orbit'])
             rec['character_orbit_rep'] = min(rec['character_orbit'])
+            in_wdb = True
+            try:
+                WMFS = WebModFormSpace(level = level, weight = weight, cuspidal=True, character = ci)
+            except (RuntimeError,ValueError):
+                in_wdb = False
+            if WMFS == None:
+                in_wdb = False
+            dim = rec['d_newf']
+            if WMFS.dimension_new_cusp_forms != dim:
+                in_wdb = False
+            if dim>0 and WMFS.hecke_orbits == {}:
+                in_wdb = False
+            rec['in_wdb'] = in_wdb
         return rec
     rewrite_collection(db, old_collection_name, new_collection_name, rewrite_dimension_record)
     
