@@ -2146,7 +2146,7 @@ def delete_duplicate_records_in_dimension_table():
                 D.delete_one({'space_label': label})
 
 def rewrite_dimension_table():
-    from lmfdb.data_mgmt.rewrite import rewrite_collection
+    #need to load the file rewrite.py from data_mgmt/utilities in lmfdb
     old_collection_name = "dimension_table"
     new_collection_name = "dimension_table_cleanup"
     db = WebModFormSpace.connect_to_db()
