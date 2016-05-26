@@ -2138,14 +2138,12 @@ def compute_spaces_gamma_1(level_range, weight_range):
     return compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))
                 
 
-r"""
 def delete_duplicate_records_in_dimension_table():
     D = WebModFormSpace.connect_to_db(S._dimension_table_name)
     for s in D.aggregate([{'$group': {'_id': {'character_orbit': '$character_orbit', 'level': '$level', 'weight': '$weight'}, 'count': {'$sum': int(1) }, 'space_label': {'$push': '$space_label'} }}, {'$match': {'count': {'$gt': int(1)}}}], allowDiskUse=True):
         for label in s['space_label']:
             if WebModFormSpace.count({'space_label': label}) == 0:
                 D.delete_one({'space_label': label})
-"""
 
 def rewrite_dimension_table():
     from lmfdb.data_mgmt.rewrite import rewrite_collection
