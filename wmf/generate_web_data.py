@@ -2120,23 +2120,27 @@ def add_smaller_records(query):
                 except:
                     continue
                 
-def delete_ranges_from_mongo(level_range, weight_range):
+def delete_ranges_from_mongo(C, level_range, weight_range):
+    #C is a MongoDB instance, or CheckingDB etc
     for N in level_range:
         for k in weight_range:
             for c in xrange(1,N):
                 for l in xrange(C.number_of_factors(N,k,c)):
                     C.delete_form(newform_label(N,k,c,l))
+                #make sure we delete aps
+                for f in C._aps.find({'level': N, 'weight': k, 'cchi': c}):
+                    C._aps.delete(f['_id'])                    
                 C.delete_form("{N}.{k}.{c}".format(N=N,k=k,c=c))
 
 @parallel(ncpus=12)
-def compute_space_gamma1(N,k,c):
+def generate_web_space(N,k,c):
     if gcd(N,c) == 1:
         S = WebModFormSpace_computing(N,k,c,update_from_db=False, recompute=True)
     
 
-def compute_spaces_gamma_1(level_range, weight_range):
+def generate_spaces_gamma_1(level_range, weight_range):
     return list(compute_space_gamma1(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))))
-                
+
 
 def delete_duplicate_records_in_dimension_table(dimension_table_name=None):
     D = WebModFormSpace.connect_to_db(S._dimension_table_name if dimension_table_name is None else dimension_table_name)

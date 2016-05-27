@@ -141,7 +141,7 @@ class WebNewForm_computing(WebNewForm):
             self.save_to_db() # this should be efficient now
 
         self.update_from_db()
-        self.create_small_record()
+        self.create_small_record(max_length=1048576)
 
     def __repr__(self):
         r"""
@@ -188,6 +188,10 @@ class WebNewForm_computing(WebNewForm):
         self.set_base_ring()       
         self.set_coefficient_field()
         self.set_q_expansion_embeddings()
+        #the following two should have been set automatically
+        #but let's make sure they make it to the db here.
+        self.set_first_nonvanishing_coefficient()
+        self.set_coefficient_complexity()
 
         self.set_twist_info()
         self.set_is_cm()
@@ -490,8 +494,16 @@ class WebNewForm_computing(WebNewForm):
             raise ValueError,"The aps in the coefficients are incorrect for {0}. We got c({1})/n^(k-1)/2)={2} Please check!".format(self.hecke_orbit_label,2,t)
         self._embeddings['prec'] = prec+1
         return 1
+
+    def set_first_nonvanishing_coefficient(self):
+        #these methods set the property if it hasn't been set
+        self.first_nonvanishing_coefficient()
+        self.first_nonvanishing_coefficient_norm()
+        self.first_nonvanishing_coefficient_trace()
                       
-    
+    def set_coefficient_complexity(self, number_of_coefficients=3):
+        #sets the property if it hasn't been set
+        self.complexity_of_first_nonvanishing_coefficients(number_of_coefficients)
   
     def set_atkin_lehner(self):
         r"""
