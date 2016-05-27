@@ -187,7 +187,7 @@ class WebNewForm_computing(WebNewForm):
         self.set_q_expansion()
         self.set_base_ring()       
         self.set_coefficient_field()
-        self.set_q_expansion_embeddings()
+        self.set_q_expansion_embeddings(prec=self.prec)
         #the following two should have been set automatically
         #but let's make sure they make it to the db here.
         self.set_first_nonvanishing_coefficient()
