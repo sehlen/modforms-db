@@ -1096,6 +1096,10 @@ def dict_to_ambient(modsym):
         eps = trivial_character(N)
     else:
         eps = DirichletGroup(N, F)(eps)
+    # make sure we have the same base ring all over the place
+    # otherwise we get coercion in sage that really makes this
+    # modular symbols space perform extremely bad!
+    mod2term = map(lambda x: (x[0],F(x[1])), mod2term)
 
     from sage.modular.modsym.manin_symbol_list import ManinSymbolList, ManinSymbol
     manin_symbol_list = ManinSymbolList(k, manin).symbol_list()
@@ -1112,7 +1116,9 @@ def dict_to_ambient(modsym):
         M._AmbientHeckeModule__rank=dim
         #print "M.__rank=",M.__dict__
         return M
-    return ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
+    M = ModularSymbols(eps, k, sign=1, custom_init=custom_init)
+    M._base = F # force them to be the same again to make sure
+    return M
 
 
 

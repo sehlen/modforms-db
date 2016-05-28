@@ -1126,7 +1126,7 @@ class CompMF(MongoMF):
                     completeness = r['complete']
                 else:
                     completeness = int(1)
-                clogger.debug("Set complete to {0}, label={1}.{2}.{2}".format(completeness,N,k,ci))
+                clogger.debug("Set complete to {0}, label={1}.{2}.{3}".format(completeness,N,k,ci))
             else:
                 clogger.debug("Set complete to 0")
                 clogger.debug("Factor={0}".format(factor_ids))
