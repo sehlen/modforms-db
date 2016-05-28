@@ -1116,7 +1116,7 @@ def dict_to_ambient(modsym):
         M._AmbientHeckeModule__rank=dim
         #print "M.__rank=",M.__dict__
         return M
-    M = ModularSymbols(eps, k, sign=1, custom_init=custom_init)
+    M = ModularSymbols(eps, k, sign=1, custom_init=custom_init, use_cache=False)
     M._base = F # force them to be the same again to make sure
     return M
 
