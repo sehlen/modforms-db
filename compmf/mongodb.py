@@ -2616,7 +2616,11 @@ class CheckingDB(CompMF):
         if numf1 == numf:
             res['factors'] = True
             if check_content:
-                facts = self.get_factors(N,k,ci,'all')
+                try:
+                    facts = self.get_factors(N,k,ci,'all')
+                except ValueError as e:
+                    clogger.debug("Could not load factors; {}".format(e))
+                    facts = {}
                 d = 0
                 for f in facts.values():
                     d+=f.dimension()
