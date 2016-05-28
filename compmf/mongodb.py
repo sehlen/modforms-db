@@ -2607,7 +2607,7 @@ class CheckingDB(CompMF):
         numf1 = self.number_of_factors(N,k,ci)
         facts = {}
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
-        if dimn == 0 or (numf1 == 0 and numf == 0):
+        if dimn == 0 and (numf1 == 0 and numf == 0):
             clogger.debug("updating 0 complete:{0}".format(check_level))
             self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
             return res
