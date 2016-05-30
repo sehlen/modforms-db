@@ -255,9 +255,9 @@ class WebModFormSpace_computing(WebModFormSpace):
 
     def update_dimension_table(self):
         if self.version > 1.3:
-            C = self.connect_to_db()._mongodb['dimension_table2']
+            C = self.connect_to_db()['dimension_table2']
         else:
-            C = self.connect_to_db()._mongodb['dimension_table']
+            C = self.connect_to_db()['dimension_table']
         in_db = True
         for x in self.hecke_orbits:
             label = self.hecke_orbits[x].hecke_orbit_label
