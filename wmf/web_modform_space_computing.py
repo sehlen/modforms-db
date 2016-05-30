@@ -273,6 +273,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             parity = int(1)
         else:
             parity = int(-1)
+        self.authorize()
         if not r is None:
             return C.update({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
