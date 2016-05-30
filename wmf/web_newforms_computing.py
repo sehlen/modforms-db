@@ -501,7 +501,7 @@ class WebNewForm_computing(WebNewForm):
         self.first_nonvanishing_coefficient_norm()
         self.first_nonvanishing_coefficient_trace()
                       
-    def set_coefficient_complexity(self, number_of_coefficients=3):
+    def set_coefficient_complexity(self, number_of_coefficients=4):
         #sets the property if it hasn't been set
         self.complexity_of_first_nonvanishing_coefficients(number_of_coefficients)
   
