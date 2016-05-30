@@ -316,7 +316,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                 all_in_db = True
             res1 = C.insert(
                         {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db),
-                                    'gamma1_level': 'gamma1_label': '{}.{}'.format(self.level, self.weight),
+                                    'gamma1_level': '{}.{}'.format(self.level, self.weight),
                                     'd_mod':int(dimension_modular_forms(Gamma1(self.level))),
                                     'd_cusp':int(dimension_cusp_forms(Gamma1(self.level))),
                                     'd_newf':int(dimension_new_cusp_forms(Gamma1(self.level))),
