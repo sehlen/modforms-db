@@ -275,7 +275,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             parity = int(-1)
         self.authorize()
         if not r is None:
-            return C.update({'_id':r['_id']},{"$set":
+            res = C.update({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
             r = {'space_orbit_label':self.space_orbit_label,
@@ -291,7 +291,9 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
                  'in_msdb':int(1)}
-            return C.insert(r)
+            res = C.insert(r)
+        self.logout()
+        return res
         # Check Gamma1 as well...??
         #norbits = M.character.character.parent()._galois_orbits()
         
