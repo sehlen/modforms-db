@@ -254,12 +254,10 @@ class WebModFormSpace_computing(WebModFormSpace):
         
 
     def update_dimension_table(self):
-        if self._db is None:
-            self.setup_modular_symbols_db()
         if self.version > 1.3:
-            C = self._db._mongodb['dimension_table2']
+            C = self.connect_to_db()._mongodb['dimension_table2']
         else:
-            C = self._db._mongodb['dimension_table']
+            C = self.connect_to_db()._mongodb['dimension_table']
         in_db = True
         for x in self.hecke_orbits:
             label = self.hecke_orbits[x].hecke_orbit_label
@@ -275,12 +273,14 @@ class WebModFormSpace_computing(WebModFormSpace):
             parity = int(-1)
         self.authorize()
         if not r is None:
-            res = C.update({'_id':r['_id']},{"$set":
+            res0 = C.update({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
+            co = map(lambda x: int(x.number()),self.character.character.galois_orbit())
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
-                 'character_orbit':map(lambda x: int(x.number()),self.character.character.galois_orbit()),
+                 'character_orbit':co,
+                 'character_orbit_rep': min(co),
                  'level':int(self.level),
                  'character_parity':parity,
                  'weight':int(self.weight),
@@ -291,9 +291,38 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
                  'in_msdb':int(1)}
-            res = C.insert(r)
+            res0 = C.insert(r)
+        #now look for the Gamma1 entry
+        r = C.find_one({'gamma1_label': '{}.{}'.format(self.level, self.weight)})
+        if not r is None:
+            all_in_db = True
+            if not r['all_in_db']==1:
+                all_in_db = True
+                orbits = self.character.character.parent()._galois_orbits()
+                for o in orbits:
+                    if C.find({'character_orbit_rep': int(min(o))}).count() == 0:
+                        all_in_db = False
+                        break
+                    elif not C.find_one({'character_orbit_rep': int(min(o))})['in_wdb'] == 1:
+                        all_in_db = False
+                        break
+                res1 = C.update({'_id':r['_id']},{"$set":
+                    {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db)}})
+        else:
+            #first record for Gamma1(N), weight k, so can't be complete unless there is only one character.
+            if self.level>2:
+                all_in_db = False
+            else:
+                all_in_db = True
+            res1 = C.insert(
+                        {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db),
+                                    'gamma1_level': 'gamma1_label': '{}.{}'.format(self.level, self.weight),
+                                    'd_mod':int(dimension_modular_forms(Gamma1(self.level))),
+                                    'd_cusp':int(dimension_cusp_forms(Gamma1(self.level))),
+                                    'd_newf':int(dimension_new_cusp_forms(Gamma1(self.level))),
+                                    'd_eis':int(self.dimension_eis(Gamma1(self.level)))})
         self.logout()
-        return res
+        return res0, res1
         # Check Gamma1 as well...??
         #norbits = M.character.character.parent()._galois_orbits()
         
