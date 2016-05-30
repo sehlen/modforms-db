@@ -308,6 +308,8 @@ class WebModFormSpace_computing(WebModFormSpace):
                         break
                 res1 = C.update({'_id':r['_id']},{"$set":
                     {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db)}})
+            else:
+                res1 = None
         else:
             #first record for Gamma1(N), weight k, so can't be complete unless there is only one character.
             if self.level>2:
