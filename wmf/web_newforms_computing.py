@@ -97,7 +97,7 @@ class WebNewForm_computing(WebNewForm):
         # update the version to current one 
         self.version = emf_version
         emf_logger.critical("version={0} kwds={1}".format(self.version,kwds))
-        super(WebNewForm_computing,self).__init__(level,weight,character,label,parent=parent,prec=prec,**kwds)
+        super(WebNewForm_computing,self).__init__(level, weight, character, label, parent=parent, prec=prec, update_from_db=update_from_db, **kwds)
         if not self.is_in_modularforms_db():
             wmf_logger.debug("Newform with label {0}.{1}.{2}.{3} is not in the database!".format(level,weight,character,label))
             return None
@@ -132,6 +132,7 @@ class WebNewForm_computing(WebNewForm):
                 W.authorize()
                 W.delete_from_db()
             self.compute_additional_properties()
+            self.create_small_record(max_length=1048576)
             
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
@@ -140,8 +141,7 @@ class WebNewForm_computing(WebNewForm):
         if do_save:
             self.save_to_db() # this should be efficient now
 
-        self.update_from_db()
-        self.create_small_record(max_length=1048576)
+        #self.update_from_db()
 
     def __repr__(self):
         r"""
