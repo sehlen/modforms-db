@@ -16,7 +16,7 @@ from compmf.character_conversions import dirichlet_character_conrey_galois_orbit
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm, WebModFormSpace
 #from multiprocessing import Pool
-from sage.all import ModularSymbols, ceil, RealField, previous_prime
+from sage.all import ModularSymbols, ceil, RealField, previous_prime, sigma
 from utils import orbit_label,orbit_index_from_label
 
 def reset_expansions(l):
@@ -168,9 +168,9 @@ def check_deligne_one_form(f):
     m = f.max_available_prec()
     if m<2:
         return False
-    f.prec = m
+    f.prec = min([m,1000]) #do not check too many coefficients as this might take long
     f.update_from_db()
-    for n in xrange(m):
+    for n in xrange(2,m):
         try:
             cn = f.coefficient_embeddings(n)
         except StopIteration:
