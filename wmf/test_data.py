@@ -12,6 +12,7 @@ from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime,RR,
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
 from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
+from compf.character_conversions import dirichlet_character_conrey_galois_orbits_reps
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version,WebNewForm, WebModFormSpace
 #from multiprocessing import Pool
