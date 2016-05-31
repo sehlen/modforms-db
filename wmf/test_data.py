@@ -168,7 +168,8 @@ def check_deligne_one_form(f):
     m = f.max_available_prec()
     if m<2:
         return False
-    f.prec = min([m,1000]) #do not check too many coefficients as this might take long
+    m = min([m,1000]) #do not check too many coefficients as this might take long
+    f.prec = m
     f.update_from_db()
     for n in xrange(2,m):
         try:
