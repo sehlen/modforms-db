@@ -278,7 +278,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             res0 = C.update({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
-            co = map(lambda x: int(x.number()),self.character.character.galois_orbit())
+            co = sorted(map(lambda x: int(x.number()),self.character.character.galois_orbit()))
             r = {'space_orbit_label':self.space_orbit_label,
                  'space_label':self.space_label,
                  'character_orbit':co,
