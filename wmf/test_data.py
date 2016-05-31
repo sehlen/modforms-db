@@ -83,6 +83,14 @@ def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1, 
                 args.append(r['space_label'])
     return args
 
+def make_labels(level_range, weight_range):
+    lbls = []
+    for N in level_range:
+        for k in weight_range:
+            for c in dirichlet_character_conrey_galois_orbits_reps(N):
+                lbls.append("{0}.{1}.{2}".format(N,k,c))
+    return lbls
+
 def spaces_from_form_labels(labels):
     res = []
     from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import parse_newform_label

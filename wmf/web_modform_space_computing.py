@@ -83,20 +83,22 @@ class WebModFormSpace_computing(WebModFormSpace):
             host,port = c.client.address
         self._host = host; self._port=int(port); self._dbname = db
         
-        super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db,**kwds)
+        super(WebModFormSpace_computing,self).__init__(level=level,weight=weight,character=character,
+                                                           cuspidal=cuspidal,prec=prec,bitprec=bitprec,update_from_db=update_from_db,**kwds)
         wmf_logger.debug("Super class is inited! dim of self={0}".format(self.dimension))
         self._rec = {}
         #if self.dimension == 0: ### does not work if the record has
         #not been computed...
         #    return 
         self.setup_modular_symbols_db()
-        if kwds.get('recompute',True):
+        if kwds.get('recompute',False):
             self._recompute = True
             self._clear_cache_()            
             self.compute_additional_properties()
         else:
             self.update_dimension_table()
             self._recompute = False
+            
     def setup_modular_symbols_db(self):
         r"""
         Connect to the mongodb with modular symbols and fetch the current record.
