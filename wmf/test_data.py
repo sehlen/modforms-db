@@ -168,6 +168,8 @@ def check_deligne_one_form(f):
     m = f.max_available_prec()
     if m<2:
         return False
+    f.prec = m
+    f.update_from_db()
     for n in xrange(m):
         try:
             cn = f.coefficient_embeddings(n)
@@ -177,7 +179,8 @@ def check_deligne_one_form(f):
         if cn==0:
             continue
         norm = RR(n)**((RR(f.weight)-RR(1))/RR(2))
-        l = [x/norm for x in cn]
+        l = [abs(x/norm) for x in cn]
+        t = max(l)
         if abs(t) > RR(sigma(n,0)):
             wmf_logger.critical("The coefficients are probably incorrect for {0}. We got c({1})/{1}^(k-1)/2)={2} for c({1})={3} (d({1})={4}) Please check!".format(f.hecke_orbit_label,n,t,cn,sigma(n,0)))
             return False
