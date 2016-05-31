@@ -148,9 +148,11 @@ def check_one_space(S):
     elif not check_deligne(S):
         wmf_logger.info("space does not satisfy deligne's bound!")
         success= False
-    elif not check_coefficients(S):
-        wmf_logger.info("a form in the space does not have correct coefficients!")
-        success = False
+    #we do not compare the coefficients to the ones sage gives anymore because
+    #some WebNewForms do now have polynomials as coefficients and this makes it hard to do this.
+    #elif not check_coefficients(S):
+    #    wmf_logger.info("a form in the space does not have correct coefficients!")
+    #    success = False
     return success
     
 def check_deligne(S):
@@ -163,33 +165,21 @@ def check_deligne(S):
 def check_deligne_one_form(f):
     if f.dimension==0 and dimension_new_cusp_forms(f.character.sage_character,f.weight)==0:
         return True
-    if f.max_cn()<2:
+    m = f.max_available_prec()
+    if m<2:
         return False
-    for p in prime_range(f.max_cn()):
+    for n in xrange(m):
         try:
-            cp = f.coefficient(p)
+            cn = f.coefficient_embeddings(n)
         except StopIteration:
             wmf_logger.info("Newform does not have coefficient {0}".format(p))
             return False
-        if cp.norm()==0:
+        if cn==0:
             continue
-        t = 1000
-        if cp.parent() <> QQ:
-            prec_start = ceil(RR(abs(cp.norm())).log()/RR(p).log()/53.0)+1
-            for mul_prec in range(prec_start,prec_start+20):
-                RF = RealField(mul_prec*53)
-                norm = RF(p)**((RF(f.weight)-RF(1))/RF(2))
-                l = [x/norm for x in cp.complex_embeddings(53*mul_prec)]
-                err = abs(sum(l) - cp.trace()/norm)
-                if  err < 1e-8:
-                    ### arbitrary test to ensure that the precision is sufficient
-                    ###  Should be checked in theory...
-                    t = max([abs(x) for x in l])
-                    break
-        else:  ## for a rational form 53 bits of precision should be ok...
-            t = RR(abs(cp))/RR(p)**((f.weight-1.0)/2.0)
-        if abs(t) > 2.0:
-            wmf_logger.critical("The aps in the coefficients are incorrect for {0}. We got c({1})/{1}^(k-1)/2)={2} for c({1})={3} Please check!".format(f.hecke_orbit_label,p,t,cp))
+        norm = RR(n)**((RR(f.weight)-RR(1))/RR(2))
+        l = [x/norm for x in cn]
+        if abs(t) > RR(sigma(n,0)):
+            wmf_logger.critical("The coefficients are probably incorrect for {0}. We got c({1})/{1}^(k-1)/2)={2} for c({1})={3} (d({1})={4}) Please check!".format(f.hecke_orbit_label,n,t,cn,sigma(n,0)))
             return False
     return True
     
@@ -198,10 +188,10 @@ def check_if_updated(S):
     r"""
     Return False if S or one of its orbits have not updated from db / fs
     """
-    if not S.has_updated_from_db() and S.has_updated_from_fs():
+    if not S.has_updated():
         return False
     for f in S.hecke_orbits.values():
-        if not f.has_updated_from_fs() and f.has_updated_from_db():
+        if not f.has_updated():
             return False
     return True
                 
@@ -235,6 +225,7 @@ def check_orbits(S): ### This should essentially check more than Drew's check
         wmf_logger.critical("The orbit check failed because of {0}".format(e))
         return False
     return True
+
 def check_coefficients(S):
     for label in S.hecke_orbits:
         f = S.hecke_orbits[label]
@@ -254,7 +245,7 @@ def check_coefficient_of_form(F,nrange=[]):
     else:
         f = WebNewForm_computing(F.hecke_orbit_label).as_factor()
     f = f.q_eigenform(max(nrange)+1,names='a')
-    if not F.coefficient_field.is_isomorphic(f.base_ring()):
+    if not F.coefficient_field is QQ or F.coefficient_field.is_isomorphic(f.base_ring()):
         return False
     for i in nrange:
         c1 = f.padded_list()[i]
