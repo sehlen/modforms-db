@@ -132,7 +132,6 @@ class WebNewForm_computing(WebNewForm):
                 W.authorize()
                 W.delete_from_db()
             self.compute_additional_properties()
-            self.create_small_record(max_length=1048576)
             
         #for p in self._db_properties:
         #    print "db prop:",p.name,p._value
@@ -140,6 +139,8 @@ class WebNewForm_computing(WebNewForm):
         self.version = float(emf_version)
         if do_save:
             self.save_to_db() # this should be efficient now
+        if recompute:
+            self.create_small_record(max_length=1048576)
 
         #self.update_from_db()
 
