@@ -28,7 +28,7 @@ import bson
 from copy import copy
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime, is_even, gcd
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
-from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps, conrey_character_number_to_conrey_galois_orbit_number
+from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps, conrey_character_number_to_conrey_galois_orbit_number, dirichlet_character_conrey_galois_orbit_rep_from_character_number
 from lmfdb.modular_forms.elliptic_modular_forms import WebModFormSpace, WebNewForm
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebEigenvalues
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
