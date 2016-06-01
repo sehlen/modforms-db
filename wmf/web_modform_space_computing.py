@@ -213,13 +213,13 @@ class WebModFormSpace_computing(WebModFormSpace):
         #self.galois_orbit_name = "{0}.{1}.{2}".format(self.level,self.weight,ci)
         self.space_orbit_label = "{0}.{1}.{2}".format(self.level,self.weight,on)
         
-    def set_character_used_in_computation(self):
-       r"""
-       Get the character which was used in the computation of the data.
-       NOTE: The character indicated by the space_label SHOULD be the character we used for the data. 
-       """
-       from compmf.character_conversions import conrey_character_from_number
-       self.character_used_in_computation = conrey_character_from_number(self.character.modulus,self.character.number)
+    #def set_character_used_in_computation(self):
+    #   r"""
+    #   Get the character which was used in the computation of the data.
+    #   NOTE: The character indicated by the space_label SHOULD be the character we used for the data. 
+    #   """
+    #   from compmf.character_conversions import conrey_character_from_number
+    #   self.character_used_in_computation = conrey_character_from_number(self.character.modulus,self.character.number)
 
 
     def set_dimensions(self):
