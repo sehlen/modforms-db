@@ -136,7 +136,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         if self.group is None:
             self.group = Gamma0(self.level)
         self.set_dimensions()
-        self.set_character_used_in_computation()
+        #self.set_character_used_in_computation()
         self.set_character_galois_orbit()
         self.set_character_orbit_rep()
         self.set_galois_orbit_embeddings()
