@@ -96,7 +96,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             self._clear_cache_()            
             self.compute_additional_properties()
         else:
-            self.update_dimension_table()
+            #self.update_dimension_table()
             self._recompute = False
             
     def setup_modular_symbols_db(self):

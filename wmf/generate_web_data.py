@@ -2141,9 +2141,40 @@ def generate_web_space(N,k,c):
 def generate_spaces_gamma_1(level_range, weight_range):
     return list(generate_web_space(((N,k,c) for N in level_range for k in weight_range for c in dirichlet_character_conrey_galois_orbits_reps(N))))
 
+def delete_spaces_not_reps(level_range, weight_range):
+    r"""
+     Deletes spaces, hecke orbits and webeigenvalues for all
+     characters that are not representatives of their Galois orbit.
+    """
+    spaces = WebModFormSpace.find({'level': {'$in': level_range}, 'weight': {'$in': weight_range}})
+    WebModFormSpace.authorize()
+    for S in spaces:
+        reps = dirichlet_character_conrey_galois_orbits_reps(S.level)
+        if not S.character.number in reps:
+            S.delete_from_db()
+            #now update the dimension table
+            crep = dirichlet_character_conrey_galois_orbit_rep_from_character_number(S.level, S.character.number).number()
+            T = WebModFormSpace(S.level, S.weight, crep)
+            if T.has_updated():
+                T.connect_to_db().dimension_table.update_one({'level': int(S.level), 'weight': int(S.weight), 'character_orbit_rep': int(crep)},
+                                                                          {'$set': {'space_label': S.space_label, 'cchi': int(S.character.number), 'in_wdb': int(1)}})
+                T.connect_to_db().dimension_table.update_one({'level': int(S.level), 'weight': int(S.weight), 'gamma1_label': '{}.{}'.format(S.level, S.weight)},
+                                                                          {'$set': {'one_in_wdb': int(1)}})
+            else:
+                T.connect_to_db().dimension_table.update_one({'level': int(S.level), 'weight': int(S.weight), 'character_orbit_rep': int(crep)},
+                                                                          {'$set': {'space_label': S.space_label, 'cchi': int(S.character.number), 'in_wdb': int(0)}})
+    forms = WebNewForm.find({'level': {'$in': level_range}, 'weight': {'$in': weight_range}})
+    for f in forms:
+        if not f.character.number in dirichlet_character_conrey_galois_orbits_reps(f.level):
+            eigenvalues = WebEigenvalues.find({'hecke_orbit_label': f.hecke_orbit_label})
+            for E in eigenvalues:
+                E.delete_from_db()
+            f.delete_from_db(delete_all=True)
+    
+
 
 def delete_duplicate_records_in_dimension_table(dimension_table_name=None):
-    D = WebModFormSpace.connect_to_db(S._dimension_table_name if dimension_table_name is None else dimension_table_name)
+    D = WebModFormSpace.connect_to_db(WebModFormSpace._dimension_table_name if dimension_table_name is None else dimension_table_name)
     for s in D.aggregate([{'$group': {'_id': {'character_orbit': '$character_orbit', 'level': '$level', 'weight': '$weight'}, 'count': {'$sum': int(1) }, 'space_label': {'$push': '$space_label'} }}, {'$match': {'count': {'$gt': int(1)}}}], allowDiskUse=True):
         for label in s['space_label']:
             if WebModFormSpace.count({'space_label': label}) == 0:
