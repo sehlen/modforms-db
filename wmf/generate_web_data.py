@@ -2151,7 +2151,10 @@ def delete_spaces_not_reps(level_range, weight_range):
     for S in spaces:
         reps = dirichlet_character_conrey_galois_orbits_reps(S.level)
         if not S.character.number in reps:
-            S.delete_from_db()
+            try:
+                S.delete_from_db()
+            except IndexError:
+                emf_logger.debug("Could not delete {}".format(S))
             #now update the dimension table
             crep = dirichlet_character_conrey_galois_orbit_rep_from_character_number(S.level, S.character.number).number()
             T = WebModFormSpace(S.level, S.weight, crep)
