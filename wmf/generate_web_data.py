@@ -2171,8 +2171,14 @@ def delete_spaces_not_reps(level_range, weight_range):
         if not f.character.number in dirichlet_character_conrey_galois_orbits_reps(f.level):
             eigenvalues = WebEigenvalues.find({'hecke_orbit_label': f.hecke_orbit_label})
             for E in eigenvalues:
-                E.delete_from_db()
-            f.delete_from_db(delete_all=True)
+                try:
+                    E.delete_from_db()
+                except:
+                    emf_logger.debug("Could not delete {}".format(E)
+            try:
+                f.delete_from_db(delete_all=True)
+            except IndexError:
+                emf_logger.debug("Could not delete {}".format(f)
     
 
 
