@@ -1100,7 +1100,7 @@ class CompMF(MongoMF):
         factor_ids = self.compute_factors(N,k,ci,**kwds)
         kwds['factor_ids']=factor_ids
         # Necessary number of coefficients for L-function computations.
-        pprec = kwds.get('pprec',0)
+        pprec = kwds.pop('pprec',0)
         if not factor_ids is None and factor_ids <> []:
             # ?
             if ci == 1 and N < 100:
