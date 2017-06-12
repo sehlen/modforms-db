@@ -405,7 +405,7 @@ class MongoMF(object):
                 if not self._complete_spaces.find_one({'N':N,'k':k,'all_char_orbits':True,'trivial_char':True}) is None:
                     continue
                 if files.find({'N':N,'k':k,'cchi':int(1),'complete':{"$gt":int(data_record_checked_and_complete-1)}}) and (k % 2)==0:
-                    self._complete_spaces.update(r,{"$set":{"trivial_char":True}})
+                    self._complete_spaces.update_one(r,{"$set":{"trivial_char":True}})
                     if verbose>0:
                         print "{0}, {1}, Trivial char".format(N,k)
                 s = {'N':N,'k':k,'complete':{"$gt":int(data_record_checked_and_complete-1)}}
@@ -423,14 +423,14 @@ class MongoMF(object):
                         print "orbits in db=",orbits
                         print "even orbits=",even_orbits
                     else:
-                        self._complete_spaces.update(r,{"$set":{"all_char_orbits":True}})
+                        self._complete_spaces.update_one(r,{"$set":{"all_char_orbits":True}})
                 else:
                     if orbits <> odd_orbits and verbose>0:
                         print "For N={0} and k={1}:".format(N,k)                        
                         print "orbits in db=",orbits
                         print "odd orbits=",odd_orbits
                     else:
-                        self._complete_spaces.update(r,{"$set":{"all_char_orbits":True}})                        
+                        self._complete_spaces.update_one(r,{"$set":{"all_char_orbits":True}})                        
                     #print N,orbits==even_orbits
                     
                 #for r in files.find({'N':N,'complete':{"$gt":int(0)}}):
@@ -862,14 +862,14 @@ class MongoMF(object):
              'N':int(level), 'k':int(weight),'cchi':int(cchi)}
         if self._computations.find({'N':r['N'],'k':r['k'],'cchi':int(cchi)}).count()>0:
             return None
-        fid = self._computations.insert(r)
+        fid = self._computations.insert_one(r)
         return fid 
 
     def register_computation_closed(self,cid):
         import datetime
         import time
         now = datetime.datetime.fromtimestamp(time.time())
-        self._computations.update({"_id":cid},{"$set":{"stopTime":now}})
+        self._computations.update_one({"_id":cid},{"$set":{"stopTime":now}})
 
     def find_running_computations(self,typec='mf'):
         import datetime
@@ -1136,7 +1136,7 @@ class CompMF(MongoMF):
                 completeness = int(0)
         else:
             completeness = int(1)
-        self._modular_symbols.update({'_id':ambient_fid},{"$set":
+        self._modular_symbols.update_one({'_id':ambient_fid},{"$set":
                                                           {'complete':completeness}})
         sage.modular.modsym.modsym.ModularSymbols_clear_cache()
         self.register_computation_closed(cid)
@@ -1454,7 +1454,7 @@ class CompMF(MongoMF):
                 save(meta, cdb.files().decomp_meta(N, k, ci))
             
         ambient_files = self._modular_symbols
-        ambient_files.update({'_id':ambient_id},{"$set":{'orbits':len(fids_in_mongo)}})
+        ambient_files.update_one({'_id':ambient_id},{"$set":{'orbits':len(fids_in_mongo)}})
         if factors_in_file == 0:
             D = []
             for fid in fids_in_mongo:
@@ -2058,7 +2058,7 @@ class CompMF(MongoMF):
                                      newform_label=newform_label,
 #                                     conrey_newform_label=conrey_newform_label,
                                      level=int(N),
-                                     weight=int(k),
+                                     weicharacter_ht=int(k),
                                      character_galois_orbit = orbit,
 #                                     chi=int(i),
                                      cchi=int(conrey_character_number),
@@ -2120,7 +2120,7 @@ class CompMF(MongoMF):
                             'hecke_orbit_label' : newlabel,
                             "filename":newfname,
                             "conrey_galois_orbit_number":on}
-                        self._newform_factors.update({'_id':fid},{"$set":updates})
+                        self._newform_factors.update_one({'_id':fid},{"$set":updates})
                         cnt+=1
                                                      
                             
@@ -2167,7 +2167,7 @@ class CompMF(MongoMF):
                 clogger.debug("Updates: {0}".format(updates))
             if dry_run == 1:
                 return False
-            self._modular_symbols.update({'_id':fid},{"$set":updates})
+            self._modular_symbols.update_one({'_id':fid},{"$set":updates})
 
             return False
             #raise ValueError,"Space with N,k,i={0} does not exist in the database!".format((N,k,i))
@@ -2215,7 +2215,7 @@ class CompMF(MongoMF):
                     if verbose>0:
                         clogger.debug("We do not modify the database!")
                     return False
-                self._modular_symbols.update({'_id':fid},{"$set":updates})
+                self._modular_symbols.update_one({'_id':fid},{"$set":updates})
                 return False
         raise ArithmeticError,"Could not find appropriate Conrey character!"
 
@@ -2609,7 +2609,7 @@ class CheckingDB(CompMF):
         clogger.debug(" num facts in db={0} and in the ms record:{1}".format(numf1,numf))
         if dimn == 0 and (numf1 == 0 and numf == 0):
             clogger.debug("updating 0 complete:{0}".format(check_level))
-            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
+            self._modular_symbols.update_one({'_id':ambient_id},{"$set":{'complete':int(check_level)}})
             return res
         res['factors'] = False
         d = -1; d1= -1
@@ -2648,7 +2648,7 @@ class CheckingDB(CompMF):
                                         self._newform_factors.remove(r['_id'])
                 if not M is None:
                     dim = M.dimension()
-                    self._modular_symbols.update({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
+                    self._modular_symbols.update_one({'_id':ambient_id},{"$set":{'dim_new_cusp':int(d1),'dimension':int(dim)}})
         ### Check ap's
         # Necessary for L-function computations (rounded to nearest 100).
         pprec = precision_needed_for_L(N,k)
@@ -2736,7 +2736,7 @@ class CheckingDB(CompMF):
                     else:
                         fname = "gamma0-aplists-{0:0>5}-{1:0>3}-{2:0>3}-{3:0>3}-{4:0>3}".format(N,k,ci,d,prec_in_db)
                         clogger.debug("updating record {0} with prec = prec_in_db={1}".format(id,prec_in_db))
-                        q = self._aps.update({'_id':id},
+                        q = self._aps.update_one({'_id':id},
                                          {"$set":{'prec':prec_in_db,'filename':fname}},w=int(1),multi=False,upsert=True)
                         clogger.debug("Updated : {0}".format(q))
                     ## Also check the file system:
@@ -2759,11 +2759,11 @@ class CheckingDB(CompMF):
         if res.values().count(False)==0:
             # Record is complete so we mark it as such
             clogger.debug("updating 1 complete:{0}".format(check_level))
-            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':check_level}})
+            self._modular_symbols.update_one({'_id':ambient_id},{"$set":{'complete':check_level}})
             
         elif ambient_id is not None:
             clogger.debug("updating 2 res={0} complete: {1}".format(res,0))
-            self._modular_symbols.update({'_id':ambient_id},{"$set":{'complete':int(0)}})
+            self._modular_symbols.update_one({'_id':ambient_id},{"$set":{'complete':int(0)}})
         else:
             res['aps']=False
             res['factors']=False
@@ -2846,7 +2846,7 @@ class CheckingDB(CompMF):
                 print "fname=",fname
             else:
                 print "fname=",fname," is ok! rows=",E.nrows()
-                self._aps.update({'_id':fid},{"$set":{"pmax":int(pmax)}})
+                self._aps.update_one({'_id':fid},{"$set":{"pmax":int(pmax)}})
             print "checked ",fname
 
             
@@ -2873,4 +2873,4 @@ class CheckingDB(CompMF):
         S = M.cuspidal_submodule().new_submodule()
         dimn = int(S.dimension())
         clogger.debug("dimn {0}  = {1}".format(r['space_label'],dimn))
-        return self._modular_symbols.update({'_id':r['aid']},{"$set":{"dimn":dimn}})
+        return self._modular_symbols.update_one({'_id':r['aid']},{"$set":{"dimn":dimn}})

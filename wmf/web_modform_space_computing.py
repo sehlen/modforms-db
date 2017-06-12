@@ -275,7 +275,7 @@ class WebModFormSpace_computing(WebModFormSpace):
             parity = int(-1)
         self.authorize()
         if not r is None:
-            res0 = C.update({'_id':r['_id']},{"$set":
+            res0 = C.update_one({'_id':r['_id']},{"$set":
                     {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
         else:
             co = sorted(map(lambda x: int(x.number()),self.character.character.galois_orbit()))
@@ -308,7 +308,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                     elif not C.find_one({'character_orbit_rep': int(min(o))})['in_wdb'] == 1:
                         all_in_db = False
                         break
-                res1 = C.update({'_id':r['_id']},{"$set":
+                res1 = C.update_one({'_id':r['_id']},{"$set":
                     {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db)}})
             else:
                 res1 = None
