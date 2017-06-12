@@ -862,7 +862,8 @@ class MongoMF(object):
              'N':int(level), 'k':int(weight),'cchi':int(cchi)}
         if self._computations.find({'N':r['N'],'k':r['k'],'cchi':int(cchi)}).count()>0:
             return None
-        fid = self._computations.insert_one(r)
+        res = self._computations.insert_one(r)
+        fid = res._inserted_id
         return fid 
 
     def register_computation_closed(self,cid):
