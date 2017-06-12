@@ -2878,3 +2878,28 @@ class CheckingDB(CompMF):
         dimn = int(S.dimension())
         clogger.debug("dimn {0}  = {1}".format(r['space_label'],dimn))
         return self._modular_symbols.update_one({'_id':r['aid']},{"$set":{"dimn":dimn}})
+
+    def clean_data_for_space(self,N,k,i,delete_from=None):
+        r"""
+        Delete all data in the database for this N,k,i
+        BE CAREFUL with this routine...
+
+        delete_from == 'mongo', 'files'
+        """
+        if delete_from == 'files' or delete_from is None:
+            file_list = []
+            for name,f in self._db.files_for_rec(N,k,i).viewitems():
+                if isinstance(f,dict):
+                    file_list += f['aps']
+                else:
+                    file_list.append(f)
+            for f in file_list:
+                self._db.delete_file(f)
+                log.warning("Delete file:{0}".format(f))
+        ## And then the database records
+        if delete_from == 'mongo' or delete_from is None:
+            s = {'N':int(N),'k':int(k),'cchi':int(i)}
+            self._aps.delete_many(s)
+            self._modular_symbols.delete_many(s)
+            self._newform_factors.delete_many(s)
+            log.warning("Deleted db records matching: {0}".format(s))
