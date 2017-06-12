@@ -863,7 +863,7 @@ class MongoMF(object):
         if self._computations.find({'N':r['N'],'k':r['k'],'cchi':int(cchi)}).count()>0:
             return None
         res = self._computations.insert_one(r)
-        fid = res._inserted_id
+        fid = res.inserted_id
         return fid 
 
     def register_computation_closed(self,cid):
@@ -1100,6 +1100,7 @@ class CompMF(MongoMF):
         factor_ids = self.compute_factors(N,k,ci,**kwds)
         kwds['factor_ids']=factor_ids
         # Necessary number of coefficients for L-function computations.
+        pprec = kwds.get('pprec',0)
         if not factor_ids is None and factor_ids <> []:
             # ?
             if ci == 1 and N < 100:
@@ -1108,6 +1109,8 @@ class CompMF(MongoMF):
                 min_prec = 500 ### We want at least this many coefficients
             else:
                 min_prec = 100
+            if min_prec < pprec:
+                min_prec = pprec
             pprec = max([precision_needed_for_L(N,k), min_prec])
             clogger.debug("Computing aps to prec {0} for ci = {1}".format(pprec,ci))
             ap = self.compute_aps(N,k,ci,pprec,**kwds)
