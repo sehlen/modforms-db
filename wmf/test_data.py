@@ -10,7 +10,7 @@ import gridfs
 import bson
 from sage.all import parallel,dumps,Gamma1,QQ,prime_pi,RR,deepcopy,nth_prime,RR, prime_range, dimension_new_cusp_forms
 from wmf import wmf_logger,WebNewForm_computing,WebModFormSpace_computing
-from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
+
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from compmf.character_conversions import dirichlet_character_conrey_galois_orbits_reps
 from sage.misc.cachefunc import cached_function
@@ -75,6 +75,7 @@ bober_errors = ['11.11.10.b', '11.11.2.a', '11.12.1.a', '11.5.10.a', '11.7.10.b'
 
 
 def check_data_for_Gamma1(max_level, max_weight, start_level=1, start_weight=1, path='/mnt/data/stromberg/modforms-db'):
+    from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
     C = CompMF(path)
     D = MongoMF()
     args = []

@@ -32,7 +32,7 @@ from compmf.character_conversions import dirichlet_character_conrey_galois_orbit
 from lmfdb.modular_forms.elliptic_modular_forms import WebModFormSpace, WebNewForm
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_newforms import WebEigenvalues
 from wmf.test_data import check_deligne_one_form, recompute_space_completely
-from compmf import MongoMF,MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
+from compmf import MongoMF,data_record_checked_and_complete,CompMF,CheckingDB
 from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version

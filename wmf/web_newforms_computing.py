@@ -62,7 +62,7 @@ from utils import get_lmfdb_label, Modf_changevar_Ev
 from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label, space_label,parse_newform_label
 
 from wmf import wmf_logger
-from compmf import MongoMF,CompMF
+
 wmf_logger.setLevel(10)
 emf_logger.setLevel(10)
 
@@ -80,6 +80,7 @@ class WebNewForm_computing(WebNewForm):
         
         
         """
+        from compmf import MongoMF
         if host == '' or port == 0:
             ## Use default provided by lmfdb settings
             c = connect_to_modularforms_db() 

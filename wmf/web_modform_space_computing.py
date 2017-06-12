@@ -37,7 +37,6 @@ from lmfdb.modular_forms.elliptic_modular_forms.backend import connect_to_modula
 from lmfdb.modular_forms.elliptic_modular_forms.backend.web_modform_space import WebModFormSpace
 from lmfdb.modular_forms.elliptic_modular_forms.backend import WebModFormSpace
 
-from compmf import MongoMF
 
 from wmf import wmf_logger,WebNewForm_computing,orbit_index_from_label,orbit_label
 
@@ -103,6 +102,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         r"""
         Connect to the mongodb with modular symbols and fetch the current record.
         """
+        from compmf import MongoMF
         try: 
             self._db = MongoMF(self._host,self._port,self._dbname)
             # find the record in the database which corresponds to self
