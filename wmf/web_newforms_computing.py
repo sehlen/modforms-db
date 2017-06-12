@@ -311,13 +311,14 @@ class WebNewForm_computing(WebNewForm):
             self.set_aps()
         QR = PowerSeriesRing(QQ,name='q',order='neglex')
         q = QR.gen()
-        res = 0*q**0
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         wmf_logger.debug("Want {0} coefficients for q-exp".format(m))
         self.coefficients(range(1,m))
         ### Include small sanity check
         ### -- not now since this can be very slow and somehow should be checked after we computed the embeddings separatedly
         #from test_data import check_deligne_one_form
+        
+        res = self.coefficient(1)*0*q**0
         #check_deligne_one_form(self)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
