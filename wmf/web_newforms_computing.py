@@ -309,7 +309,8 @@ class WebNewForm_computing(WebNewForm):
         wmf_logger.debug("Set q-expansion")
         if not self.eigenvalues.has_eigenvalue(2):
             self.set_aps()
-        QR = PowerSeriesRing(QQ,name='q',order='neglex')
+        c1 = self.coefficient(1)
+        QR = PowerSeriesRing(c1.parent(),name='q',order='neglex')
         q = QR.gen()
         m = max(self._min_prec,self.prec_needed_for_lfunctions())
         wmf_logger.debug("Want {0} coefficients for q-exp".format(m))
@@ -318,7 +319,7 @@ class WebNewForm_computing(WebNewForm):
         ### -- not now since this can be very slow and somehow should be checked after we computed the embeddings separatedly
         #from test_data import check_deligne_one_form
         
-        res = self.coefficient(1)*0*q**0
+        res = 0*q**0
         #check_deligne_one_form(self)
         for n in range(1,m):
             res+=self.coefficient(n)*q**n
