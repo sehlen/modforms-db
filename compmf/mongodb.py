@@ -2895,11 +2895,11 @@ class CheckingDB(CompMF):
                     file_list.append(f)
             for f in file_list:
                 self._db.delete_file(f)
-                log.warning("Delete file:{0}".format(f))
+                clogger.warning("Delete file:{0}".format(f))
         ## And then the database records
         if delete_from == 'mongo' or delete_from is None:
             s = {'N':int(N),'k':int(k),'cchi':int(i)}
             self._aps.delete_many(s)
             self._modular_symbols.delete_many(s)
             self._newform_factors.delete_many(s)
-            log.warning("Deleted db records matching: {0}".format(s))
+            clogger.warning("Deleted db records matching: {0}".format(s))
