@@ -2904,4 +2904,10 @@ class CheckingDB(CompMF):
             self._newform_factors.delete_many(s)
             self._atkin_lehner.delete_many(s)
             self._mongodb['vector_on_basis'].delete_many(s)
+            s = {'N': int(N), 'character_galois_orbit': {'$all': [int(i)]}, 'k': int(2)}
+            self._aps.delete_many(s)
+            self._modular_symbols.delete_many(s)
+            self._newform_factors.delete_many(s)
+            self._atkin_lehner.delete_many(s)
+            self._mongodb['vector_on_basis'].delete_many(s)
             clogger.warning("Deleted db records matching: {0}".format(s))
