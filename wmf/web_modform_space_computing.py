@@ -319,7 +319,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                         break
                 res1 = C.update_one({'_id':r['_id']},{"$set":
                     {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db),
-                         'd_cm':dim_cm}})
+                         'd_cm':d_cm}})
             else:
                 res1 = None
         else:
