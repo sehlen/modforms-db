@@ -268,6 +268,10 @@ class WebModFormSpace_computing(WebModFormSpace):
                 wmf_logger.critical("The hecke orbit {0} is not in the database".format(label))
                 in_db = False
                 break
+        ## Get number of CM forms in self:
+        F = self.connect_to_db()[WebNewForm_computing._collection_name]
+        s = {'parent':self.space_label,'is_cm':int(1)}
+        dim_cm = F.find(s).count()
         r = C.find_one({'space_label':self.space_label})
         if self.character.character.is_even():
             parity = int(1)
@@ -292,6 +296,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_newf':int(self.dimension_new_cusp_forms),
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
+                 'dim_cm':int(dim_cm),
                  'in_msdb':int(1)}
             res0 = C.insert(r)
         #now look for the Gamma1 entry
