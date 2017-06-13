@@ -2222,11 +2222,11 @@ def rewrite_dimension_table():
         return rec
     rewrite_collection(db, old_collection_name, new_collection_name, rewrite_dimension_record)
     
-def fix_inconsistent_records(space_labels,ncpus=1):
+def fix_inconsistent_records(labels,ncpus=1):
     pool = Pool(processes=ncpus)
     chunksize = 20
     results = pool.imap_unordered(fix_one_space,labels,chunksize)
-    print "Failed at :",list( set(space_labels).difference(set(results)))
+    print "Failed at :",list( set(labels).difference(set(results)))
     return list(results)
 
 def fix_one_space(label):
