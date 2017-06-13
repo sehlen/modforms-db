@@ -297,7 +297,7 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_newf':int(self.dimension_new_cusp_forms),
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
-                 'd_cm':int(dim_cm),
+                 'd_cm':int(d_cm),
                  'in_msdb':int(1)}
             res0 = C.insert(r)
         #now look for the Gamma1 entry
