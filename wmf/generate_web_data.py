@@ -37,6 +37,8 @@ from compmf.utils import multiply_mat_vec,convert_matrix_to_extension_fld
 from sage.misc.cachefunc import cached_function
 from lmfdb.modular_forms.elliptic_modular_forms import emf_version
 from multiprocessing import Pool
+from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label,parse_space_label
+
 
 def generate_web_modform_spaces(level_range=[],weight_range=[],chi_range=[],ncpus=1,recompute=False,host='localhost',port=int(37010),user=None,password=None):
     r"""
@@ -1971,7 +1973,6 @@ def fix_problematic_eigenvalues(D,label=''):
             wmf_logger.debug("Deleted {0}".format(label))   
         D._mongodb[coll_check].insert({'label':label})
 
-from lmfdb.modular_forms.elliptic_modular_forms.backend.emf_utils import newform_label,parse_newform_label
 def reformat_labels_of_newforms(D,dryrun=True,do_db=False):
     if do_db:
         for coll in [D._newform_factors,D._aps]:
@@ -2221,3 +2222,19 @@ def rewrite_dimension_table():
         return rec
     rewrite_collection(db, old_collection_name, new_collection_name, rewrite_dimension_record)
     
+def fix_inconsistent_records(space_labels,ncpus=1):
+    pool = Pool(processes=ncpus)
+    chunksize = 20
+    results = pool.imap_unordered(fix_one_space,labels,chunksize)
+    print "Failed at :",list( set(space_labels).difference(set(results)))
+    return list(results)
+
+def fix_one_space(label):
+    C = CheckingDB('/home/stromberg/data/modforms-db/',host='lmfdb')
+    N,k,i = parse_space_label(label)
+    C.clean_data_for_space(N,k,i)
+    C.clean_data_for_space(N,k,i)
+    C.compute_and_insert_one_space(N,k,i,pprec=1000)
+    M = WebModFormSpace_computing(N,k,i,recompute=True)
+    M.save_to_db()
+    return label   
