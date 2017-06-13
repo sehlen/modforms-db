@@ -271,7 +271,7 @@ class WebModFormSpace_computing(WebModFormSpace):
         ## Get number of CM forms in self:
         F = self.connect_to_db()[WebNewForm_computing._collection_name]
         s = {'parent':self.space_label,'is_cm':int(1)}
-        dim_cm = F.find(s).count()
+        d_cm = F.find(s).count()
         r = C.find_one({'space_label':self.space_label})
         if self.character.character.is_even():
             parity = int(1)
@@ -280,7 +280,8 @@ class WebModFormSpace_computing(WebModFormSpace):
         self.authorize()
         if not r is None:
             res0 = C.update_one({'_id':r['_id']},{"$set":
-                    {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity}})
+                    {'in_wdb':int(in_db),'in_msdb':int(1),'character_parity':parity,
+                         'd_cm':d_cm}})
         else:
             co = sorted(map(lambda x: int(x.number()),self.character.character.galois_orbit()))
             r = {'space_orbit_label':self.space_orbit_label,
@@ -296,11 +297,14 @@ class WebModFormSpace_computing(WebModFormSpace):
                  'd_newf':int(self.dimension_new_cusp_forms),
                  'd_eis':int(self.dimension_modular_forms - self.dimension_cusp_forms),
                  'in_wdb':int(in_db),
-                 'dim_cm':int(dim_cm),
+                 'd_cm':int(dim_cm),
                  'in_msdb':int(1)}
             res0 = C.insert(r)
         #now look for the Gamma1 entry
         r = C.find_one({'gamma1_label': '{}.{}'.format(self.level, self.weight)})
+        s = {'level':int(self.level),'weight':int(self.weight)}
+        d_cm = F.find(s).count()
+        
         if not r is None:
             all_in_db = True
             if not r['all_in_db']==1:
@@ -314,7 +318,8 @@ class WebModFormSpace_computing(WebModFormSpace):
                         all_in_db = False
                         break
                 res1 = C.update_one({'_id':r['_id']},{"$set":
-                    {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db)}})
+                    {'one_in_wdb':int(in_db), 'all_in_db': int(all_in_db),
+                         'd_cm':dim_cm}})
             else:
                 res1 = None
         else:
@@ -329,7 +334,8 @@ class WebModFormSpace_computing(WebModFormSpace):
                                     'd_mod':int(dimension_modular_forms(Gamma1(self.level))),
                                     'd_cusp':int(dimension_cusp_forms(Gamma1(self.level))),
                                     'd_newf':int(dimension_new_cusp_forms(Gamma1(self.level))),
-                                    'd_eis':int(self.dimension_eis(Gamma1(self.level)))})
+                                    'd_eis':int(self.dimension_eis(Gamma1(self.level))),
+                        'd_cm':d_cm})
         self.logout()
         return res0, res1
         # Check Gamma1 as well...??
