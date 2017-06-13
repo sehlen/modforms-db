@@ -2224,7 +2224,7 @@ def rewrite_dimension_table():
     
 def fix_inconsistent_records(labels,ncpus=1):
     pool = Pool(processes=ncpus)
-    chunksize = floor(len(labels)/ncpus)
+    chunksize = int(len(labels)/ncpus)
     results = pool.imap_unordered(fix_one_space,labels,chunksize)
     print "Failed at :",list( set(labels).difference(set(results)))
     return list(results)
