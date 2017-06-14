@@ -209,7 +209,7 @@ class ComputeMFData(object):
             save(Bd, self.files().factor_dual_basis_matrix(N, k, i, d))
             save(v, self.files().factor_dual_eigenvector(N, k, i, d))
             save(nz, self.files().factor_eigen_nonzero(N, k, i, d))
-            clogger.debug("Inserted factor nr. {0}".format(d))
+            clogger.debug("Inserted factor nr. {0} for N,k,i={1}".format(d,(N,k,i)))
         tm = cputime(t)
         meta = {'cputime':tm, 'number':len(D), 'version':sage.version.version}
         save(meta, self.files().decomp_meta(N, k, i))
