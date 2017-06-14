@@ -895,7 +895,21 @@ class MongoMF(object):
         print "Removed {0} computations from db!".format(res.deleted_count)
 
         
-                    
+    def clear_dead_computations(self,typec='mf'):
+        import psutils
+        pids = psutils.pids()
+        for t in ['mf','wmf']:
+            if t == 'mf':
+                print "Modular forms computations"
+            else:
+                print "WebModularForms/NewForms computations"
+            for r in self._computations.find({'stopTime':{"$exists":False},'type':t}).sort([('startTime',int(1))]):
+                if r['pid'] not in pids:
+                    self._computations.delete_one({'_id':r['_id']})
+                    duration = str(now - r['startTime']).split(".")[0]
+                    print "Removed: {0:0>3},{1:0>2},{2:0>2} \t\t {3} \t\t {4} \t {5}".format(r['N'],r['k'],r['cchi'],r['startTime'],duration,r['pid'])
+
+                 
 
 
 
