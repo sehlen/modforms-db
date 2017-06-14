@@ -896,8 +896,8 @@ class MongoMF(object):
 
         
     def clear_dead_computations(self,typec='mf'):
-        import psutils
-        pids = psutils.pids()
+        import psutil
+        pids = psutil.pids()
         for t in ['mf','wmf']:
             if t == 'mf':
                 print "Modular forms computations"
