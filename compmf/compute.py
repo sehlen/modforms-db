@@ -201,8 +201,11 @@ class ComputeMFData(object):
                 continue
             A = D[d]
             B  = A.free_module().basis_matrix()
+            clogger.debug("Got basis matrix for factor {0}".format(d))
             Bd = A.dual_free_module().basis_matrix()
+            clogger.debug("Got dual basis matrix for factor {0}".format(d))            
             v  = A.dual_eigenvector(names='a', lift=False)    # vector over number field
+            clogger.debug("Got dual eigenvector for factor {0}".format(d))
             nz = A._eigen_nonzero()
             name = self.files().factor_basis_matrix(N, k, i, d)
             save(B, name)
