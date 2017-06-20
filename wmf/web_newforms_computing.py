@@ -426,13 +426,14 @@ class WebNewForm_computing(WebNewForm):
         self._prec_needed_for_lfunctions = int(20) + int(RR(5)*ceil(RR(self.weight)*RR(self.level).sqrt()))
         return self._prec_needed_for_lfunctions 
     
-    def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26, recompute=False):
+    def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26, recompute=False,timeout_delta=1800):
         r""" Compute all embeddings of self into C which are in the same space as self.
         Return 0 if we didn't compute anything new, otherwise return 1.
         Wrapped in a timeout since this is potentially *very* timeconsuming (can take weeks...)
+        DEfult timeout is 30 minutes.
         """
         try:
-            with timeout(5, exception=TimeoutError):
+            with timeout(timeout_delta, exception=TimeoutError):
                 return self._set_q_expansion_embeddings(prec=prec,bitprec=bitprec,format=format,
                                                         display_bprec=display_bprec,recompute=recompute)
         except TimeoutError:
