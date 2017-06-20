@@ -36,6 +36,7 @@ import re
 import yaml
 from flask import url_for
 import pymongo
+from interruptingcow import timeout
 try:
     from dirichlet_conrey import *
 except:
@@ -48,6 +49,8 @@ class TimeoutException(Exception):   # Custom exception class
 def timeout_handler(signum, frame):   # Custom signal handler
     raise TimeoutException
 
+class TimeoutError(Exception):
+    pass
 ## DB modules
 
 
@@ -426,6 +429,18 @@ class WebNewForm_computing(WebNewForm):
     def set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26, recompute=False):
         r""" Compute all embeddings of self into C which are in the same space as self.
         Return 0 if we didn't compute anything new, otherwise return 1.
+        Wrapped in a timeout since this is potentially *very* timeconsuming (can take weeks...)
+        """
+        try:
+            with timeout(5, exception=TimeoutError):
+                return self._set_q_expansion_embeddings(prec=prec,bitprec=bitprec,format=format,
+                                                        display_bprec=display_bprec,recompute=recompute)
+        except TimeoutError:
+            wmf_logger.critical("Calculations of embeddings timed out!")
+            
+    def _set_q_expansion_embeddings(self, prec=-1, bitprec=53,format='numeric',display_bprec=26, recompute=False):
+        r""" Compute all embeddings of self into C which are in the same space as self.
+        Return 0 if we didn't compute anything new, otherwise return 1.
         """
         if prec <= 0:
             prec = self.prec_needed_for_lfunctions()
@@ -734,6 +749,7 @@ class WebNewForm_computing(WebNewForm):
                 try:
                     for p in prime_range(max_nump + 1):
                         if(x(p) == -1 and coeffs[p] != 0):
+                            #print "Does not have CM with=",x
                             raise StopIteration()  # do not have CM with this char
                 except StopIteration:
                     continue
