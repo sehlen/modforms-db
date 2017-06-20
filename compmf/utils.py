@@ -118,3 +118,43 @@ def convert_matrix_to_extension_fld(E,K):
 #            EE[a,b]=E[a,b].polynomial().substitute({x:z})
     return EE
     
+
+def parse_newform_label(label):
+    r"""
+    Essentially the inverse of the above with addition that we also parse the previous label format 
+    (without dot between character and label.
+    
+    Given "N.k.i.x" or "N.k.ix" it returns N,k,i,x
+    or given "N.k.i.x.d" or "N.k.ix.d" return N,k,i,x,d
+
+    """
+    if not isinstance(label,basestring):
+        raise ValueError,"Need label in string format"
+    l = label.split(".")
+    ## l[0] = label, l[1] = weight, l[2]="{character}{label}" or {character}
+    ## l[3] = {label} or {embedding}, l[4] is either non-existing or {embedding}
+    if len(l) not in [3,4,5]:
+        raise ValueError,"{0} is not a valid newform label!".format(label)
+    if not l[0].isdigit() or not l[1].isdigit():
+        raise ValueError,"{0} is not a valid newform label!".format(label)
+    level = int(l[0]); weight = int(l[1]); orbit_label = ""
+    emb = None
+    try:
+        if len(l) >= 3 and not l[2].isdigit(): # we have N.k.ix or 
+            character = "".join([x for x in l[2] if x.isdigit()])
+            orbit_label = "".join([x for x in l[2] if x.isalpha()])
+            if len(l)==4:
+                emb = int(l[3])
+        elif len(l) >= 4: # we have N.k.i.x or N.k.i.x.j 
+            character = int(l[2])
+            orbit_label = l[3]
+            if len(l)==5:
+                emb = int(l[4])
+        if orbit_label == "" or not orbit_label.isalpha():
+            raise ValueError
+    except (ValueError,IndexError):
+        raise ValueError,"{0} is not a valid newform label!".format(label)
+    if not emb is None:
+        return level,weight,int(character),orbit_label,emb
+    else:
+        return level,weight,int(character),orbit_label

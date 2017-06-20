@@ -32,7 +32,6 @@ import gridfs
 
 import multiprocessing
 from multiprocessing import Pool
-import wmf
 from compmf.filesdb import FilenamesMFDBLoading
 from compmf.compute import ComputeMFData
 from compmf import character_conversions
@@ -544,9 +543,9 @@ class MongoMF(object):
                     clogger.debug("Deleted atkin-lehner {0} with id {1}: for {2}".format(res,fid,label))
         if 'files' in delete_from:
             if label.count(".")==2:
-                N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label+".a")                
+                N,k,i,d=parse_newform_label(label+".a")                
             else:
-                N,k,i,d=wmf.web_newforms_computing.parse_newform_label(label)
+                N,k,i,d=parse_newform_label(label)
             nf = orbit_index_from_label(d)
             dname = self._db.factor(N,k,i,nf)
             print "factor dir=",dname
